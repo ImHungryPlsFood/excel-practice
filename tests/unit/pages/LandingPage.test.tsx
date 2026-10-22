@@ -1,12 +1,21 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { SpreadsheetPreviewMock } from '@/components/landing/SpreadsheetPreviewMock';
 import { LandingPage } from '@/pages/LandingPage';
 
+function renderLanding() {
+  return render(
+    <MemoryRouter>
+      <LandingPage />
+    </MemoryRouter>,
+  );
+}
+
 describe('LandingPage — MASTER_PROMPT §4.1 7대 필수 요소', () => {
   it('1. 서비스 이름과 독자적인 로고', () => {
-    render(<LandingPage />);
+    renderLanding();
 
     const banner = screen.getByRole('banner');
     expect(within(banner).getByRole('img', { name: 'CELLCRAFT 로고' })).toBeInTheDocument();
@@ -14,7 +23,7 @@ describe('LandingPage — MASTER_PROMPT §4.1 7대 필수 요소', () => {
   });
 
   it('2. 한눈에 이해되는 서비스 소개', () => {
-    render(<LandingPage />);
+    renderLanding();
 
     const hero = screen.getByRole('region', { name: /직접 셀을 다루며 배우는 스프레드시트/ });
     expect(within(hero).getByRole('heading', { level: 1 })).toBeInTheDocument();
@@ -22,7 +31,7 @@ describe('LandingPage — MASTER_PROMPT §4.1 7대 필수 요소', () => {
   });
 
   it('3. 실제 스프레드시트가 보이는 미리보기', () => {
-    render(<LandingPage />);
+    renderLanding();
 
     const grid = screen.getByRole('grid', { name: '스프레드시트 미리보기' });
     expect(
@@ -34,7 +43,7 @@ describe('LandingPage — MASTER_PROMPT §4.1 7대 필수 요소', () => {
   });
 
   it('4. 학습 시작 버튼', () => {
-    render(<LandingPage />);
+    renderLanding();
 
     expect(screen.getByRole('link', { name: '무료로 학습 시작하기' })).toHaveAttribute(
       'href',
@@ -43,14 +52,14 @@ describe('LandingPage — MASTER_PROMPT §4.1 7대 필수 요소', () => {
   });
 
   it('5. 학습 과정 소개', () => {
-    render(<LandingPage />);
+    renderLanding();
 
     const course = screen.getByRole('region', { name: /설명을 읽는 것만으로는 끝나지 않는/ });
     expect(within(course).getAllByRole('heading', { level: 3 })).toHaveLength(4);
   });
 
   it('6. 초급부터 고급까지의 성장 경로 (Level 0~10)', () => {
-    render(<LandingPage />);
+    renderLanding();
 
     const roadmap = screen.getByRole('region', { name: /성장 경로/ });
     for (let level = 0; level <= 10; level += 1) {
@@ -59,7 +68,7 @@ describe('LandingPage — MASTER_PROMPT §4.1 7대 필수 요소', () => {
   });
 
   it('7. 자격증과 실무 학습 안내', () => {
-    render(<LandingPage />);
+    renderLanding();
 
     const certification = screen.getByRole('region', { name: /시험 준비와 실제 업무/ });
     expect(
@@ -71,7 +80,7 @@ describe('LandingPage — MASTER_PROMPT §4.1 7대 필수 요소', () => {
   });
 
   it('GPLv3 의무: 푸터에 소스 코드 저장소 링크를 제공한다', () => {
-    render(<LandingPage />);
+    renderLanding();
 
     const footer = screen.getByRole('contentinfo');
     expect(within(footer).getByRole('link', { name: /소스 코드 저장소/ })).toHaveAttribute(

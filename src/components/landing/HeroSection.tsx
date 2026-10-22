@@ -1,6 +1,6 @@
 import { SpreadsheetPreviewMock } from '@/components/landing/SpreadsheetPreviewMock';
 import { Badge } from '@/components/ui/Badge';
-import { ButtonLink } from '@/components/ui/Button';
+import { ButtonLink, ButtonRouterLink } from '@/components/ui/Button';
 
 export interface HeroSectionProps {
   startHref: string;
@@ -27,9 +27,9 @@ export function HeroSection({ startHref, roadmapHref }: HeroSectionProps) {
             경로로 이어집니다.
           </p>
           <div className="flex flex-wrap gap-3">
-            <ButtonLink href={startHref} size="lg">
+            <ButtonRouterLink to={startHref} size="lg">
               무료로 학습 시작하기
-            </ButtonLink>
+            </ButtonRouterLink>
             <ButtonLink href={roadmapHref} size="lg" variant="secondary">
               학습 경로 보기
             </ButtonLink>

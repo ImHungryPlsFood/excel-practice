@@ -1,6 +1,14 @@
-import { LandingPage } from '@/pages/LandingPage';
+import { BrowserRouter } from 'react-router-dom';
 
-// 라우팅(CARD-01C) 도입 전까지는 랜딩 페이지만 렌더링한다.
+import { AppRoutes } from '@/app/routes';
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
+
 export function App() {
-  return <LandingPage />;
+  return (
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </ErrorBoundary>
+  );
 }

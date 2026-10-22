@@ -1,11 +1,13 @@
+import { Link } from 'react-router-dom';
+
 import { Logo } from '@/components/brand/Logo';
 import { CurriculumRoadmap } from '@/components/landing/CurriculumRoadmap';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { Badge } from '@/components/ui/Badge';
-import { ButtonLink } from '@/components/ui/Button';
+import { ButtonRouterLink } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
-// 학습 시작 진입점. /dashboard 라우트는 CARD-01C에서 구현한다.
+// 학습 시작 진입점 (/dashboard 라우트는 CARD-01C에서 구현).
 const START_HREF = '/dashboard';
 // GPLv3 소스 공개 의무 (ADR-001 §4, OPEN_QUESTIONS 의사결정 1).
 const SOURCE_REPOSITORY_URL = 'https://github.com/ImHungryPlsFood/excel-practice';
@@ -50,13 +52,13 @@ function SiteHeader() {
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-surface">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-6">
-        <a
-          href="/"
+        <Link
+          to="/"
           className="flex items-center gap-2 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           <Logo />
           <span className="text-lg font-semibold tracking-tight text-fg">CELLCRAFT</span>
-        </a>
+        </Link>
         <nav aria-label="랜딩 페이지 섹션" className="hidden items-center gap-6 md:flex">
           {NAV_LINKS.map(({ href, label }) => (
             <a
@@ -68,9 +70,9 @@ function SiteHeader() {
             </a>
           ))}
         </nav>
-        <ButtonLink href={START_HREF} size="sm">
+        <ButtonRouterLink to={START_HREF} size="sm">
           학습 시작
-        </ButtonLink>
+        </ButtonRouterLink>
       </div>
     </header>
   );
