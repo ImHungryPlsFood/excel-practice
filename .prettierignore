@@ -1,0 +1,9 @@
+dist/
+coverage/
+playwright-report/
+test-results/
+package-lock.json
+LICENSE
+# 설계 문서는 기획 단계 원본을 그대로 보존한다.
+docs/
+CLAUDE.md

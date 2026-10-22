@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build / test output
+dist/
+coverage/
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+*.tsbuildinfo
+
+# Secrets (THREAT_MODEL S-11) — .env.example만 커밋한다
+.env
+.env.*
+!.env.example
+*.pem
+serviceAccountKey.json
+
+# Logs
+*.log
+npm-debug.log*
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
