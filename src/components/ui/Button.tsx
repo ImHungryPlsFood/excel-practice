@@ -1,4 +1,6 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from 'react';
+import { Link } from 'react-router-dom';
+import type { LinkProps } from 'react-router-dom';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -62,4 +64,19 @@ export function ButtonLink({
   ...rest
 }: ButtonLinkProps) {
   return <a className={buttonClassName(variant, size, className)} {...rest} />;
+}
+
+export interface ButtonRouterLinkProps extends LinkProps {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+}
+
+/** 앱 내부 경로로 이동하는 버튼 모양 링크. 페이지를 새로 불러오지 않고 라우터로 전환한다. */
+export function ButtonRouterLink({
+  variant = 'primary',
+  size = 'md',
+  className,
+  ...rest
+}: ButtonRouterLinkProps) {
+  return <Link className={buttonClassName(variant, size, className)} {...rest} />;
 }

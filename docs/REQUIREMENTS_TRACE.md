@@ -62,7 +62,7 @@
 | **R-03.01** | Frontend: React + TypeScript + Vite | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 |
 | **R-03.02** | Styling: Tailwind CSS 또는 일관된 CSS 디자인 시스템 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 |
 | **R-03.03** | Animation: Motion for React 또는 적합한 경량 애니메이션 도구 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
-| **R-03.04** | Routing: React Router | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
+| **R-03.04** | Routing: React Router | 기능 | Phase 1 | CARD-01A, CARD-01C | 빌드 검증 / 단위 / E2E | 완료됨 (routes.tsx: /, /dashboard, /learn/:courseId, /sandbox, 404. routes.test.tsx·routing.spec.ts) |
 | **R-03.05** | Server state: TanStack Query 또는 필요한 경우 Firebase SDK 중심의 간단한 구조 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.06** | Spreadsheet engine: HyperFormula 또는 요구사항을 충족하는 대안 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.07** | Spreadsheet UI: 적절한 오픈소스 스프레드시트 라이브러리 또는 자체 React 기반 그리드 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
@@ -81,20 +81,20 @@
 | **R-04.01** | 서비스 이름과 독자적인 로고 | 기능 | Phase 1 | CARD-01B | E2E / 수동 | 완료됨 (LandingPage.test.tsx로 렌더링 검증) |
 | **R-04.02** | 한눈에 이해되는 서비스 소개 | 기능 | Phase 1 | CARD-01B | E2E / 수동 | 완료됨 (LandingPage.test.tsx로 렌더링 검증) |
 | **R-04.03** | 실제 스프레드시트가 보이는 미리보기 | 기능 | Phase 1 | CARD-01B | E2E / 수동 | 완료됨 (LandingPage.test.tsx로 렌더링 검증) |
-| **R-04.04** | 학습 시작 버튼 | 기능 | Phase 1 | CARD-01B | E2E / 수동 | 부분 완료 (/dashboard 링크 구현·테스트, 목적지 라우트는 CARD-01C) |
+| **R-04.04** | 학습 시작 버튼 | 기능 | Phase 1 | CARD-01B | E2E / 수동 | 완료됨 (랜딩 → /dashboard 라우터 전환을 routes.test.tsx·routing.spec.ts로 검증) |
 | **R-04.05** | 학습 과정 소개 | 기능 | Phase 1 | CARD-01B | E2E / 수동 | 완료됨 (LandingPage.test.tsx로 렌더링 검증) |
 | **R-04.06** | 초급부터 고급까지의 성장 경로 | 기능 | Phase 1 | CARD-01B | E2E / 수동 | 완료됨 (LandingPage.test.tsx로 렌더링 검증) |
 | **R-04.07** | 자격증과 실무 학습 안내 | 기능 | Phase 1 | CARD-01B | E2E / 수동 | 완료됨 (LandingPage.test.tsx로 렌더링 검증) |
-| **R-04.08** | 현재 학습 단계 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 계획됨 |
-| **R-04.09** | 이어서 학습하기 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 계획됨 |
-| **R-04.10** | 오늘의 목표 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 계획됨 |
-| **R-04.11** | 전체 학습 진행률 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 계획됨 |
-| **R-04.12** | 최근 학습한 내용 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 계획됨 |
-| **R-04.13** | 복습이 필요한 개념 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 계획됨 |
-| **R-04.14** | 틀린 문제 다시 풀기 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 계획됨 |
-| **R-04.15** | 완료한 도전 과제 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 계획됨 |
-| **R-04.16** | 최근 성취와 기록 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 계획됨 |
-| **R-04.17** | 사용자가 어디서부터 시작해야 하는지 고민하지 않도록 명확한 다음 행동을 제시하라. | 금지규칙 | Phase 1 | CARD-01C | E2E / 통합 | 계획됨 |
+| **R-04.08** | 현재 학습 단계 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 부분 완료 (대시보드 UI·기록 없음 상태·데이터 주입 렌더링 검증 완료. 실제 학습 기록 연동은 CARD-06) |
+| **R-04.09** | 이어서 학습하기 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 완료됨 (최상단 카드 → /learn/level-0 링크. 학습 화면 자체는 이후 카드. DashboardPage.test.tsx·routing.spec.ts) |
+| **R-04.10** | 오늘의 목표 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 부분 완료 (대시보드 UI·기록 없음 상태·데이터 주입 렌더링 검증 완료. 실제 학습 기록 연동은 CARD-06) |
+| **R-04.11** | 전체 학습 진행률 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 부분 완료 (대시보드 UI·기록 없음 상태·데이터 주입 렌더링 검증 완료. 실제 학습 기록 연동은 CARD-06) |
+| **R-04.12** | 최근 학습한 내용 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 부분 완료 (대시보드 UI·기록 없음 상태·데이터 주입 렌더링 검증 완료. 실제 학습 기록 연동은 CARD-06) |
+| **R-04.13** | 복습이 필요한 개념 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 부분 완료 (대시보드 UI·기록 없음 상태·데이터 주입 렌더링 검증 완료. 실제 학습 기록 연동은 CARD-06) |
+| **R-04.14** | 틀린 문제 다시 풀기 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 부분 완료 (대시보드 UI·기록 없음 상태·데이터 주입 렌더링 검증 완료. 실제 학습 기록 연동은 CARD-06) |
+| **R-04.15** | 완료한 도전 과제 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 부분 완료 (대시보드 UI·기록 없음 상태·데이터 주입 렌더링 검증 완료. 실제 학습 기록 연동은 CARD-06) |
+| **R-04.16** | 최근 성취와 기록 | 기능 | Phase 1 | CARD-01C | E2E / 통합 | 부분 완료 (대시보드 UI·기록 없음 상태·데이터 주입 렌더링 검증 완료. 실제 학습 기록 연동은 CARD-06) |
+| **R-04.17** | 사용자가 어디서부터 시작해야 하는지 고민하지 않도록 명확한 다음 행동을 제시하라. | 금지규칙 | Phase 1 | CARD-01C | E2E / 통합 | 완료됨 (기록 없음 상태에서도 단일 다음 행동 카드 제시. DashboardPage.test.tsx) |
 | **R-04.18** | 모든 내용을 무조건 일직선으로 배치하지 마라. | 금지규칙 | Phase 5 | CARD-05A | E2E / 단위 | 계획됨 |
 | **R-04.19** | 스프레드시트 기초 | 기능 | Phase 5 | CARD-05A | E2E / 단위 | 계획됨 |
 | **R-04.20** | 셀과 데이터 입력 | 기능 | Phase 5 | CARD-05A | E2E / 단위 | 계획됨 |
@@ -673,7 +673,7 @@
 | **Q-06** | 브라우저 단축키 충돌 방어 및 대체 안내: 가로채기 불가능한 단축키 투명 고지 및 F1/F4/Ctrl+Z 앱 인터셉터 | 기능 | Phase 2 | CARD-02A | 수동 / E2E | 계획됨 |
 | **Q-07** | 날짜 일련번호 및 한국 로케일: 1900년 윤년 처리, 1900-01-01 기준 일련번호 호환성, 한국어 날짜/통화 서식 파싱 테스트 | 비기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
 | **Q-08** | CI 품질 게이트: typecheck, lint, format, test, rules, build 단일 파이프라인 병합 차단 자동화 | 비기능 | Phase 1 | CARD-01A | GitHub Actions CI | 부분 완료 (typecheck·lint·format·test·licenses·audit·build 단계 구성, rules는 CARD-06C·e2e는 CARD-03D에서 추가, 원격 미실행) |
-| **Q-09** | React 오류 경계(ErrorBoundary) 컴포넌트 격리 및 저장 실패 시 지수 백오프 자동 재시도/오프라인 캐시 | 기능 | Phase 1/6 | CARD-01C, CARD-06B | 단위 / E2E | 계획됨 |
+| **Q-09** | React 오류 경계(ErrorBoundary) 컴포넌트 격리 및 저장 실패 시 지수 백오프 자동 재시도/오프라인 캐시 | 기능 | Phase 1/6 | CARD-01C, CARD-06B | 단위 / E2E | 부분 완료 (ErrorBoundary 구현·테스트 완료. 지수 백오프 재시도·오프라인 캐시는 CARD-06B) |
 
 ---
 
@@ -763,3 +763,16 @@
   2. 사용자 결정: 시작 버튼 목적지는 `/dashboard` 링크로 구현
   3. `tokens.test.ts`는 jsdom에서 `?raw` import가 빈 문자열이 되어 `fs`로 직접 읽음
 - **알려진 한계:** `favicon.ico` 없음(브라우저 자동 요청 404 1건). 대시보드·라우팅은 CARD-01C. 랜딩의 `/dashboard` 링크는 그 전까지 랜딩이 다시 표시됨.
+
+### CARD-01C (2026-10-22)
+- **완료됨:** R-03.04, R-04.04, R-04.09, R-04.17
+- **부분 완료 (각 행 상태 칸에 남은 범위 명시):**
+  - R-04.08, R-04.10~R-04.16: 대시보드 UI, "기록 없음" 상태, 데이터 주입 시 렌더링은 테스트로 검증했다. 학습 진행 저장소가 없으므로 실제 학습 기록 연동은 CARD-06에서 한다 (사용자 결정 2026-10-22).
+  - Q-09: ErrorBoundary만 구현. 저장 실패 지수 백오프 재시도·오프라인 캐시는 CARD-06B.
+- **카드 원문과의 차이 (사유 포함):**
+  1. 카드 미기재 추가 파일: `src/components/layout/AppLayout.tsx`(대시보드·학습·샌드박스 공통 틀), `src/features/dashboard/types.ts`·`emptyDashboard.ts`(데이터 모델과 기록 없음 상태), `src/features/dashboard/components/ActivityListCard.tsx`(목록형 5개 항목 공통 카드), `src/pages/NotImplementedPage.tsx`·`NotFoundPage.tsx`, `tests/unit/app/routes.test.tsx`, `tests/unit/components/ErrorBoundary.test.tsx`, `tests/e2e/routing.spec.ts`.
+  2. `src/components/ui/Button.tsx`에 `ButtonRouterLink` 추가, 랜딩의 내부 링크를 라우터 링크로 교체. 기존 랜딩·버튼 테스트는 기대값을 바꾸지 않고 `MemoryRouter`로 감싸기만 했다.
+  3. `/learn/:courseId`, `/sandbox`는 "아직 구현되지 않았습니다"를 명시한 자리 화면이다. 학습·샌드박스 기능은 이후 카드에서 구현한다.
+  4. 대시보드는 모든 사용자에게 "기록 없음" 상태로 표시된다 (사용자 결정 2026-10-22).
+- **요구사항 ID 표기 불일치 (이번 카드 한정 기록):** HANDOFF의 CARD-01C 본문에 적힌 `R-04.2-01`, `R-04.2-02`, `R-17.1-01`은 본 추적표에 존재하지 않는다. MASTER_PROMPT §4.2 원문 기준으로 `R-04.08`~`R-04.17`에 대응시켜 갱신했다(사용자 결정 2026-10-22). `R-17.1-01`은 대응하는 ID를 확인하지 못해 Q-09(ErrorBoundary)와 R-03.04만 갱신했다. 다른 카드의 ID 표기는 이번에 수정하지 않았다.
+- **알려진 한계:** `favicon.ico` 없음(CARD-01B에서 이어짐). `/learn/level-0`의 courseId 규칙은 임시값이며 콘텐츠 스키마(CARD-03) 확정 시 맞춰야 한다.

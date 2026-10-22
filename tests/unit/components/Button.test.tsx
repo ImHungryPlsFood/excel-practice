@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
-import { Button, ButtonLink } from '@/components/ui/Button';
+import { Button, ButtonLink, ButtonRouterLink } from '@/components/ui/Button';
 
 describe('Button', () => {
   it('renders an accessible button with its label', () => {
@@ -90,6 +91,22 @@ describe('ButtonLink', () => {
     );
 
     const link = screen.getByRole('link', { name: '학습 시작' });
+    expect(link).toHaveAttribute('href', '/dashboard');
+    expect(link).toHaveClass('bg-brand', 'h-(--cc-control-height-lg)');
+  });
+});
+
+describe('ButtonRouterLink', () => {
+  it('renders an in-app link with button styling', () => {
+    render(
+      <MemoryRouter>
+        <ButtonRouterLink to="/dashboard" size="lg">
+          대시보드
+        </ButtonRouterLink>
+      </MemoryRouter>,
+    );
+
+    const link = screen.getByRole('link', { name: '대시보드' });
     expect(link).toHaveAttribute('href', '/dashboard');
     expect(link).toHaveClass('bg-brand', 'h-(--cc-control-height-lg)');
   });
