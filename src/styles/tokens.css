@@ -1,0 +1,110 @@
+/*
+ * CELLCRAFT 디자인 토큰 (CARD-01B, MASTER_PROMPT §12.1).
+ * 모든 색상·간격·둥글기·글꼴·모션 값은 이 파일에서만 정의한다 (R-12.23).
+ * Tailwind 유틸리티 매핑은 src/index.css의 @theme inline 블록이 담당한다.
+ *
+ * 값 근거:
+ * - 그리드/텍스트 색, 행 높이, 컨트롤 높이: docs/RESEARCH_NOTES.md 관점 9·10
+ * - 모션 시간·곡선: docs/UX_MOTION_PERF.md P-03 (변수명도 문서 표기를 그대로 따른다)
+ */
+:root {
+  /* 색상 — 브랜드 */
+  --cc-color-brand: #2453b8;
+  --cc-color-brand-hover: #1c4396;
+  --cc-color-brand-subtle: #eaf0fb;
+  --cc-color-on-brand: #ffffff;
+
+  /* 배경 */
+  --cc-bg-canvas: #f6f7f9;
+  --cc-bg-surface: #ffffff;
+  --cc-bg-subtle: #f1f3f6;
+  --cc-bg-inverse: #1f2937;
+
+  /* 텍스트 색상 */
+  --cc-text-primary: #1f2937;
+  --cc-text-secondary: #4b5563;
+  --cc-text-muted: #6b7280;
+  --cc-text-inverse: #f9fafb;
+
+  /* 경계선 */
+  --cc-border-default: #e5e7eb;
+  --cc-border-strong: #d1d5db;
+  --cc-border-focus: #2453b8;
+
+  /* 스프레드시트 그리드 */
+  --cc-grid-bg: #fafafa;
+  --cc-grid-header-bg: #f3f4f6;
+  --cc-grid-line: #e5e7eb;
+  --cc-grid-cell-bg: #ffffff;
+
+  /* 상태별 강조 색상 (§12.2: 선택·편집·오류·읽기 전용·목표 셀, §9: 정답·오답) */
+  --cc-state-selected: #2453b8;
+  --cc-state-selected-bg: #eaf0fb;
+  --cc-state-editing: #1c4396;
+  --cc-state-error: #b42318;
+  --cc-state-error-bg: #fef3f2;
+  --cc-state-readonly-bg: #f3f4f6;
+  --cc-state-target: #b54708;
+  --cc-state-target-bg: #fffaeb;
+  --cc-state-success: #067647;
+  --cc-state-success-bg: #ecfdf3;
+  --cc-state-warning: #b54708;
+  --cc-state-warning-bg: #fffaeb;
+
+  /* 그림자 */
+  --cc-shadow-sm: 0 1px 2px rgb(16 24 40 / 0.06);
+  --cc-shadow-md: 0 2px 6px rgb(16 24 40 / 0.08), 0 1px 2px rgb(16 24 40 / 0.04);
+  --cc-shadow-lg: 0 12px 24px rgb(16 24 40 / 0.1), 0 2px 6px rgb(16 24 40 / 0.05);
+
+  /* 여백 — 4px 기준 단위. Tailwind 간격 유틸리티(p-4 = 4 × 단위)가 이 값을 사용한다. */
+  --cc-space-unit: 0.25rem;
+
+  /* 모서리 둥글기 */
+  --cc-radius-sm: 0.25rem;
+  --cc-radius-md: 0.375rem;
+  --cc-radius-lg: 0.625rem;
+  --cc-radius-full: 9999px;
+
+  /* 글꼴 — 외부 웹폰트를 내려받지 않고 OS 한글 글꼴을 사용한다. */
+  --cc-font-sans:
+    'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+  --cc-font-mono: 'Cascadia Mono', Consolas, 'SFMono-Regular', Menlo, monospace;
+
+  /* 폰트 크기 */
+  --cc-font-size-xs: 0.75rem;
+  --cc-font-size-sm: 0.875rem;
+  --cc-font-size-base: 1rem;
+  --cc-font-size-lg: 1.125rem;
+  --cc-font-size-xl: 1.25rem;
+  --cc-font-size-2xl: 1.5rem;
+  --cc-font-size-3xl: 2rem;
+  --cc-font-size-4xl: 2.5rem;
+
+  /* 행 높이 — 본문 줄 간격과 그리드·컨트롤 높이 */
+  --cc-line-height-tight: 1.25;
+  --cc-line-height-normal: 1.6;
+  --cc-grid-row-height: 1.5rem;
+  --cc-control-height-sm: 2rem;
+  --cc-control-height-md: 2.5rem;
+  --cc-control-height-lg: 3rem;
+
+  /* 애니메이션 시간 (UX_MOTION_PERF P-03) */
+  --motion-duration-instant: 100ms;
+  --motion-duration-fast: 200ms;
+  --motion-duration-normal: 300ms;
+  --motion-duration-slow: 450ms;
+
+  /* 전환 곡선 (UX_MOTION_PERF P-03) */
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 모션 감소 설정 존중: 모든 전환 시간을 사실상 0으로 줄인다 (UX_MOTION_PERF P-03). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-instant: 0.001ms;
+    --motion-duration-fast: 0.001ms;
+    --motion-duration-normal: 0.001ms;
+    --motion-duration-slow: 0.001ms;
+  }
+}
