@@ -59,8 +59,8 @@
 | **R-02.30** | Netlify 배포 환경에서 Firebase를 안전하게 사용하는 방법 | 기능 | Phase 0 | RESEARCH_NOTES / ADR | 문서 검수 | 계획됨 |
 | **R-02.31** | 각 라이브러리의 라이선스, 상업적 이용 제한, 버전 호환성 | 기능 | Phase 0 | RESEARCH_NOTES / ADR | 문서 검수 | 계획됨 |
 | **R-02.32** | 대규모 문제 데이터와 학습 진도를 어떻게 관리할지 | 기능 | Phase 0 | RESEARCH_NOTES / ADR | 문서 검수 | 계획됨 |
-| **R-03.01** | Frontend: React + TypeScript + Vite | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
-| **R-03.02** | Styling: Tailwind CSS 또는 일관된 CSS 디자인 시스템 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
+| **R-03.01** | Frontend: React + TypeScript + Vite | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 |
+| **R-03.02** | Styling: Tailwind CSS 또는 일관된 CSS 디자인 시스템 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 |
 | **R-03.03** | Animation: Motion for React 또는 적합한 경량 애니메이션 도구 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.04** | Routing: React Router | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.05** | Server state: TanStack Query 또는 필요한 경우 Firebase SDK 중심의 간단한 구조 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
@@ -68,8 +68,8 @@
 | **R-03.07** | Spreadsheet UI: 적절한 오픈소스 스프레드시트 라이브러리 또는 자체 React 기반 그리드 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.08** | Backend services: Firebase Authentication, Cloud Firestore | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.09** | Hosting: Netlify | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
-| **R-03.10** | Testing: Vitest, React Testing Library, Playwright | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
-| **R-03.11** | Version control: Git | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
+| **R-03.10** | Testing: Vitest, React Testing Library, Playwright | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 부분 완료 (Vitest·RTL 실행 검증, Playwright는 설정만 — 첫 E2E는 CARD-03D) |
+| **R-03.11** | Version control: Git | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 |
 | **R-03.12** | 라이브러리의 이름만 보고 Excel과 완벽히 호환된다고 가정하지 마라. | 금지규칙 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.13** | **비싼 상용 라이브러리를 별도 승인 없이 도입하지 말고, 라이선스가 불명확한 라이브러리를 핵심 구조에 의존시키지 마라.** | 금지규칙 | Phase 2 | CARD-02B / ADR-001 | 라이선스 검수 | 계획됨 |
 | **R-03.14** | 실제 학습에 필요한 기능을 구현할 수 있는가? | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
@@ -488,8 +488,8 @@
 | **R-14.13** | `.env.local`이나 비밀 정보가 포함된 파일을 Git에 커밋하지 않도록 `.gitignore`를 확인하라. | 금지규칙 | Phase 8 | CARD-08A | 배포 URL 검증 | 계획됨 |
 | **R-14.14** | 배포 과정에서 문제가 발생하면 실제 오류를 해결하라. 단순히 배포 방법만 설명하고 끝내지 마라. | 금지규칙 | Phase 8 | CARD-08A | 배포 URL 검증 | 계획됨 |
 | **R-15.01** | 컴포넌트를 하나의 거대한 파일에 몰아넣지 마라. | 금지규칙 | Phase 1~8 | 전체 공통 (CARD-01A) | typecheck / 린트 | 계획됨 |
-| **R-15.02** | TypeScript의 엄격한 타입 검사를 사용한다. | 기능 | Phase 1~8 | 전체 공통 (CARD-01A) | typecheck / 린트 | 계획됨 |
-| **R-15.03** | `any`를 남용하지 않는다. | 금지규칙 | Phase 1~8 | 전체 공통 (CARD-01A) | typecheck / 린트 | 계획됨 |
+| **R-15.02** | TypeScript의 엄격한 타입 검사를 사용한다. | 기능 | Phase 1~8 | 전체 공통 (CARD-01A) | typecheck / 린트 | 완료됨 (tsconfig strict 강제, 이후 카드 유지) |
+| **R-15.03** | `any`를 남용하지 않는다. | 금지규칙 | Phase 1~8 | 전체 공통 (CARD-01A) | typecheck / 린트 | 완료됨 (`no-explicit-any: error` 강제, 이후 카드 유지) |
 | **R-15.04** | 중복 코드를 줄인다. | 기능 | Phase 1~8 | 전체 공통 (CARD-01A) | typecheck / 린트 | 계획됨 |
 | **R-15.05** | 컴포넌트와 비즈니스 로직을 분리한다. | 기능 | Phase 1~8 | 전체 공통 (CARD-01A) | typecheck / 린트 | 계획됨 |
 | **R-15.06** | 공통 상태 관리 전략을 정한다. | 기능 | Phase 1~8 | 전체 공통 (CARD-01A) | typecheck / 린트 | 계획됨 |
@@ -651,10 +651,10 @@
 | **S-05** | Firebase App Check 도입 (reCAPTCHA Enterprise, debug provider, 모니터링 후 강제 차단) | 비기능 | Phase 6 | CARD-06A | 토큰 검증 테스트 | 계획됨 |
 | **S-06** | API 키 HTTP 리퍼러 제한, Firebase Auth 승인 도메인 설정, VITE_ 비밀값 노출 금지 | 비기능 | Phase 6 | CARD-06A | 콘솔 설정 체크리스트 | 계획됨 |
 | **S-07** | Netlify 보안 헤더(CSP, HSTS, X-Content-Type-Options, frame-ancestors none) 및 SPA 200 리디렉션 | 비기능 | Phase 8 | CARD-08A | curl 헤더 검사 | 계획됨 |
-| **S-08** | XSS 원천 차단: dangerouslySetInnerHTML 전면 금지 (ESLint 강제), DOMPurify 화이트리스트 렌더링 | 금지규칙 | Phase 1~8 | CARD-01A (ESLint) | ESLint / 단위 | 계획됨 |
+| **S-08** | XSS 원천 차단: dangerouslySetInnerHTML 전면 금지 (ESLint 강제), DOMPurify 화이트리스트 렌더링 | 금지규칙 | Phase 1~8 | CARD-01A (ESLint) | ESLint / 단위 | 부분 완료 (ESLint `react/no-danger` 강제 검증, DOMPurify는 서식 텍스트 도입 카드) |
 | **S-09** | 수식 엔진 남용 방지: 수식 길이 1,000자 상한, 시트 1,000행 상한, 순환참조 방어, Worker 타임아웃 2초, eval/Function 전면 금지 | 금지규칙 | Phase 2 | CARD-02B | ESLint / 단위 | 계획됨 |
-| **S-10** | 공급망 보안: package-lock.json 필수 커밋, 정확한 버전 고정, npm audit CI 게이트, 출처 불명 스크립트 금지 | 비기능 | Phase 1 | CARD-01A | npm audit / CI | 계획됨 |
-| **S-11** | 비밀 정보 유출 방지: .gitignore 철저 검증 (.env* 제외), 커밋 전 비밀값 스캔 도구 연동 | 비기능 | Phase 1 | CARD-01A | Git 스캔 테스트 | 계획됨 |
+| **S-10** | 공급망 보안: package-lock.json 필수 커밋, 정확한 버전 고정, npm audit CI 게이트, 출처 불명 스크립트 금지 | 비기능 | Phase 1 | CARD-01A | npm audit / CI | 부분 완료 (lockfile·정확 버전·로컬 npm audit 0건 검증, CI 게이트는 원격 저장소 연결 후 첫 실행 필요) |
+| **S-11** | 비밀 정보 유출 방지: .gitignore 철저 검증 (.env* 제외), 커밋 전 비밀값 스캔 도구 연동 | 비기능 | Phase 1 | CARD-01A | Git 스캔 테스트 | 부분 완료 (.gitignore `git check-ignore` 검증, gitleaks CI는 원격 저장소 연결 후 첫 실행 필요) |
 | **S-12** | 개인정보 최소 수집, 계정 탈퇴 시 데이터 영구 삭제 트랜잭션, 데이터 내보내기, 만 14세 이용 약관 정책 | 비기능 | Phase 6 | CARD-06B | 약관 / 탈퇴 테스트 | 계획됨 |
 | **S-13** | 인증 보안: 이메일 열거 방지 모호한 실패 메시지, 비밀번호 복잡도 정책, 공식 비밀번호 재설정 OOB 흐름 | 기능 | Phase 6 | CARD-06A | 통합 테스트 | 계획됨 |
 | **S-14** | Firestore 보안 규칙 자동화 테스트: Local Emulator Suite 기반 5대 핵심 권한 시나리오 자동 검증 | 비기능 | Phase 6 | CARD-06C | npm run test:rules | 계획됨 |
@@ -672,7 +672,7 @@
 | **Q-05** | 한글 입력기(IME) 조합 처리: isComposing 감지 및 compositionstart/end 처리를 통한 조합 중 커밋 및 중복 입력 방지 | 기능 | Phase 2 | CARD-02A | Playwright E2E | 계획됨 |
 | **Q-06** | 브라우저 단축키 충돌 방어 및 대체 안내: 가로채기 불가능한 단축키 투명 고지 및 F1/F4/Ctrl+Z 앱 인터셉터 | 기능 | Phase 2 | CARD-02A | 수동 / E2E | 계획됨 |
 | **Q-07** | 날짜 일련번호 및 한국 로케일: 1900년 윤년 처리, 1900-01-01 기준 일련번호 호환성, 한국어 날짜/통화 서식 파싱 테스트 | 비기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **Q-08** | CI 품질 게이트: typecheck, lint, format, test, rules, build 단일 파이프라인 병합 차단 자동화 | 비기능 | Phase 1 | CARD-01A | GitHub Actions CI | 계획됨 |
+| **Q-08** | CI 품질 게이트: typecheck, lint, format, test, rules, build 단일 파이프라인 병합 차단 자동화 | 비기능 | Phase 1 | CARD-01A | GitHub Actions CI | 부분 완료 (typecheck·lint·format·test·licenses·audit·build 단계 구성, rules는 CARD-06C·e2e는 CARD-03D에서 추가, 원격 미실행) |
 | **Q-09** | React 오류 경계(ErrorBoundary) 컴포넌트 격리 및 저장 실패 시 지수 백오프 자동 재시도/오프라인 캐시 | 기능 | Phase 1/6 | CARD-01C, CARD-06B | 단위 / E2E | 계획됨 |
 
 ---
@@ -697,7 +697,7 @@
 | **G-01** | Claude Code 작업 4대 금지 규칙: 테스트 약화/삭제 금지, 정답 하드코딩 금지, ts-ignore/빈 catch 오류 은폐 금지, 가짜 목업 완료 보고 금지 | 금지규칙 | Phase 1~8 | CLAUDE_CODE_HANDOFF | 코드 리뷰 | 계획됨 |
 | **G-02** | 세션 종료 시 완료 보고 표준 양식 준수 (변경 파일, 실행 명령/출력, 통과/실패 수, 추적표 갱신, 다음 카드) | 문서화 | Phase 1~8 | CLAUDE_CODE_HANDOFF | 세션 완료 보고 | 계획됨 |
 | **G-03** | 루트 CLAUDE.md 개발자 지침 유지 및 세부 설계 문서 연계 | 문서화 | Phase 0 | CLAUDE.md | 문서 확인 | 계획됨 |
-| **G-04** | Windows 11 VS Code 호환, Node LTS 24 고정(.nvmrc: 24), 공백 경로 따옴표 처리, OneDrive 등 동기화 폴더 npm install 엄격 금지 | 비기능 | Phase 1 | CARD-01A | 환경 검증 | 계획됨 |
+| **G-04** | Windows 11 VS Code 호환, Node LTS 24 고정(.nvmrc: 24), 공백 경로 따옴표 처리, OneDrive 등 동기화 폴더 npm install 엄격 금지 | 비기능 | Phase 1 | CARD-01A | 환경 검증 | 완료됨 |
 | **G-05** | Git 형상 관리 전략: 카드별 브랜치/원자적 커밋, Conventional Commits 규칙, Phase 종료 태그 발행 | 비기능 | Phase 1~8 | CLAUDE_CODE_HANDOFF | Git 로그 검수 | 계획됨 |
 
 ---
@@ -733,3 +733,22 @@
 | **보강: 성능/UX (P-01 ~ P-06)** | 0 | 0 | 0 | 6 | 6 | 0 | **완벽 일치 (누락 0건)** |
 | **보강: Claude Code 인계 (G-01 ~ G-05)** | 0 | 1 | 0 | 5 | 5 | 0 | **완벽 일치 (누락 0건)** |
 | **총합 (Grand Total)** | **562** | **59** | **8** | **660** | **660** | **0** | **누락 0건 완전 검증 완료** |
+
+---
+
+## 7. 작업 카드별 갱신 기록
+
+### CARD-01A (2026-10-22)
+- **완료됨:** R-03.01, R-03.02, R-03.11, R-15.02, R-15.03, G-04
+- **부분 완료:** R-03.10, S-08, S-10, S-11, Q-08 (각 행의 상태 칸에 남은 범위 명시)
+- **CARD-01A 배정이지만 다른 카드에서 충족 예정 (계획됨 유지):**
+  - R-03.03 Motion → CARD-03D, R-03.04 React Router → CARD-01C, R-03.05 TanStack Query/Firebase SDK → CARD-06A~06B, R-03.06 HyperFormula → CARD-02B, R-03.07 그리드 → CARD-02A, R-03.08 Firebase → CARD-06A, R-03.09 Netlify → CARD-08A
+  - R-12.11~R-12.23 디자인 토큰 → CARD-01B (`src/styles/tokens.css`가 01B 파일 목록에 있음)
+  - R-03.12, R-03.14, R-03.16~R-03.19, R-15.01, R-15.04~R-15.13: 전 카드 공통 원칙으로 계속 적용
+- **카드 원문과의 차이 (사유 포함):**
+  1. `.eslintrc.cjs` → `eslint.config.js` (flat config). ESLint 10은 eslintrc를 지원하지 않음. 사용자 결정.
+  2. Tailwind 3 + `tailwind.config.js`/`postcss.config.js` → Tailwind 4.3.3 + `@tailwindcss/vite`. Tailwind 3.4.19 의존성 체인에 high 취약점 5건(braces GHSA-vfj7-8cjw-p6xm 등)이 있어 S-10 `npm audit --audit-level=high` 게이트와 충돌. 두 설정 파일은 v4에서 불필요하므로 만들지 않음.
+  3. Zod 미설치: CARD-01A에서 사용하지 않으므로 R-15.10에 따라 CARD-03A에서 설치.
+  4. TypeScript 6.0.3 고정: 최신 7.0.2는 typescript-eslint 8.72.0 지원 범위(<6.1.0) 밖.
+  5. 카드 미기재 추가 파일: `.github/workflows/ci.yml`(Q-08/S-10/S-11, 사용자 결정), `scripts/audit-licenses.mjs`(ADR-001 §4.2), `.gitattributes`(Windows↔CI 줄바꿈 일치), `.prettierignore`, 최소 앱 셸(`index.html`, `src/main.tsx`, `src/App.tsx`, `src/index.css`)과 실제 스모크 테스트(`tests/unit/app/App.test.tsx`, `tests/setup.ts`).
+- **요구사항 ID 표기 불일치:** HANDOFF 카드의 `R-03.0-01`, `R-12.1-01` 같은 ID는 본 추적표 형식(`R-03.01` 등)과 다르다. 본 표 ID 기준으로 갱신했다.
