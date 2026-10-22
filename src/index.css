@@ -1,1 +1,91 @@
 @import 'tailwindcss';
+@import './styles/tokens.css';
+
+/*
+ * 디자인 토큰 → Tailwind 유틸리티 매핑.
+ * 기본 색상 팔레트·그림자·둥글기·글자 크기를 비워 두어 토큰에 없는 값은 유틸리티로 쓸 수 없게 한다 (R-12.23).
+ */
+@theme inline {
+  --color-*: initial;
+  --color-brand: var(--cc-color-brand);
+  --color-brand-hover: var(--cc-color-brand-hover);
+  --color-brand-subtle: var(--cc-color-brand-subtle);
+  --color-on-brand: var(--cc-color-on-brand);
+
+  --color-canvas: var(--cc-bg-canvas);
+  --color-surface: var(--cc-bg-surface);
+  --color-subtle: var(--cc-bg-subtle);
+  --color-inverse: var(--cc-bg-inverse);
+
+  --color-fg: var(--cc-text-primary);
+  --color-fg-secondary: var(--cc-text-secondary);
+  --color-fg-muted: var(--cc-text-muted);
+  --color-fg-inverse: var(--cc-text-inverse);
+
+  --color-line: var(--cc-border-default);
+  --color-line-strong: var(--cc-border-strong);
+  --color-focus: var(--cc-border-focus);
+
+  --color-grid: var(--cc-grid-bg);
+  --color-grid-header: var(--cc-grid-header-bg);
+  --color-grid-line: var(--cc-grid-line);
+  --color-cell: var(--cc-grid-cell-bg);
+
+  --color-selected: var(--cc-state-selected);
+  --color-selected-bg: var(--cc-state-selected-bg);
+  --color-editing: var(--cc-state-editing);
+  --color-error: var(--cc-state-error);
+  --color-error-bg: var(--cc-state-error-bg);
+  --color-readonly-bg: var(--cc-state-readonly-bg);
+  --color-target: var(--cc-state-target);
+  --color-target-bg: var(--cc-state-target-bg);
+  --color-success: var(--cc-state-success);
+  --color-success-bg: var(--cc-state-success-bg);
+  --color-warning: var(--cc-state-warning);
+  --color-warning-bg: var(--cc-state-warning-bg);
+
+  --shadow-*: initial;
+  --shadow-sm: var(--cc-shadow-sm);
+  --shadow-md: var(--cc-shadow-md);
+  --shadow-lg: var(--cc-shadow-lg);
+
+  --spacing: var(--cc-space-unit);
+
+  --radius-*: initial;
+  --radius-sm: var(--cc-radius-sm);
+  --radius-md: var(--cc-radius-md);
+  --radius-lg: var(--cc-radius-lg);
+  --radius-full: var(--cc-radius-full);
+
+  --font-sans: var(--cc-font-sans);
+  --font-mono: var(--cc-font-mono);
+
+  --text-*: initial;
+  --text-xs: var(--cc-font-size-xs);
+  --text-sm: var(--cc-font-size-sm);
+  --text-base: var(--cc-font-size-base);
+  --text-lg: var(--cc-font-size-lg);
+  --text-xl: var(--cc-font-size-xl);
+  --text-2xl: var(--cc-font-size-2xl);
+  --text-3xl: var(--cc-font-size-3xl);
+  --text-4xl: var(--cc-font-size-4xl);
+
+  --leading-tight: var(--cc-line-height-tight);
+  --leading-normal: var(--cc-line-height-normal);
+
+  --ease-*: initial;
+  --ease-out: var(--motion-ease-out);
+  --ease-in-out: var(--motion-ease-in-out);
+}
+
+@layer base {
+  body {
+    background-color: var(--cc-bg-canvas);
+    color: var(--cc-text-primary);
+    font-family: var(--cc-font-sans);
+    line-height: var(--cc-line-height-normal);
+    /* 한국어 단어 중간 줄바꿈 방지 (읽기 쉬운 타이포그래피, R-12.05) */
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+}
