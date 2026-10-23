@@ -1,9 +1,13 @@
 import { NavLink } from 'react-router-dom';
 
-const SIDEBAR_LINKS = [{ to: '/dashboard', label: '대시보드' }] as const;
+// 연습실은 CARD-02D에서 동작하게 되어 링크로 되돌렸다.
+const SIDEBAR_LINKS = [
+  { to: '/dashboard', label: '대시보드' },
+  { to: '/sandbox', label: '연습실' },
+] as const;
 
 // 아직 구현되지 않은 화면은 링크로 노출하지 않는다 (R-15.11, R-15.12).
-const SIDEBAR_PENDING_ITEMS = [{ label: '학습' }, { label: '샌드박스' }] as const;
+const SIDEBAR_PENDING_ITEMS = [{ label: '학습' }] as const;
 
 const LINK_BASE =
   'block rounded-md px-3 py-2 text-sm transition-colors duration-(--motion-duration-fast) ' +

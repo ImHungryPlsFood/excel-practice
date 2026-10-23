@@ -8,6 +8,13 @@ import { NotFoundPage } from '@/pages/NotFoundPage';
 import { NotImplementedPage } from '@/pages/NotImplementedPage';
 
 /*
+ * 연습실은 수식 엔진(HyperFormula)을 포함해 크므로 따로 내려받는다. 랜딩·대시보드 첫 화면 번들에 넣지 않는다.
+ */
+const SandboxPage = lazy(() =>
+  import('@/pages/SandboxPage').then((module) => ({ default: module.SandboxPage })),
+);
+
+/*
  * 개발 전용 화면은 개발 서버와 성능 측정 빌드(vite build --mode perf)에서만 등록한다.
  * 조건이 빌드 시점 상수라 프로덕션 번들에서는 동적 import 자체가 제거된다.
  */
@@ -46,10 +53,9 @@ export function AppRoutes() {
         <Route
           path="/sandbox"
           element={
-            <NotImplementedPage
-              title="샌드박스"
-              description="자유롭게 수식을 실험해 볼 수 있는 빈 시트가 이 화면에서 제공될 예정입니다."
-            />
+            <Suspense fallback={<p className="text-sm text-fg-secondary">연습실을 여는 중…</p>}>
+              <SandboxPage />
+            </Suspense>
           }
         />
       </Route>

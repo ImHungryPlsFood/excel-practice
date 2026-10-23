@@ -34,7 +34,7 @@ import {
   ExcelCompatPlugin,
   ExcelFilterPlugin,
 } from './excelCompatPlugin';
-import { normalizeNumberLiterals } from '../formulaPreprocess';
+import { prepareFormula } from '../formulaPreprocess';
 
 // CONCAT 추가, INDEX·ROUND·FILTER 등을 Excel 동작으로 교체한다(excelCompatPlugin.ts 머리 주석). 함수 등록은 HyperFormula 전역이며 같은 플러그인을 다시 등록해도 덮어쓸 뿐이다.
 HyperFormula.registerFunctionPlugin(ExcelCompatPlugin, EXCEL_COMPAT_TRANSLATIONS);
@@ -138,7 +138,16 @@ export class HyperFormulaAdapter implements FormulaEngineAdapter {
     this.registeredFunctions = new Set(this.engine.getRegisteredFunctionNames());
   }
 
-  async initWorkbook(sheets: Record<string, CellScalar[][]>): Promise<void> {
+  initWorkbook(sheets: Record<string, CellScalar[][]>): Promise<void> {
+    try {
+      this.loadSheets(sheets);
+    } catch (error) {
+      return Promise.reject(error instanceof Error ? error : new Error(String(error)));
+    }
+    return Promise.resolve();
+  }
+
+  loadSheets(sheets: Record<string, CellScalar[][]>): void {
     // 엔진을 바꾸기 전에 모든 셀을 검사해, 제한을 넘는 통합 문서는 기존 상태를 건드리지 않고 거부한다.
     for (const rows of Object.values(sheets)) {
       rows.forEach((cells, row) => {
@@ -148,7 +157,7 @@ export class HyperFormulaAdapter implements FormulaEngineAdapter {
         cells.forEach(checkContent);
       });
     }
-    // 수식 안의 지수 표기를 엔진이 읽는 형태로 바꾼다(formulaPreprocess.ts).
+    // 수식 안의 지수 표기·한글 시트 이름을 엔진이 읽는 형태로 바꾼다(formulaPreprocess.ts).
     const prepared = Object.fromEntries(
       Object.entries(sheets).map(([name, rows]) => [
         name,
@@ -157,7 +166,7 @@ export class HyperFormulaAdapter implements FormulaEngineAdapter {
             if (typeof cell !== 'string') {
               return cell;
             }
-            const converted = normalizeNumberLiterals(cell);
+            const converted = prepareFormula(cell);
             checkContent(converted);
             return converted;
           }),
@@ -179,10 +188,17 @@ export class HyperFormulaAdapter implements FormulaEngineAdapter {
     checkPosition(row, col);
     checkContent(content);
     const sheet = this.sheetId(sheetName);
-    const prepared = typeof content === 'string' ? normalizeNumberLiterals(content) : content;
+    const prepared = typeof content === 'string' ? prepareFormula(content) : content;
     // 지수 표기를 풀어 쓰면 길어질 수 있어 변환 뒤에도 상한(S-09)을 확인한다.
     checkContent(prepared);
-    this.engine.setCellContents({ sheet, row, col }, [[prepared]]);
+    const address = { sheet, row, col };
+    // HyperFormula 3.5.0: 없는 시트를 가리키는 수식(=Sheet9!A1)을 다른 수식으로 바로 덮어쓰면
+    // 내부 의존 그래프가 "There's no sheet with id = N"을 던진다. 먼저 비운 뒤 쓰면 같은 결과로 정상 동작한다
+    // (docs/EXCEL_DIFFERENCES.md D-16, 회귀 테스트 tests/unit/engine/formula-eval.test.ts).
+    if (isFormula(prepared) && this.engine.doesCellHaveFormula(address)) {
+      this.engine.setCellContents(address, [[null]]);
+    }
+    this.engine.setCellContents(address, [[prepared]]);
     this.updateGraphFor(sheet, row, col);
   }
 

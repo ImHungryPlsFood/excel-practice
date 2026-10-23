@@ -60,10 +60,17 @@ export interface SpreadsheetGridHandle {
   focus: () => void;
 }
 
+/**
+ * 셀 값 종류 (R-08.22, CARD-02D). 서식이 없는 셀의 기본 정렬을 정한다(Excel 기본 표시).
+ * 원문 글자가 아니라 계산 결과의 종류로 정하므로 '123처럼 문자로 저장한 숫자는 text다.
+ */
+export type CellValueKind = 'empty' | 'number' | 'text' | 'boolean' | 'error';
+
 /** 셀 화면 표시. 수식 셀이면 계산 결과, 오류면 오류 코드다. */
 export interface CellDisplay {
   text: string;
-  isError: boolean;
+  /** 값 종류. 숫자·날짜는 오른쪽, 문자는 왼쪽, 논리값·오류는 가운데 정렬된다. */
+  kind: CellValueKind;
 }
 
 export interface SpreadsheetGridProps {
@@ -79,6 +86,10 @@ export interface SpreadsheetGridProps {
   onActiveCellChange?: (position: CellPosition) => void;
   /** 수식 입력줄과 함께 쓰는 편집 컨트롤러(CARD-02C). 없으면 그리드가 직접 만든다. */
   editor?: CellEditingController;
+  /** 편집 중이 아닐 때 Ctrl+Z (CARD-02D). 없으면 브라우저 기본 동작을 막기만 한다. */
+  onUndo?: () => void;
+  /** 편집 중이 아닐 때 Ctrl+Y·Ctrl+Shift+Z */
+  onRedo?: () => void;
   /** 접근성 이름 */
   label: string;
   className?: string;

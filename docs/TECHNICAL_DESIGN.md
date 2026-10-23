@@ -135,6 +135,8 @@ export interface FormulaEngineAdapter {
 
   // 라이프사이클 및 초기화
   initWorkbook(sheets: Record<string, CellScalar[][]>): Promise<void>;
+  // 통합 문서를 즉시 다시 만든다 (CARD-02D: 시트 구조 변경·실행 취소용)
+  loadSheets(sheets: Record<string, CellScalar[][]>): void;
   destroy(): void;
 
   // 셀 조작

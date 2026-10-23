@@ -63,6 +63,8 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
       onCellsChange,
       onActiveCellChange,
       editor: sharedEditor,
+      onUndo,
+      onRedo,
       label,
       className,
     },
@@ -225,6 +227,21 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
         return;
       }
 
+      // 실행 취소·다시 실행 (CARD-02D, Q-06). 편집 중에는 입력 상자의 글자 단위 되돌리기를 그대로 둔다.
+      if (editing === null && ctrl && !event.altKey) {
+        const letter = key.toLowerCase();
+        if (letter === 'z' && !shiftKey) {
+          event.preventDefault();
+          onUndo?.();
+          return;
+        }
+        if (letter === 'y' || (letter === 'z' && shiftKey)) {
+          event.preventDefault();
+          onRedo?.();
+          return;
+        }
+      }
+
       if (editing !== null) {
         const arrow = ARROW_DELTAS[key];
         if (key === 'Enter') {
@@ -383,7 +400,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
                       left={colItem.start}
                       width={colItem.size}
                       value={display?.text ?? getCellValue(row, col)}
-                      isError={display?.isError ?? false}
+                      kind={display?.kind ?? 'text'}
                       inRange={isInRange(range, row, col)}
                       isActive={row === active.row && col === active.col}
                     />

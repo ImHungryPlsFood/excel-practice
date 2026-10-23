@@ -10,6 +10,9 @@
  *   - 식별자(함수 이름, 셀 주소, 이름 있는 범위, 시트 이름): 영문·_·$로 시작해 영문·숫자·_·.·$가 이어지는 것 → 그대로
  *   - 숫자: 숫자 또는 .숫자로 시작 (식별자에 붙어 있지 않은 것) → 지수 표기가 있으면 일반 소수로 풀어 쓴다
  *   - 그 밖의 글자 → 그대로
+ *
+ * CARD-02D 추가 (D-15): HyperFormula는 따옴표 없는 한글 시트 이름 참조(=자료!A1)를 파싱하지 못한다("unexpected character").
+ * Excel은 이 입력을 받는 것으로 알려져 있다(골든 실측 전). 엔진에 넣기 전에 '!' 바로 앞의 비ASCII 글자가 섞인 이름만 작은따옴표로 감싼다(quoteSheetNames).
  */
 
 /** 지수의 절댓값이 이보다 크면 바꾸지 않고 엔진이 오류로 처리하게 둔다(배정밀도 실수의 최대 지수가 308이다). */
@@ -133,4 +136,51 @@ export function normalizeNumberLiterals(content: string): string {
     }
   }
   return out;
+}
+
+/** 시트 이름 글자: 문자·숫자·_·. (Excel이 따옴표 없이 받는 범위) */
+function isSheetNamePart(ch: string): boolean {
+  return /[\p{L}\p{N}_.]/u.test(ch);
+}
+
+function isSheetNameStart(ch: string): boolean {
+  return /[\p{L}_]/u.test(ch);
+}
+
+/**
+ * 따옴표 없이 쓴 비ASCII 시트 이름 참조(=자료!A1, =SUM(판매_1!A1:A3))를 '자료'!A1처럼 감싼다 (D-15).
+ * 큰따옴표 문자열과 이미 따옴표로 감싼 시트 이름은 건드리지 않는다. ASCII만으로 된 이름은 엔진이 읽으므로 그대로 둔다.
+ */
+export function quoteSheetNames(content: string): string {
+  if (!content.startsWith('=')) {
+    return content;
+  }
+  let out = '';
+  let i = 0;
+  while (i < content.length) {
+    const ch = content.charAt(i);
+    if (ch === '"' || ch === "'") {
+      const end = skipQuoted(content, i);
+      out += content.slice(i, end);
+      i = end;
+    } else if (isSheetNameStart(ch)) {
+      let end = i + 1;
+      while (end < content.length && isSheetNamePart(content.charAt(end))) {
+        end += 1;
+      }
+      const word = content.slice(i, end);
+      const hasNonAscii = [...word].some((letter) => (letter.codePointAt(0) ?? 0) > 0x7f);
+      out += hasNonAscii && content.charAt(end) === '!' ? `'${word}'` : word;
+      i = end;
+    } else {
+      out += ch;
+      i += 1;
+    }
+  }
+  return out;
+}
+
+/** 엔진에 넣기 전 수식 전처리 전체 (D-4 지수 표기, D-15 한글 시트 이름) */
+export function prepareFormula(content: string): string {
+  return quoteSheetNames(normalizeNumberLiterals(content));
 }

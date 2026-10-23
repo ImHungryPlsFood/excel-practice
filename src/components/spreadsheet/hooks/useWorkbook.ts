@@ -1,54 +1,42 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { HyperFormulaAdapter } from '@/engine/spreadsheet/adapters/HyperFormulaAdapter';
-import {
-  FormulaEngineInputError,
-  type CellResult,
-  type CellScalar,
-} from '@/engine/spreadsheet/FormulaEngineAdapter';
+import type { CellResult } from '@/engine/spreadsheet/FormulaEngineAdapter';
 
 import type { CellChange } from '../types';
+import {
+  DEFAULT_SHEET,
+  snapshotFromRows,
+  WorkbookModel,
+  type WorkbookSnapshot,
+} from '../workbookModel';
 
 /*
  * 화면용 통합 문서 상태 (CARD-02C, MASTER_PROMPT §8.2 "수식 입력 결과와 수식 자체를 구분해 저장하라").
- * - 원문(inputs): 사용자가 셀에 입력한 글자 그대로(=1E+3도 그대로). 편집기와 수식 입력줄에 보인다.
+ * - 원문: 사용자가 셀에 입력한 글자 그대로(=1E+3도 그대로). 편집기와 수식 입력줄에 보인다.
  * - 결과: 수식 엔진(CARD-02B)이 계산한 CellResult. 셀 화면에 보인다.
- * 엔진은 앱 코드에서 FormulaEngineAdapter 인터페이스로만 다룬다.
+ * CARD-02D: 여러 시트와 실행 취소·다시 실행. 상태와 명령은 WorkbookModel(workbookModel.ts)이 가지고,
+ * 이 훅은 모델을 준비하고 변경마다 다시 그리게 한다. 셀 읽기·쓰기(getInput·getResult·applyChanges)는 보고 있는 시트 기준이다.
  */
-
-export const WORKBOOK_SHEET = 'Sheet1';
 
 const EMPTY_RESULT: CellResult = { value: null, displayValue: '', error: null };
 
-const keyOf = (row: number, col: number) => `${row}:${col}`;
-
-/** 원문을 엔진 입력으로. 빈 문자열은 셀 지우기다. 숫자·논리값 해석은 엔진이 한다. */
-const toEngineContent = (raw: string): CellScalar => (raw === '' ? null : raw);
+const NOT_READY = '시트를 준비하는 중입니다. 잠시 후 다시 입력하세요.';
 
 type SheetData = readonly (readonly string[])[];
 
-function initialInputs(data: SheetData): Map<string, string> {
-  const inputs = new Map<string, string>();
-  data.forEach((cells, row) =>
-    cells.forEach((raw, col) => {
-      if (raw !== '') inputs.set(keyOf(row, col), raw);
-    }),
-  );
-  return inputs;
+/** 단일 시트 원문 배열 또는 여러 시트 스냅샷 */
+export type WorkbookSource = SheetData | WorkbookSnapshot;
+
+const toSnapshot = (source: WorkbookSource): WorkbookSnapshot =>
+  Array.isArray(source) ? snapshotFromRows(source as SheetData) : (source as WorkbookSnapshot);
+
+interface LoadedBook {
+  source: WorkbookSource;
+  model: WorkbookModel;
 }
 
-/** 어떤 데이터·몇 번째 다시 시작으로 만든 상태인지. 다시 시작 직후 이미 정리된 이전 엔진을 읽지 않기 위해 비교한다. */
-interface LoadKey {
-  data: SheetData;
-  generation: number;
-}
-
-interface LoadedBook extends LoadKey {
-  engine: HyperFormulaAdapter;
-  inputs: ReadonlyMap<string, string>;
-}
-
-interface LoadFailure extends LoadKey {
+interface LoadFailure {
+  source: WorkbookSource;
   message: string;
 }
 
@@ -58,109 +46,148 @@ export interface Workbook {
   status: WorkbookStatus;
   /** status가 error일 때 사용자에게 보여 줄 문장 */
   loadError: string | null;
-  /** 셀 원문 (없으면 빈 문자열) */
+  /** 보고 있는 시트의 셀 원문 (없으면 빈 문자열) */
   getInput: (row: number, col: number) => string;
-  /** 셀 계산 결과 */
+  /** 보고 있는 시트의 셀 계산 결과 */
   getResult: (row: number, col: number) => CellResult;
-  /** 변경을 엔진에 반영한다. 엔진이 받아들이지 않으면(수식 길이 상한 등) 반영을 멈추고 안내 문장을 돌려준다. */
+  /** 변경을 엔진에 반영한다(실행 취소 가능). 엔진이 받아들이지 않으면 반영을 멈추고 안내 문장을 돌려준다. */
   applyChanges: (changes: readonly CellChange[]) => string | null;
-  /** 처음 데이터로 되돌린다(학습 화면의 "다시 시작"). */
+  /** 처음 데이터로 되돌린다(학습 화면의 "다시 시작"). 실행 취소로 직전 작업을 되찾을 수 있다. */
   reset: () => void;
+
+  /** 시트 이름(탭 순서) */
+  sheets: readonly string[];
+  /** 보고 있는 시트 */
+  activeSheet: string;
+  setActiveSheet: (name: string) => void;
+  sheetHasData: (name: string) => boolean;
+  /** 새 시트를 추가하고 그 시트로 간다. 거부되면 안내 문장. */
+  addSheet: () => string | null;
+  renameSheet: (oldName: string, newName: string) => string | null;
+  deleteSheet: (name: string) => string | null;
+
+  undo: () => boolean;
+  redo: () => boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+  /** 실행 취소할 작업 설명(버튼 툴팁용) */
+  undoLabel: string | null;
+  redoLabel: string | null;
+
+  /** 지금 통합 문서 원문 전체. 준비 전이면 null. */
+  snapshot: () => WorkbookSnapshot | null;
+  /** 통합 문서 전체를 바꾼다(빈 스프레드시트·파일 불러오기). 실행 취소 가능. */
+  replaceWorkbook: (snapshot: WorkbookSnapshot, label: string) => string | null;
+  /** 보고 있는 시트의 내용을 통째로 바꾼다(샘플 불러오기). 실행 취소 가능. */
+  replaceActiveSheet: (cells: Readonly<Record<string, string>>, label: string) => string | null;
 }
 
-const sameKey = (key: LoadKey | null, data: SheetData, generation: number) =>
-  key !== null && key.data === data && key.generation === generation;
-
 /**
- * @param initialData 행 우선 원문 배열. 같은 배열 참조가 유지되어야 한다(바뀌면 통합 문서를 새로 만든다).
+ * @param source 행 우선 원문 배열(단일 시트) 또는 여러 시트 스냅샷. 같은 참조가 유지되어야 한다(바뀌면 통합 문서를 새로 만든다).
  */
-export function useWorkbook(initialData: SheetData): Workbook {
-  const [generation, setGeneration] = useState(0);
+export function useWorkbook(source: WorkbookSource): Workbook {
   const [book, setBook] = useState<LoadedBook | null>(null);
   const [failure, setFailure] = useState<LoadFailure | null>(null);
 
   useEffect(() => {
-    const engine = new HyperFormulaAdapter();
     let active = true;
-    engine
-      .initWorkbook({ [WORKBOOK_SHEET]: initialData.map((cells) => cells.map(toEngineContent)) })
-      .then(() => {
+    let created: WorkbookModel | null = null;
+    WorkbookModel.create(toSnapshot(source))
+      .then((model) => {
         if (active) {
-          setBook({ data: initialData, generation, engine, inputs: initialInputs(initialData) });
+          created = model;
+          setBook({ source, model });
+        } else {
+          model.destroy();
         }
       })
       .catch((error: unknown) => {
         if (active) {
           const detail = error instanceof Error ? `: ${error.message}` : '';
-          setFailure({
-            data: initialData,
-            generation,
-            message: `시트를 불러오지 못했습니다${detail}`,
-          });
+          setFailure({ source, message: `시트를 불러오지 못했습니다${detail}` });
         }
       });
     return () => {
       active = false;
-      engine.destroy();
+      created?.destroy();
     };
-  }, [initialData, generation]);
+  }, [source]);
 
-  const current = sameKey(book, initialData, generation) ? book : null;
-  const loadError =
-    failure !== null && sameKey(failure, initialData, generation) ? failure.message : null;
+  const current = book !== null && book.source === source ? book : null;
+  const loadError = failure !== null && failure.source === source ? failure.message : null;
 
-  const applyChanges = useCallback(
-    (changes: readonly CellChange[]): string | null => {
-      if (current === null) {
-        return '시트를 준비하는 중입니다. 잠시 후 다시 입력하세요.';
-      }
-      const applied: CellChange[] = [];
-      let refusal: string | null = null;
-      for (const change of changes) {
-        try {
-          current.engine.setCellContent(
-            WORKBOOK_SHEET,
-            change.row,
-            change.col,
-            toEngineContent(change.value),
-          );
-        } catch (error) {
-          if (!(error instanceof FormulaEngineInputError)) throw error;
-          // 앞의 변경은 이미 엔진에 들어갔으므로 원문도 거기까지만 맞춘다.
-          refusal = error.message;
-          break;
-        }
-        applied.push(change);
-      }
-      // 엔진 값이 바뀌었으니 새 상태로 다시 그리게 한다. 한 이벤트 안에서 여러 번 불려도 원문이 누락되지 않도록
-      // 직전 상태를 받아 갱신한다.
-      setBook((previous) => {
-        if (previous === null || previous.engine !== current.engine) return previous;
-        const inputs = new Map(previous.inputs);
-        for (const { row, col, value } of applied) {
-          if (value === '') inputs.delete(keyOf(row, col));
-          else inputs.set(keyOf(row, col), value);
-        }
-        return { ...previous, inputs };
-      });
-      return refusal;
-    },
-    [current],
+  // 모델은 제자리에서 바뀌므로 변경마다 book을 새 객체로 바꿔 화면이 다시 그려지게 한다.
+  const bump = useCallback(
+    () => setBook((previous) => (previous === null ? null : { ...previous })),
+    [],
   );
 
-  const reset = useCallback(() => setGeneration((n) => n + 1), []);
+  /** 모델이 준비됐으면 변경을 실행하고 다시 그린다. 준비 전이면 안내 문장. */
+  const mutate = useCallback(
+    (run: (ready: WorkbookModel) => string | null): string | null => {
+      if (current === null) return NOT_READY;
+      const result = run(current.model);
+      bump();
+      return result;
+    },
+    [current, bump],
+  );
 
   return useMemo(() => {
+    const model = current?.model ?? null;
     const status: WorkbookStatus =
-      loadError !== null ? 'error' : current === null ? 'loading' : 'ready';
+      loadError !== null ? 'error' : model === null ? 'loading' : 'ready';
+    const activeSheet = model?.activeSheet ?? DEFAULT_SHEET;
+    const history = model?.history;
     return {
       status,
       loadError,
-      getInput: (row: number, col: number) => current?.inputs.get(keyOf(row, col)) ?? '',
-      getResult: (row: number, col: number) =>
-        current === null ? EMPTY_RESULT : current.engine.getCellValue(WORKBOOK_SHEET, row, col),
-      applyChanges,
-      reset,
+      getInput: (row, col) => model?.getInput(activeSheet, row, col) ?? '',
+      getResult: (row, col) => model?.getResult(activeSheet, row, col) ?? EMPTY_RESULT,
+      applyChanges: (changes) => mutate((ready) => ready.setCells(activeSheet, changes)),
+      reset: () => {
+        mutate((ready) => ready.replaceWorkbook(toSnapshot(source), '다시 시작'));
+      },
+
+      sheets: model?.sheetNames ?? [DEFAULT_SHEET],
+      activeSheet,
+      setActiveSheet: (name) => {
+        mutate((ready) => {
+          ready.setActiveSheet(name);
+          return null;
+        });
+      },
+      sheetHasData: (name) => model?.sheetHasData(name) ?? false,
+      addSheet: () =>
+        mutate((ready) => {
+          const added = ready.addSheet();
+          return 'error' in added ? added.error : null;
+        }),
+      renameSheet: (oldName, newName) => mutate((ready) => ready.renameSheet(oldName, newName)),
+      deleteSheet: (name) => mutate((ready) => ready.deleteSheet(name)),
+
+      undo: () => {
+        if (model === null) return false;
+        const undone = model.undo() !== null;
+        bump();
+        return undone;
+      },
+      redo: () => {
+        if (model === null) return false;
+        const redone = model.redo() !== null;
+        bump();
+        return redone;
+      },
+      canUndo: history?.canUndo ?? false,
+      canRedo: history?.canRedo ?? false,
+      undoLabel: history?.undoLabel ?? null,
+      redoLabel: history?.redoLabel ?? null,
+
+      snapshot: () => model?.snapshot() ?? null,
+      replaceWorkbook: (snapshot, label) =>
+        mutate((ready) => ready.replaceWorkbook(snapshot, label)),
+      replaceActiveSheet: (cells, label) =>
+        mutate((ready) => ready.replaceSheetCells(activeSheet, cells, label)),
     };
-  }, [current, loadError, applyChanges, reset]);
+  }, [current, loadError, mutate, bump, source]);
 }

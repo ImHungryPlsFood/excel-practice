@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { HyperFormulaAdapter } from '@/engine/spreadsheet/adapters/HyperFormulaAdapter';
-import { normalizeNumberLiterals } from '@/engine/spreadsheet/formulaPreprocess';
+import { normalizeNumberLiterals, quoteSheetNames } from '@/engine/spreadsheet/formulaPreprocess';
 
 describe('지수 표기 전처리 (D-4)', () => {
   it.each([
@@ -128,5 +128,32 @@ describe('길이 상한(S-09)은 지수 표기를 풀어 쓴 뒤에도 적용된
     const formula = `=${Array.from({ length: 5 }, () => '1E+250').join('+')}`;
     expect(formula.length).toBeLessThan(1000);
     expect(() => engine.setCellContent('S', 0, 0, formula)).toThrow('1000자');
+  });
+});
+
+describe('따옴표 없는 한글 시트 이름 (D-15, CARD-02D)', () => {
+  it.each([
+    ['=자료!A1', "='자료'!A1"],
+    ['=SUM(판매_1!A1:A3)*2', "=SUM('판매_1'!A1:A3)*2"],
+    ['=Data자료!B2', "='Data자료'!B2"],
+    ['=자료!A1+출석!$B$2', "='자료'!A1+'출석'!$B$2"],
+  ])('%s → %s', (input, expected) => {
+    expect(quoteSheetNames(input)).toBe(expected);
+  });
+
+  it.each(['=Sheet2!A1', "='자료'!A1", '="자료!A1"', '=합계', '=A1&"원"', '자료!A1'])(
+    '%s 는 그대로 둔다',
+    (input) => {
+      expect(quoteSheetNames(input)).toBe(input);
+    },
+  );
+
+  it('엔진에서 한글 시트 참조가 계산된다', async () => {
+    const engine = new HyperFormulaAdapter();
+    await engine.initWorkbook({ 입력: [[4, 6]], 계산: [['=입력!A1^2']] });
+    engine.setCellContent('계산', 1, 0, '=SUM(입력!A1:B1)*1E+1');
+    expect(engine.getCellValue('계산', 0, 0).value).toBe(16);
+    expect(engine.getCellValue('계산', 1, 0).value).toBe(100);
+    engine.destroy();
   });
 });
