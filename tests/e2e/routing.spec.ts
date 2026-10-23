@@ -11,11 +11,11 @@ test('랜딩에서 학습을 시작해 대시보드와 학습 화면으로 이�
   await expect(page).toHaveURL(/\/learn\/level-0$/);
   await expect(page.getByText('이 화면은 아직 구현되지 않았습니다.')).toBeVisible();
 
-  await page
-    .getByRole('navigation', { name: '주 메뉴' })
-    .getByRole('link', { name: '샌드박스' })
-    .click();
-  await expect(page).toHaveURL(/\/sandbox$/);
+  const nav = page.getByRole('navigation', { name: '주 메뉴' });
+  await expect(nav.getByRole('link', { name: '샌드박스' })).toHaveCount(0);
+  await expect(
+    nav.getByText('샌드박스').locator('xpath=ancestor-or-self::*[@aria-disabled]'),
+  ).toHaveAttribute('aria-disabled', 'true');
 });
 
 test('직접 주소로 접근해도 대시보드가 열리고, 없는 주소는 404 화면이 뜬다', async ({ page }) => {

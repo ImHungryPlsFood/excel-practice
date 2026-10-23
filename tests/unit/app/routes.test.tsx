@@ -65,22 +65,28 @@ describe('AppRoutes', () => {
     expect(screen.getByRole('heading', { level: 1, name: '학습 화면' })).toBeInTheDocument();
   });
 
-  it('사이드바 링크로 화면을 전환하고 현재 위치를 표시한다', () => {
+  it('사이드바에서 구현된 대시보드만 링크이고 현재 위치를 표시한다', () => {
     renderAt('/dashboard');
     const nav = screen.getByRole('navigation', { name: '주 메뉴' });
 
+    expect(within(nav).getAllByRole('link')).toHaveLength(1);
     expect(within(nav).getByRole('link', { name: '대시보드' })).toHaveAttribute(
       'aria-current',
       'page',
     );
-
-    fireEvent.click(within(nav).getByRole('link', { name: '샌드박스' }));
-
-    expect(screen.getByRole('heading', { level: 1, name: '샌드박스' })).toBeInTheDocument();
-    expect(within(nav).getByRole('link', { name: '샌드박스' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
-    expect(within(nav).getByRole('link', { name: '대시보드' })).not.toHaveAttribute('aria-current');
   });
+
+  it.each(['학습', '샌드박스'])(
+    '사이드바의 %s 항목은 링크가 아니라 aria-disabled 준비 중 표시다',
+    (label) => {
+      renderAt('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '주 메뉴' });
+
+      expect(within(nav).queryByRole('link', { name: new RegExp(label) })).toBeNull();
+      const item = within(nav).getByText(label).closest('[aria-disabled]');
+      expect(item).toHaveAttribute('aria-disabled', 'true');
+      expect(item).not.toHaveAttribute('href');
+      expect(item).toHaveTextContent('준비 중');
+    },
+  );
 });
