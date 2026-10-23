@@ -9,7 +9,14 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig(
   {
-    ignores: ['dist/', 'coverage/', 'playwright-report/', 'test-results/', 'node_modules/'],
+    ignores: [
+      'dist/',
+      'dist-perf/',
+      'coverage/',
+      'playwright-report/',
+      'test-results/',
+      'node_modules/',
+    ],
   },
   {
     // G-01: eslint-disable 주석으로 규칙을 숨기는 행위를 원천 차단한다.
@@ -52,6 +59,16 @@ export default defineConfig(
         },
       ],
       'no-empty': ['error', { allowEmptyCatch: false }],
+    },
+  },
+  {
+    // CARD-02A: ADR-002가 지정한 @tanstack/react-virtual의 useVirtualizer는 React Compiler 자동 메모이제이션과
+    // 맞지 않는다는 안내(react-hooks/incompatible-library)가 뜬다. 이 프로젝트는 React Compiler를 쓰지 않으므로
+    // (vite.config.ts의 react()에 컴파일러 설정 없음) useVirtualizer를 호출하는 이 파일 하나에서만 끈다.
+    // React Compiler를 도입하면 이 예외를 다시 검토해야 한다.
+    files: ['src/components/spreadsheet/hooks/useVirtualGrid.ts'],
+    rules: {
+      'react-hooks/incompatible-library': 'off',
     },
   },
   {

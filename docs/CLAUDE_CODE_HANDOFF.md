@@ -9,11 +9,12 @@
 
 ## 1. Claude Code 작업 규칙 및 환경 가이드 (G-01 ~ G-05)
 
-### [G-01] Claude Code 4대 절대 금지 규칙
+### [G-01] Claude Code 5대 절대 금지 규칙
 1. **테스트 통과를 위한 테스트 약화·삭제·건너뛰기(`skip`, `only`) 절대 금지:** 테스트가 실패하면 구현 코드를 수정하여 통과시켜야 하며, 테스트 기대값을 낮추거나 주석 처리하지 않는다.
 2. **정답 및 기대값 하드코딩 절대 금지:** 채점기나 수식 엔진 내부에서 특정 문제 ID(예: `if (id === 'MOD-SUM') return 150`)를 감지해 결과를 조작하는 행위를 엄격히 금지한다.
 3. **실패 은폐성 예외 처리 금지:** 오류를 숨기는 무의미한 `try { ... } catch (e) {}`, TypeScript 컴파일을 회피하는 `@ts-ignore`, `@ts-nocheck`, 무분별한 `any` 타입 캐스팅, `eslint-disable` 주입을 금지한다. 불가피한 경우 설계 문서 근거와 주석을 반드시 명시한다.
 4. **목업(Mock) 화면으로 완료 보고 금지:** 실제 동작하지 않는 가짜 버튼, 연결되지 않은 수식 입력줄을 만들고 구현이 완료되었다고 보고하지 않는다.
+5. **`package.json`에 없는 패키지를 `npx`로 내려받아 실행 금지:** 의존성에 선언되지 않은 패키지를 `npx`로 임시 설치해 실행하지 않는다. 필요하면 먼저 사용자에게 묻고 승인을 받은 뒤 `package.json`에 명시적으로 추가한다.
 
 ### [G-02] 세션 종료 시 완료 보고 표준 양식
 Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템플릿에 맞추어 사용자에게 보고해야 한다:
@@ -227,18 +228,30 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-02D: Undo/Redo 스택, 다중 시트 및 연습실 모드 (Undo/Redo & Sandbox)
-- **관련 요구사항 ID:** R-04.5-01, R-04.5-02, R-17.2-01, Q-04
+- **관련 요구사항 ID:** R-04.5-01, R-04.5-02, R-04.45, R-04.46, R-04.47, R-04.48, R-04.49, R-04.51, R-04.52, R-17.2-01, Q-04
 - **선행 카드:** CARD-02C
 - **생성·수정할 파일:**
   - `src/engine/spreadsheet/history/historyManager.ts` (Command 패턴 기반 Undo/Redo)
   - `src/components/spreadsheet/SheetTabs.tsx` (시트 추가, 이름 변경, 활성 탭 전환)
-  - `src/pages/SandboxPage.tsx`
+  - `src/pages/SandboxPage.tsx` (R-04.45: '빈 스프레드시트 만들기'와 R-04.46: '샘플 데이터 불러오기' 진입 동작 포함)
+  - `src/content/sandbox/sampleDatasets.ts` (R-04.46: 판매 내역·상품 재고·출석 기록 등 원문 10장 데이터셋 중 핵심 몇 종의 가상 샘플)
+  - `src/components/sandbox/SampleDataPicker.tsx` (샘플 선택 및 현재 시트로 불러오기)
+  - `src/services/sandbox/sandboxFileStore.ts` (R-04.52: 연습실 학습 파일 저장·불러오기. 시트·셀 값·수식을 버전 필드가 있는 JSON으로 저장하고 복원 시 스키마 검증. 학습 모드 저장소와 분리)
   - `tests/unit/history/historyManager.test.ts` (속성 기반 50회 왕복 테스트)
+  - `tests/unit/sandbox/sandboxFileStore.test.ts` (저장 후 복원 왕복, 손상된 파일 거부)
+  - `tests/unit/sandbox/sampleDatasets.test.ts` (스키마·가상 데이터 검증, 불러오기 후 셀 값 일치)
 - **구현 지침 및 금지 사항:**
   - Undo 실행 시 직전 셀 값 및 수식이 100% 복원되어야 함.
   - 연습실 모드와 학습 모드의 상태 저장소를 명확히 분리.
+  - 샘플 데이터(R-04.46)는 원문 10장에 따라 개인정보나 실제 기업의 기밀 데이터를 쓰지 않고 독창적인 가상 데이터만 사용한다. 실존 기업명·실존 인물명·실제 연락처 형식의 값을 넣지 않으며 테스트가 이를 점검한다. 빈 셀·중복 등 오류가 섞인 데이터를 넣더라도 난이도에 맞지 않는 불필요한 혼란은 만들지 않는다.
+  - 빈 스프레드시트(R-04.45)와 샘플 불러오기는 연습실 저장소에만 쓰고 학습 모드 상태를 건드리지 않는다.
+  - 셀 편집(R-04.47)과 수식 입력(R-04.48) 구현은 CARD-02B(수식 엔진)·CARD-02C(입력줄)가 맡는다. 02D는 새로 구현하지 않고 연습실에서 연결·검증만 한다.
+  - 학습 파일 저장(R-04.52)은 `eval` 없이 JSON만 사용한다. 내구성 있는 IndexedDB 연동과 공통 직렬화 모듈은 CARD-06B(`cellStateSerializer.ts`)에서 통합한다.
 - **완료 조건:**
-  - Phase 2 완료 조건 충족: 사용자가 브라우저에서 실제로 데이터를 입력하고 수식을 계산하며, 다중 시트 전환 및 Undo/Redo가 안정적으로 동작한다.
+  - 사용자가 브라우저에서 실제로 데이터를 입력하고 수식을 계산하며, 다중 시트 전환 및 Undo/Redo가 안정적으로 동작한다.
+  - 연습실(`/sandbox`)에서 빈 스프레드시트를 만들고 가상 샘플 데이터를 불러올 수 있다(R-04.45, R-04.46).
+  - 연습실에서 셀 편집과 수식 입력이 동작한다(R-04.47, R-04.48. 구현은 02B·02C).
+  - 연습실(`/sandbox`)에서 작업한 내용을 학습 파일로 저장하고, 새로고침 후 다시 불러오면 값·수식·시트 구성이 동일하게 복원된다(R-04.52). (Phase 2 완료 판정은 CARD-02E 이후)
 - **실행할 검증 명령:**
   ```powershell
   npm test tests/unit/history/
@@ -249,11 +262,44 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 
 ---
 
+#### CARD-02E: 행·열 조작, 복사·붙여넣기 및 자동 채우기 (Range Operations)
+- **관련 요구사항 ID:** R-08.06, R-08.07, R-08.10, R-08.17, Q-04
+- **선행 카드:** CARD-02D
+- **생성·수정할 파일:**
+  - `src/engine/spreadsheet/operations/referenceShift.ts` (수식 참조 이동 공통 로직, 상대/절대 참조 구분)
+  - `src/engine/spreadsheet/operations/rowColumnOps.ts` (행·열 삽입, 삭제, 크기 조절, 수식 참조 갱신)
+  - `src/engine/spreadsheet/operations/clipboard.ts` (복사, 잘라내기, 붙여넣기, TSV 변환, 붙여넣을 때 상대 참조 이동)
+  - `src/engine/spreadsheet/operations/autoFill.ts` (숫자·날짜 시퀀스와 수식 채우기)
+  - `src/components/spreadsheet/hooks/useClipboard.ts` (Ctrl+C/X/V 연결)
+  - `src/components/spreadsheet/hooks/useFillHandle.ts` (채우기 핸들 드래그, Ctrl+D/R)
+  - `src/components/spreadsheet/GridHeader.tsx` (행·열 머리글 메뉴: 삽입, 삭제, 너비·높이 조절)
+  - `tests/unit/engine/rowColumnOps.test.ts`
+  - `tests/unit/engine/clipboard.test.ts`
+  - `tests/unit/engine/autoFill.test.ts` (fast-check: 채우기 수식 주소 오프셋 속성 테스트)
+  - `tests/e2e/range-operations.spec.ts`
+- **구현 지침 및 금지 사항:**
+  - 모든 변경은 CARD-02D의 historyManager 명령으로 실행해 Undo/Redo가 되어야 한다.
+  - 참조 계산은 CARD-02B 엔진을 사용하고 수식 문자열을 정규식으로만 치환하는 방식 금지(`$A$1`, 시트 간 참조 포함).
+  - 문제 ID별 정답 하드코딩 금지. 삭제된 셀을 가리키는 참조는 `#REF!`로 처리한다.
+  - `fast-check`는 이 카드에서 설치하며 S-10에 따라 공개 2주 이상 지난 버전으로 고정한다.
+- **완료 조건:**
+  - 행·열을 삽입·삭제하면 수식 참조가 갱신되고, 복사한 수식은 상대 참조가 이동한 채 붙여넣어지며, 채우기 핸들로 숫자·날짜·수식이 확장된다. 세 동작 모두 Undo로 복원된다.
+- **실행할 검증 명령:**
+  ```powershell
+  npm test tests/unit/engine/
+  npm run typecheck
+  npm run lint
+  npx playwright test tests/e2e/range-operations.spec.ts
+  ```
+- **외부 사용자 조치:** 없음.
+
+---
+
 ### [Phase 3: 튜토리얼 엔진]
 
 #### CARD-03A: 선언적 튜토리얼 스키마 및 상태 머신 러너 (Tutorial Schema & FSM Runner)
 - **관련 요구사항 ID:** R-07.1-01, R-07.1-02, R-07.1-03
-- **선행 카드:** CARD-02D
+- **선행 카드:** CARD-02E
 - **생성·수정할 파일:**
   - `src/types/tutorial.schema.ts` (Zod 기반 `TutorialStepSchema`)
   - `src/engine/tutorials/tutorialRunner.ts` (XState 또는 경량 FSM 상태 머신)
@@ -537,22 +583,25 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-06B: Firestore 진도 모델, 오프라인 캐시 및 탈퇴 처리 (Firestore Progress & Privacy)
-- **관련 요구사항 ID:** R-13.2-01, R-13.2-02, R-13.4-01, R-13.4-02, S-12, Q-09
+- **관련 요구사항 ID:** R-13.2-01, R-13.2-02, R-13.4-01, R-13.4-02, R-08.13, S-12, Q-09
 - **선행 카드:** CARD-06A
 - **생성·수정할 파일:**
   - `src/services/firebase/progressService.ts` (디바운스 쓰기, 일괄 읽기 최적화)
   - `src/services/storage/offlineStorage.ts` (IndexedDB / localStorage 캐시)
+  - `src/engine/spreadsheet/serialization/cellStateSerializer.ts` (R-08.13: 수식·값·서식·시트 구성을 버전 필드가 있는 JSON으로 직렬화·복원)
+  - `tests/unit/engine/cellStateSerializer.test.ts` (저장 후 복원한 수식과 값이 원본과 같은지, 알 수 없는 버전 거부)
   - `src/features/profile/components/DataExportButton.tsx` (데이터 JSON 다운로드)
   - `src/features/profile/components/DeleteAccountModal.tsx` (계정 및 진도 영구 삭제)
   - `tests/unit/services/progressService.test.ts`
 - **구현 지침 및 금지 사항:**
   - 모든 문제를 매번 Firestore에서 새로 불러오지 말고 로컬 캐시 우선 사용 (R-13.4-01).
   - 네트워크 단절 시 오프라인 캐시를 유지하고 복구 시 지수 백오프로 재시도 (Q-09).
+  - 셀 상태 직렬화는 `eval` 없이 JSON만 사용하고 복원 시 스키마를 검증한다.
 - **완료 조건:**
-  - 진도 데이터가 오프라인에서도 보존되고, 계정 탈퇴 시 사용자 데이터가 영구 삭제된다.
+  - 진도 데이터가 오프라인에서도 보존되고, 계정 탈퇴 시 사용자 데이터가 영구 삭제된다. 저장한 셀 상태를 새로고침 후 복원하면 수식과 값이 동일하다.
 - **실행할 검증 명령:**
   ```powershell
-  npm test tests/unit/services/progressService.test.ts
+  npm test tests/unit/services/progressService.test.ts tests/unit/engine/cellStateSerializer.test.ts
   npm run typecheck
   ```
 - **외부 사용자 조치:** 없음.
@@ -591,12 +640,14 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-07B: Level 5 차트 및 시각화 엔진 (Level 5 Charts)
-- **관련 요구사항 ID:** R-05.5-01, R-05.5-02, P-02
+- **관련 요구사항 ID:** R-05.5-01, R-05.5-02, R-04.50, P-02
 - **선행 카드:** CARD-07A
 - **생성·수정할 파일:**
   - `src/components/charts/ChartView.tsx` (Recharts / Canvas 기반)
   - `src/content/exercises/level5/` (차트 선택 및 대시보드 8개 모듈)
-- **완료 조건:** 차트 컴포넌트 렌더링 및 올바른 차트 유형 판정 채점 통과.
+  - `src/components/sandbox/FormatChartToolbar.tsx` (R-04.50: 연습실의 셀 서식 및 차트 삽입. Phase 2에서 연기됨, MASTER_PROMPT 17장 Phase 7)
+  - `tests/unit/sandbox/formatChartToolbar.test.tsx`
+- **완료 조건:** 차트 컴포넌트 렌더링 및 올바른 차트 유형 판정 채점 통과. 연습실에서 셀 서식과 차트 삽입이 실제로 동작한 범위만 R-04.50을 완료로 표시한다.
 
 ---
 
@@ -649,16 +700,18 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-07H: 격리된 XLSX Web Worker 파이프라인 (Secure XLSX Worker Pipeline)
-- **관련 요구사항 ID:** R-04.5-01, S-09, ADR-003
+- **관련 요구사항 ID:** R-04.5-01, R-04.53, S-09, ADR-003
 - **선행 카드:** Phase 2 완료 후 독립 병행 가능
 - **생성·수정할 파일:**
   - `src/workers/xlsx.worker.ts` (`Object.freeze`, 5초 타임아웃, 5MB 상한, 매크로 제거)
   - `src/services/spreadsheet/xlsxService.ts`
+  - `src/components/sandbox/XlsxTransferModal.tsx` (R-04.53: 연습실 XLSX 가져오기·내보내기 모달과 지원 기능·제한 안내. Phase 2에서 연기됨, MASTER_PROMPT 17장 Phase 7)
   - `tests/unit/xlsx/xlsx-security.test.ts` (악성 Zip bomb 샘플 방어 테스트)
 - **구현 지침 및 금지 사항:**
   - `npm install xlsx` 표준 레지스트리 설치 금지 (ADR-003). 공식 CDN tarball 고정.
 - **완료 조건:**
   - 비정상 파일 업로드 시 메인 스레드 프리징 없이 안전하게 거부되고 정상 파일만 로드된다.
+  - 연습실에서 정상 XLSX를 가져오고 내보낼 수 있다(R-04.53).
 
 ---
 

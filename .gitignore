@@ -3,6 +3,7 @@ node_modules/
 
 # Build / test output
 dist/
+dist-perf/
 coverage/
 playwright-report/
 test-results/
