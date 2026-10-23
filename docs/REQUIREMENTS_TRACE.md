@@ -64,16 +64,16 @@
 | **R-03.03** | Animation: Motion for React 또는 적합한 경량 애니메이션 도구 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.04** | Routing: React Router | 기능 | Phase 1 | CARD-01A, CARD-01C | 빌드 검증 / 단위 / E2E | 완료됨 (routes.tsx: /, /dashboard, /learn/:courseId, /sandbox, 404. routes.test.tsx·routing.spec.ts) |
 | **R-03.05** | Server state: TanStack Query 또는 필요한 경우 Firebase SDK 중심의 간단한 구조 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
-| **R-03.06** | Spreadsheet engine: HyperFormula 또는 요구사항을 충족하는 대안 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
+| **R-03.06** | Spreadsheet engine: HyperFormula 또는 요구사항을 충족하는 대안 | 기능 | Phase 1 | CARD-02B | 빌드 검증 | 완료됨 (HyperFormula 3.5.0 GPLv3, FormulaEngineAdapter 뒤에서만 사용. formula-eval.test.ts·golden-excel.test.ts) |
 | **R-03.07** | Spreadsheet UI: 적절한 오픈소스 스프레드시트 라이브러리 또는 자체 React 기반 그리드 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 (CARD-02A: 자체 React 그리드 + @tanstack/react-virtual 3.14.13 MIT, ADR-002) |
 | **R-03.08** | Backend services: Firebase Authentication, Cloud Firestore | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.09** | Hosting: Netlify | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.10** | Testing: Vitest, React Testing Library, Playwright | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 부분 완료 (Vitest·RTL 실행 검증, Playwright는 설정만 — 첫 E2E는 CARD-03D) |
 | **R-03.11** | Version control: Git | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 |
 | **R-03.12** | 라이브러리의 이름만 보고 Excel과 완벽히 호환된다고 가정하지 마라. | 금지규칙 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
-| **R-03.13** | **비싼 상용 라이브러리를 별도 승인 없이 도입하지 말고, 라이선스가 불명확한 라이브러리를 핵심 구조에 의존시키지 마라.** | 금지규칙 | Phase 2 | CARD-02B / ADR-001 | 라이선스 검수 | 계획됨 |
+| **R-03.13** | **비싼 상용 라이브러리를 별도 승인 없이 도입하지 말고, 라이선스가 불명확한 라이브러리를 핵심 구조에 의존시키지 마라.** | 금지규칙 | Phase 2 | CARD-02B / ADR-001 | 라이선스 검수 | 완료됨 (HyperFormula GPLv3 사용자 승인 ADR-001, npm run audit:licenses 위반 0건) |
 | **R-03.14** | 실제 학습에 필요한 기능을 구현할 수 있는가? | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
-| **R-03.15** | 무료 또는 허용 가능한 라이선스로 사용할 수 있는가? | 기능 | Phase 2 | CARD-02B / ADR-001 | 라이선스 검수 | 계획됨 |
+| **R-03.15** | 무료 또는 허용 가능한 라이선스로 사용할 수 있는가? | 기능 | Phase 2 | CARD-02B / ADR-001 | 라이선스 검수 | 완료됨 (GPL-3.0-only, audit:licenses production 허용 목록 통과) |
 | **R-03.16** | 프로젝트가 커져도 유지보수할 수 있는가? | 비기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.17** | 모바일 최적화보다 데스크톱 사용성에 집중할 수 있는가? | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.18** | Firebase와 Netlify에 안정적으로 배포할 수 있는가? | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
@@ -316,22 +316,22 @@
 | **R-08.11** | 수식 입력줄 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02C FormulaBar에서 구현) |
 | **R-08.12** | 여러 워크시트 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02D SheetTabs에서 구현) |
 | **R-08.13** | 저장 가능한 셀 상태 | 기능 | Phase 6 | CARD-06B | 단위 / E2E | 계획됨 (CARD-06B 셀 상태 직렬화와 offlineStorage 저장에서 구현. CARD-02A에서 재배정 2026-10-23) |
-| **R-08.14** | 수식은 직접 문자열을 비교하는 방식만으로 채점하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.15** | 셀 간 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.16** | 범위 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.17** | 상대 참조와 절대 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.18** | 여러 시트 간 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.19** | 수식 오류 처리 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.20** | 의존 셀의 값 변경에 따른 재계산 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.21** | 지원 함수 목록 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.22** | 계산 결과 표시 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.23** | 함수별 오류 메시지 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.24** | 브라우저에서 사용자가 입력한 수식을 `eval()`로 실행하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.25** | 지원하지 않는 함수나 기능은 명확하게 알리고, 임의의 결과를 반환하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
-| **R-08.26** | 완벽한 Excel 호환성을 주장하지 않는다. | 금지규칙 | Phase 2 | EXCEL_DIFFERENCES.md | 문서 / 단위 | 계획됨 |
-| **R-08.27** | 구현된 기능과 지원되지 않는 기능을 문서화한다. | 문서화 | Phase 2 | EXCEL_DIFFERENCES.md | 문서 / 단위 | 계획됨 |
+| **R-08.14** | 수식은 직접 문자열을 비교하는 방식만으로 채점하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 부분 완료 (엔진이 수식을 실제 계산해 값 제공. 문자열 비교 없는 채점기는 Phase 3~4) |
+| **R-08.15** | 셀 간 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (formula-eval.test.ts, 골든 References) |
+| **R-08.16** | 범위 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (formula-eval.test.ts, 골든 CoreFunctions·References) |
+| **R-08.17** | 상대 참조와 절대 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 ($A$1·A$1·$A1, formula-eval.test.ts·골든 References. 복사 시 참조 이동은 CARD-02E) |
+| **R-08.18** | 여러 시트 간 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (Data!B2, 따옴표 시트 이름, 시트 삭제 시 #REF!, 이름 변경 추적) |
+| **R-08.19** | 수식 오류 처리 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (오류 코드 10종, 전파·IFERROR, 골든 ErrorValues. #NULL!은 EXCEL_DIFFERENCES D-3) |
+| **R-08.20** | 의존 셀의 값 변경에 따른 재계산 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (자동 재계산·의존 셀 조회 getDependents, dependencyGraph.ts) |
+| **R-08.21** | 지원 함수 목록 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (supportedFunctions.ts, 엔진 등록 여부를 테스트로 대조) |
+| **R-08.22** | 계산 결과 표시 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 부분 완료 (CellResult.displayValue 생성까지. 화면 표시는 CARD-02C) |
+| **R-08.23** | 함수별 오류 메시지 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (errorMessages.ts 코드별·함수별 한국어 안내) |
+| **R-08.24** | 브라우저에서 사용자가 입력한 수식을 `eval()`로 실행하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (eval·Function 미사용, ESLint no-eval·no-new-func) |
+| **R-08.25** | 지원하지 않는 함수나 기능은 명확하게 알리고, 임의의 결과를 반환하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (미지원 함수 #NAME?+함수 이름, 대체 안내, 교집합 연산자 미지원 안내) |
+| **R-08.26** | 완벽한 Excel 호환성을 주장하지 않는다. | 금지규칙 | Phase 2 | EXCEL_DIFFERENCES.md | 문서 / 단위 | 부분 완료 (EXCEL_DIFFERENCES.md에 엔진 범위 차이 기록. 사용자 화면 안내는 이후 카드) |
+| **R-08.27** | 구현된 기능과 지원되지 않는 기능을 문서화한다. | 문서화 | Phase 2 | EXCEL_DIFFERENCES.md | 문서 / 단위 | 부분 완료 (수식 엔진 범위만 기록. XLSX·서식은 해당 카드) |
 | **R-08.28** | Excel 전용 기능과 Google Sheets 전용 기능을 구분한다. | 기능 | Phase 2 | EXCEL_DIFFERENCES.md | 문서 / 단위 | 계획됨 |
-| **R-08.29** | 함수 이름, 지역 설정, 날짜 처리, 오류 표시 등의 차이를 테스트한다. | 기능 | Phase 2 | EXCEL_DIFFERENCES.md | 문서 / 단위 | 계획됨 |
+| **R-08.29** | 함수 이름, 지역 설정, 날짜 처리, 오류 표시 등의 차이를 테스트한다. | 기능 | Phase 2 | EXCEL_DIFFERENCES.md | 문서 / 단위 | 부분 완료 (함수 이름·날짜·오류 표시 차이를 골든 테스트로 대조. 지역 설정 서식은 Phase 7) |
 | **R-08.30** | XLSX 가져오기 및 내보내기가 지원하는 기능과 제한을 안내한다. | 기능 | Phase 2 | EXCEL_DIFFERENCES.md | 문서 / 단위 | 계획됨 |
 | **R-08.31** | 자격증 시험의 실제 프로그램과 차이가 있는 경우 사용자에게 명확하게 알린다. | 기능 | Phase 2 | EXCEL_DIFFERENCES.md | 문서 / 단위 | 계획됨 |
 | **R-08.32** | 실제 Excel과 동일한 조작을 제공할 수 없는 기능은 기능을 흉내 내기만 하지 말고, 해당 기능을 가르칠 수 있는 대체 실습이나 외부 프로그램에서의 실습 안내를 제공하라. | 금지규칙 | Phase 2 | EXCEL_DIFFERENCES.md | 문서 / 단위 | 계획됨 |
@@ -652,7 +652,7 @@
 | **S-06** | API 키 HTTP 리퍼러 제한, Firebase Auth 승인 도메인 설정, VITE_ 비밀값 노출 금지 | 비기능 | Phase 6 | CARD-06A | 콘솔 설정 체크리스트 | 계획됨 |
 | **S-07** | Netlify 보안 헤더(CSP, HSTS, X-Content-Type-Options, frame-ancestors none) 및 SPA 200 리디렉션 | 비기능 | Phase 8 | CARD-08A | curl 헤더 검사 | 계획됨 |
 | **S-08** | XSS 원천 차단: dangerouslySetInnerHTML 전면 금지 (ESLint 강제), DOMPurify 화이트리스트 렌더링 | 금지규칙 | Phase 1~8 | CARD-01A (ESLint) | ESLint / 단위 | 부분 완료 (ESLint `react/no-danger` 강제 검증, DOMPurify는 서식 텍스트 도입 카드) |
-| **S-09** | 수식 엔진 남용 방지: 수식 길이 1,000자 상한, 시트 1,000행 상한, 순환참조 방어, Worker 타임아웃 2초, eval/Function 전면 금지 | 금지규칙 | Phase 2 | CARD-02B | ESLint / 단위 | 계획됨 |
+| **S-09** | 수식 엔진 남용 방지: 수식 길이 1,000자 상한, 시트 1,000행 상한, 순환참조 방어, Worker 타임아웃 2초, eval/Function 전면 금지 | 금지규칙 | Phase 2 | CARD-02B | ESLint / 단위 | 부분 완료 (수식 1,000자·1,000행×50열 상한, 순환 #CYCLE! 이중 판정, eval 금지. Worker 2초 타임아웃은 미구현 — 사용자 결정 2026-10-23) |
 | **S-10** | 공급망 보안: package-lock.json 필수 커밋, 정확한 버전 고정, npm audit CI 게이트, 출처 불명 스크립트 금지 | 비기능 | Phase 1 | CARD-01A | npm audit / CI | 부분 완료 (lockfile·정확 버전·로컬 npm audit 0건 검증, CI 게이트는 원격 저장소 연결 후 첫 실행 필요) |
 | **S-11** | 비밀 정보 유출 방지: .gitignore 철저 검증 (.env* 제외), 커밋 전 비밀값 스캔 도구 연동 | 비기능 | Phase 1 | CARD-01A | Git 스캔 테스트 | 부분 완료 (.gitignore `git check-ignore` 검증, gitleaks CI는 원격 저장소 연결 후 첫 실행 필요) |
 | **S-12** | 개인정보 최소 수집, 계정 탈퇴 시 데이터 영구 삭제 트랜잭션, 데이터 내보내기, 만 14세 이용 약관 정책 | 비기능 | Phase 6 | CARD-06B | 약관 / 탈퇴 테스트 | 계획됨 |
@@ -665,13 +665,13 @@
 
 | 요구사항 ID | 원문 요약 및 핵심 내용 | 유형 | 담당 Phase | 담당 작업 카드 | 검증 방법 | 상태 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Q-01** | Excel 대조 골든 테스트: tests/fixtures/golden-excel-calculations.xlsx 기준 통합 문서 대조 러너 및 차이 문서화(EXCEL_DIFFERENCES.md) | 비기능 | Phase 2 | CARD-02B | 골든 테스트 러너 | 계획됨 |
+| **Q-01** | Excel 대조 골든 테스트: tests/fixtures/golden-excel-calculations.xlsx 기준 통합 문서 대조 러너 및 차이 문서화(EXCEL_DIFFERENCES.md) | 비기능 | Phase 2 | CARD-02B | 골든 테스트 러너 | 완료됨 (golden-excel.test.ts: 수식 96개 중 95개 Excel 일치, 1개는 EXCEL_DIFFERENCES D-3 단일 예외로 양쪽 값 검증) |
 | **Q-02** | 데이터 교란 채점 (Perturbation-Based Scoring): 3종 변형 데이터셋 주입을 통한 하드코딩/범위오류/참조오류 판정표 | 기능 | Phase 4 | CARD-04B | 단위 테스트 | 계획됨 |
 | **Q-03** | 콘텐츠 자체 검증 파이프라인: Zod 스키마 검증, 기준 정답 통과 및 대표 오답 실패 CI 자동 검증(scripts/verify-content.ts) | 비기능 | Phase 4 | CARD-04E | npm run verify-content | 계획됨 |
 | **Q-04** | 속성 기반 테스트 (fast-check): Undo/Redo 50회 왕복 불변성, 자동채우기 수식 주소 오프셋, F4 참조 순환성 검증 | 비기능 | Phase 2 | CARD-02A | fast-check 러너 | 계획됨 (정의된 불변식 3종: Undo 왕복은 CARD-02D, 자동 채우기 주소 오프셋은 CARD-02E, F4는 CARD-02C. fast-check 미설치) |
 | **Q-05** | 한글 입력기(IME) 조합 처리: isComposing 감지 및 compositionstart/end 처리를 통한 조합 중 커밋 및 중복 입력 방지 | 기능 | Phase 2 | CARD-02A | Playwright E2E | 완료됨 (useImeInput + ImeInput.test.ts, Playwright CDP 조합 입력 "합계"·"홍길동" 검증) |
 | **Q-06** | 브라우저 단축키 충돌 방어 및 대체 안내: 가로채기 불가능한 단축키 투명 고지 및 F1/F4/Ctrl+Z 앱 인터셉터 | 기능 | Phase 2 | CARD-02A | 수동 / E2E | 부분 완료 (그리드에서 F1 기본 동작 차단만. F4는 CARD-02C, Ctrl+Z/Y는 CARD-02D, 안내 패널은 학습 화면 카드) |
-| **Q-07** | 날짜 일련번호 및 한국 로케일: 1900년 윤년 처리, 1900-01-01 기준 일련번호 호환성, 한국어 날짜/통화 서식 파싱 테스트 | 비기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
+| **Q-07** | 날짜 일련번호 및 한국 로케일: 1900년 윤년 처리, 1900-01-01 기준 일련번호 호환성, 한국어 날짜/통화 서식 파싱 테스트 | 비기능 | Phase 2 | CARD-02B | 단위 테스트 | 부분 완료 (1900 윤년·일련번호 dateSerial.test.ts·골든 DateSerial. 한국어 날짜·통화 서식은 Phase 7 셀 서식 — 사용자 결정 2026-10-23) |
 | **Q-08** | CI 품질 게이트: typecheck, lint, format, test, rules, build 단일 파이프라인 병합 차단 자동화 | 비기능 | Phase 1 | CARD-01A | GitHub Actions CI | 부분 완료 (typecheck·lint·format·test·licenses·audit·build 단계 구성, rules는 CARD-06C·e2e는 CARD-03D에서 추가, 원격 미실행) |
 | **Q-09** | React 오류 경계(ErrorBoundary) 컴포넌트 격리 및 저장 실패 시 지수 백오프 자동 재시도/오프라인 캐시 | 기능 | Phase 1/6 | CARD-01C, CARD-06B | 단위 / E2E | 부분 완료 (ErrorBoundary 구현·테스트 완료. 지수 백오프 재시도·오프라인 캐시는 CARD-06B) |
 
@@ -803,3 +803,20 @@
   - R-08.06·R-08.07·R-08.10 → **신규 CARD-02E**(Phase 2). 셋 모두 수식 엔진(CARD-02B)의 참조 이동·상대 참조 규칙과 Undo 명령(CARD-02D)이 있어야 올바르게 동작한다. 기존 카드 중 02C(입력줄)·02D(Undo·시트)에는 파일 목록이 맞지 않아 별도 카드로 분리했다. Q-04의 자동 채우기 주소 오프셋 불변식도 여기서 검증한다.
   - R-08.13 → **CARD-06B**. 셀 상태를 저장 가능한 형태로 직렬화하고 IndexedDB/localStorage에 보존하는 일이 06B의 offlineStorage와 같은 범위다. 06B 파일 목록에 직렬화 모듈과 테스트를 추가했다. 참고: R-04.52(학습 파일 저장)는 MASTER_PROMPT §4.5 연습실 기능이며, 이후 CARD-02D 파일 목록(`sandboxFileStore.ts`·테스트)과 완료 조건에 추가해 추적표 배정(CARD-02D)과 일치시켰다.
   - CARD-03A의 선행 카드는 CARD-02D에서 CARD-02E로, 02D의 'Phase 2 완료 조건' 문구는 02E로 이동했다.
+
+### CARD-02B (2026-10-23)
+- **완료됨:** R-03.06, R-03.13, R-03.15, R-08.15~R-08.21, R-08.23, R-08.24, R-08.25, Q-01
+- **부분 완료 (각 행 상태 칸에 남은 범위 명시):** R-08.14, R-08.22, R-08.26, R-08.27, R-08.29, S-09, Q-07
+- **요구사항 ID 대응 (이번 카드 한정 기록):** 카드 본문 `R-08.2-01`~`R-08.2-05` → R-08.14~R-08.25(MASTER_PROMPT §8.2), `R-08.3-01`·`R-08.3-02` → R-08.26~R-08.32(§8.3). 카드 본문 ID도 현재 ID로 고쳤다. R-03.06은 CARD-01A 기록에서 넘겨 둔 항목이라 담당을 CARD-02B로 바꿨다.
+- **사용자 결정 (2026-10-23):** xlsx 읽기·쓰기는 새 패키지 없이 자체 구현, S-09 Worker 타임아웃 제외, Q-07 한국어 서식 제외, 골든 불일치 중 CONCAT·INDEX는 어댑터에서 고치고 #NULL!은 기록된 단일 예외로 단언.
+- **Excel 기준 파일 처리:** `scripts/golden/make-golden-formulas.mjs`로 `tests/fixtures/golden-formulas.xlsx`(수식 96개, 결과 값 없음, `fullCalcOnLoad="1"`)를 만들고, 사용자가 웹 Excel에서 계산한 `golden-excel-calculations.xlsx`를 받았다. 수식 96개 모두 계산 값이 있었고 입력값은 원본과 같았다. Excel은 저장 시 `fullCalcOnLoad`를 지우고 `1E+3`을 `1000`으로 바꿨다.
+- **골든 불일치 4건 조사 결과:** COUNTIF 한글 와일드카드(어댑터 설정 `accentSensitive` 문제, 수정), CONCAT 미지원(플러그인 구현), INDEX 범위 밖 #NUM!(플러그인 교체), 교집합 #NULL!(엔진 한계, D-3). 근거는 `docs/EXCEL_DIFFERENCES.md`.
+- **카드 원문과의 차이 (사유 포함):**
+  1. 카드 미기재 추가 파일: `src/engine/spreadsheet/adapters/excelCompatPlugin.ts`(CONCAT·INDEX), `errorMessages.ts`, `supportedFunctions.ts`, `dateSerial.ts`, `numberFormat.ts`, `scripts/golden/make-golden-formulas.mjs`, `tests/fixtures/golden-formulas.xlsx`, `tests/unit/helpers/xlsx/readXlsx.ts`, `tests/unit/engine/{dependencyGraph,dateSerial,golden-formulas}.test.ts`, `package.json`(hyperformula 3.5.0).
+  2. 오류 코드 `'#N/A!'`(ADR-001·TECHNICAL_DESIGN 초안)는 Excel 표기 `'#N/A'`로 바로잡았다. `'#SPILL!'`을 추가했다. 인터페이스에 `getDependents`를 더했다.
+  3. ADR-001 §3의 "CONCAT ✅ 지원"은 사실과 달라 ADR에 정정 메모를 달았다.
+  4. TEST_STRATEGY Q-01의 "SheetJS로 읽는다"는 자체 읽기 도구로 바뀌었음을 해당 문서에 적었다.
+- **알려진 한계:** 엔진은 아직 그리드·화면에 연결되지 않았다(CARD-02C). EXCEL_DIFFERENCES 3장(D-4~D-8: 지수 표기 리터럴, `&`의 숫자 문자열 변환, INDEX 0, 미지원 함수)은 재현으로만 확인했고 Excel 대조는 하지 않았다. CONCAT의 범위·빈 셀·숫자·논리값 동작은 Microsoft 문서 기준 단위 테스트로 확인했고, Excel로 대조한 것은 셀·문자열 인수 경우(골든 C28)뿐이다.
+
+### CARD-02B 추가 작업 (2026-10-23)
+- 2차 골든 대조(`golden-formulas-2.xlsx` 291셀 + 배열 펼침 43칸을 웹 Excel로 계산, `golden-excel-2.test.ts`)에서 처음 46셀이 달라 31셀을 어댑터에서 고치고(INT·ROUND 계열·EDATE·DATEDIF 단위·MATCH 와일드카드·INDEX·FILTER·CONCATENATE/TEXTJOIN/LEN 및 LEFT/RIGHT/MID/FIND/SEARCH/SUBSTITUTE/REPLACE/REPT/UPPER/LOWER/PROPER/CLEAN/TRIM/EXACT의 15자리 변환·TEXT 지원 서식·지수 표기 전처리), 15셀은 `EXCEL_DIFFERENCES.md` D-9~D-14로 기록했으며 Excel 실측 전 항목은 "다음 골든 라운드 확인 목록"에 모았다(R-08.26~R-08.29 상태 변화 없음, ADR-001 §3.1·§3.2 갱신).

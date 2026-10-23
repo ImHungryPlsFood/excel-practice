@@ -45,10 +45,10 @@ npm run format:check
 # 단위 및 통합 테스트 (Vitest)
 npm test
 
-# 콘텐츠 스키마 및 정답 자체 검증
+# 콘텐츠 스키마 및 정답 자체 검증 (CARD-04E에서 추가 예정)
 npm run verify-content
 
-# Firestore 보안 규칙 테스트 (로컬 에뮬레이터)
+# Firestore 보안 규칙 테스트 (로컬 에뮬레이터) (CARD-06C에서 추가 예정)
 npm run test:rules
 
 # E2E 브라우저 테스트 (Playwright)

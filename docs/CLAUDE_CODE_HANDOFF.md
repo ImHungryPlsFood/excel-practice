@@ -180,28 +180,37 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-02B: 수식 계산 엔진 어댑터 및 평가기 (Formula Engine Adapter)
-- **관련 요구사항 ID:** R-08.2-01, R-08.2-02, R-08.2-03, R-08.2-04, R-08.2-05, R-08.3-01, R-08.3-02, S-09, Q-01, Q-07, ADR-001
+- **관련 요구사항 ID:** R-03.06, R-03.13, R-03.15, R-08.14~R-08.25, R-08.26~R-08.29(엔진 범위), S-09, Q-01, Q-07, ADR-001 (옛 표기 R-08.2-01~05 → R-08.14~25, R-08.3-01·02 → R-08.26~32)
 - **선행 카드:** CARD-02A
 - **생성·수정할 파일:**
   - `src/engine/spreadsheet/FormulaEngineAdapter.ts` (추상 인터페이스)
-  - `src/engine/spreadsheet/adapters/IronCalcAdapter.ts` 또는 `HyperFormulaAdapter.ts` (ADR-001 사용자 결정 반영)
+  - `src/engine/spreadsheet/adapters/HyperFormulaAdapter.ts` (ADR-001: HyperFormula, `licenseKey: 'gpl-v3'`)
+  - `src/engine/spreadsheet/adapters/excelCompatPlugin.ts` (CONCAT 구현, INDEX 범위 밖 #REF!)
   - `src/engine/spreadsheet/evaluator/dependencyGraph.ts` (DAG 순환참조 감지)
+  - `src/engine/spreadsheet/supportedFunctions.ts`, `errorMessages.ts`, `dateSerial.ts`, `numberFormat.ts`
   - `docs/EXCEL_DIFFERENCES.md`
-  - `tests/fixtures/golden-excel-calculations.xlsx` (테스트 픽스처)
-  - `tests/unit/engine/formula-eval.test.ts`
+  - `scripts/golden/make-golden-formulas.mjs` → `tests/fixtures/golden-formulas.xlsx` (수식만, 결과 값 없음)
+  - `tests/fixtures/golden-excel-calculations.xlsx` (사용자가 Excel에서 계산한 기준 파일)
+  - `tests/unit/helpers/xlsx/readXlsx.ts` (새 패키지 없는 xlsx 읽기 도구)
+  - `tests/unit/engine/formula-eval.test.ts`, `dependencyGraph.test.ts`, `dateSerial.test.ts`, `golden-formulas.test.ts`
   - `tests/unit/engine/golden-excel.test.ts` (Q-01 골든 테스트)
 - **구현 지침 및 금지 사항:**
   - `eval()` 또는 `new Function()` 사용 엄격 금지 (S-09).
   - 셀 수식(`formula`)과 계산 결과(`value`)를 분리 저장.
   - 순환 참조 발생 시 무한 루프에 빠지지 않고 `#CYCLE!` 반환.
+  - S-09 상한: 수식 1,000자, 시트 1,000행 × 50열. Worker 2초 타임아웃은 이 카드 범위에서 제외(사용자 결정 2026-10-23).
+  - 지원하지 않는 함수·연산자는 임의 값 없이 오류와 한국어 안내로 알린다(R-08.25).
+  - 골든 불일치는 테스트를 약화하지 않고 원인을 조사한다. 엔진 한계로 확인된 차이만 `EXCEL_DIFFERENCES.md`에 근거와 함께 기록하고, 테스트 예외는 기록된 셀 하나 단위로만 둔다.
 - **완료 조건:**
   - 기본 사칙연산, 셀 참조(`A1+B1`), 범위 함수(`SUM(A1:A5)`), 1900년 윤년 및 날짜 일련번호 계산이 통과하고 골든 테스트가 검증된다.
+  - `npm run audit:licenses`가 통과한다(R-03.13, R-03.15).
 - **실행할 검증 명령:**
   ```powershell
   npm test tests/unit/engine/
   npm run typecheck
+  npm run audit:licenses
   ```
-- **외부 사용자 조치:** (선택적) 사용자가 MS Excel에서 작성한 골든 픽스처 파일 첨부 또는 기본 번들 픽스처 사용.
+- **외부 사용자 조치:** `golden-formulas.xlsx`를 Excel에서 열어 계산한 뒤 `tests/fixtures/golden-excel-calculations.xlsx`로 저장해 제공 (2026-10-23 완료).
 
 ---
 
