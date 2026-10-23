@@ -88,6 +88,20 @@ describe('LandingPage — MASTER_PROMPT §4.1 7대 필수 요소', () => {
       'https://github.com/ImHungryPlsFood/excel-practice',
     );
   });
+
+  it('푸터의 새 탭 외부 링크는 스크린리더용 "(새 탭에서 열림)" 안내를 포함한다', () => {
+    renderLanding();
+
+    const footer = screen.getByRole('contentinfo');
+    const external = within(footer)
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('target') === '_blank');
+
+    expect(external.length).toBeGreaterThanOrEqual(2);
+    for (const link of external) {
+      expect(link).toHaveAccessibleName(/\(새 탭에서 열림\)$/);
+    }
+  });
 });
 
 describe('SpreadsheetPreviewMock', () => {

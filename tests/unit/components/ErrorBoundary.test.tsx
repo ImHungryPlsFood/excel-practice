@@ -6,7 +6,7 @@ import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 
 function Bomb({ explode }: { explode: boolean }) {
   if (explode) {
-    throw new Error('폭발');
+    throw new Error('boom');
   }
   return <p>정상 화면</p>;
 }
@@ -49,7 +49,7 @@ describe('ErrorBoundary', () => {
     render(<Harness onError={onError} />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('문제가 발생했습니다');
-    expect(screen.getByRole('alert')).toHaveTextContent('폭발');
+    expect(screen.getByRole('alert')).toHaveTextContent('boom');
     expect(onError).toHaveBeenCalledTimes(1);
     expect(consoleError).toHaveBeenCalled();
   });

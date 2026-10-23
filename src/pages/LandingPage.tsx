@@ -177,7 +177,7 @@ function SiteFooter() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              GNU GPL v3.0 이상
+              GNU GPL v3.0 이상<span className="sr-only"> (새 탭에서 열림)</span>
             </a>
             으로 배포됩니다.{' '}
             <a
@@ -186,7 +186,7 @@ function SiteFooter() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              소스 코드 저장소 (GitHub)
+              소스 코드 저장소 (GitHub)<span className="sr-only"> (새 탭에서 열림)</span>
             </a>
           </p>
           <p className="text-xs opacity-75">
