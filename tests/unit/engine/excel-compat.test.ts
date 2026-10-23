@@ -291,3 +291,88 @@ describe('TEXT: 지원하는 서식은 정확히, 나머지는 오류', () => {
     expect(result.error?.message).toContain('#,##0.00');
   });
 });
+
+// 숫자 인수를 문자열로 바꾸는 텍스트 함수. 기대값은 Microsoft 지원 문서의 함수 설명과 "숫자는 유효 숫자 15자리로 문자열이 된다"는
+// 규칙에서 계산한 값이다. 아직 Excel로 실측하지 않았다(docs/EXCEL_DIFFERENCES.md "다음 골든 라운드 확인 목록").
+describe('텍스트 함수의 숫자 인수 (15자리 규칙, Excel 실측 전)', () => {
+  it.each([
+    ['=LEFT(0.1+0.2,5)', '0.3'],
+    ['=LEFT(1/3,5)', '0.333'],
+    ['=RIGHT(1/3,3)', '333'],
+    ['=RIGHT(0.1+0.2,2)', '.3'],
+    ['=MID(1/3,3,4)', '3333'],
+    ['=MID(0.1+0.2,3,5)', '3'],
+    ['=FIND("3",0.1+0.2)', 3],
+    ['=FIND(".",1/3)', 2],
+    ['=FIND(0.3,0.1+0.2)', 1],
+    ['=SEARCH("3",0.1+0.2)', 3],
+    ['=SEARCH(".?",1/3)', 2],
+    ['=SUBSTITUTE(0.1+0.2,"3","x")', '0.x'],
+    ['=SUBSTITUTE(1/3,"3","")', '0.'],
+    ['=SUBSTITUTE("a-b",0.1+0.2,"x")', 'a-b'],
+    ['=SUBSTITUTE("a",1/3,0.1+0.2)', 'a'],
+    ['=REPLACE(0.1+0.2,3,1,"x")', '0.x'],
+    ['=REPLACE("abc",2,1,0.1+0.2)', 'a0.3c'],
+    ['=REPT(0.1+0.2,2)', '0.30.3'],
+    ['=UPPER(TRUE)', 'TRUE'],
+    ['=LOWER(TRUE)', 'true'],
+    ['=UPPER(1/3)', '0.333333333333333'],
+    ['=PROPER(1/3)', '0.333333333333333'],
+    ['=EXACT(0.1+0.2,0.3)', true],
+    ['=EXACT(1/3,"0.333333333333333")', true],
+    ['=CLEAN(0.1+0.2)', '0.3'],
+    ['=TRIM(0.1+0.2)', '0.3'],
+  ])('%s = %j', (formula, expected) => {
+    expect(evaluate(formula)).toBe(expected);
+  });
+
+  it.each([
+    ['=LEFT("abc")', 'a'],
+    ['=LEFT("abc",10)', 'abc'],
+    ['=LEFT("abc",-1)', '#VALUE!'],
+    ['=RIGHT("abc")', 'c'],
+    ['=RIGHT("abc",0)', ''],
+    ['=RIGHT("abc",-1)', '#VALUE!'],
+    ['=MID("abcdef",2,3)', 'bcd'],
+    ['=MID("abc",5,2)', ''],
+    ['=MID("abc",0,1)', '#VALUE!'],
+    ['=FIND("b","abcb")', 2],
+    ['=FIND("b","abcb",3)', 4],
+    ['=FIND("B","abc")', '#VALUE!'],
+    ['=FIND("a","abc",4)', '#VALUE!'],
+    ['=SEARCH("B?","abc")', 2],
+    ['=SEARCH("B","abc")', 2],
+    ['=SEARCH("z","abc")', '#VALUE!'],
+    ['=SUBSTITUTE("a-b-c","-","+")', 'a+b+c'],
+    ['=SUBSTITUTE("a-b-c","-","+",2)', 'a-b+c'],
+    ['=SUBSTITUTE("a-b-c","-","+",5)', 'a-b-c'],
+    ['=SUBSTITUTE("aaa","a","b")', 'bbb'],
+    ['=SUBSTITUTE("aaa","aa","b")', 'ba'],
+    ['=SUBSTITUTE("a","","x")', 'a'],
+    ['=SUBSTITUTE("$a","a","$&")', '$$&'],
+    ['=SUBSTITUTE("a-b","-","+",0)', '#VALUE!'],
+    ['=REPLACE("abcdef",2,3,"X")', 'aXef'],
+    ['=REPLACE("abc",0,1,"X")', '#VALUE!'],
+    ['=REPT("ab",3)', 'ababab'],
+    ['=REPT("a",0)', ''],
+    ['=REPT("a",-1)', '#VALUE!'],
+    ['=REPT("a",32768)', '#VALUE!'],
+    ['=REPT("ab",16384)', '#VALUE!'],
+    ['=LEN(REPT("a",32767))', 32767],
+    ['=UPPER("abc")&LOWER("ABC")&PROPER("hello world")', 'ABCabcHello World'],
+    ['=TRIM("  a   b  ")', 'a b'],
+    ['=EXACT("a","A")', false],
+  ])('기존 동작은 그대로: %s = %j', (formula, expected) => {
+    expect(evaluate(formula)).toBe(expected);
+  });
+
+  it('오류와 빈 셀', () => {
+    expect(evaluate('=UPPER(1/0)')).toBe('#DIV/0!');
+    expect(evaluate('=LEFT(NA(),1)')).toBe('#N/A');
+    expect(evaluate('=FIND(1/0,"abc")')).toBe('#DIV/0!');
+    expect(evaluate('=SUBSTITUTE("a",NA(),"b")')).toBe('#N/A');
+    expect(evaluate('=UPPER(Z99)')).toBe('');
+    expect(evaluate('=LEFT(Z99,1)')).toBe('');
+    expect(evaluate('=REPT(Z99,3)')).toBe('');
+  });
+});

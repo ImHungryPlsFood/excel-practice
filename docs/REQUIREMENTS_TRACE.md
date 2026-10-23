@@ -817,3 +817,6 @@
   3. ADR-001 §3의 "CONCAT ✅ 지원"은 사실과 달라 ADR에 정정 메모를 달았다.
   4. TEST_STRATEGY Q-01의 "SheetJS로 읽는다"는 자체 읽기 도구로 바뀌었음을 해당 문서에 적었다.
 - **알려진 한계:** 엔진은 아직 그리드·화면에 연결되지 않았다(CARD-02C). EXCEL_DIFFERENCES 3장(D-4~D-8: 지수 표기 리터럴, `&`의 숫자 문자열 변환, INDEX 0, 미지원 함수)은 재현으로만 확인했고 Excel 대조는 하지 않았다. CONCAT의 범위·빈 셀·숫자·논리값 동작은 Microsoft 문서 기준 단위 테스트로 확인했고, Excel로 대조한 것은 셀·문자열 인수 경우(골든 C28)뿐이다.
+
+### CARD-02B 추가 작업 (2026-10-23)
+- 2차 골든 대조(`golden-formulas-2.xlsx` 291셀 + 배열 펼침 43칸을 웹 Excel로 계산, `golden-excel-2.test.ts`)에서 처음 46셀이 달라 31셀을 어댑터에서 고치고(INT·ROUND 계열·EDATE·DATEDIF 단위·MATCH 와일드카드·INDEX·FILTER·CONCATENATE/TEXTJOIN/LEN 및 LEFT/RIGHT/MID/FIND/SEARCH/SUBSTITUTE/REPLACE/REPT/UPPER/LOWER/PROPER/CLEAN/TRIM/EXACT의 15자리 변환·TEXT 지원 서식·지수 표기 전처리), 15셀은 `EXCEL_DIFFERENCES.md` D-9~D-14로 기록했으며 Excel 실측 전 항목은 "다음 골든 라운드 확인 목록"에 모았다(R-08.26~R-08.29 상태 변화 없음, ADR-001 §3.1·§3.2 갱신).

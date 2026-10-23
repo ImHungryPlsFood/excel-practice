@@ -8,7 +8,8 @@
  *   - EDATE: 윤년 2월 29일을 지킨다.
  *   - DATEDIF: 단위 대소문자 무시.
  *   - MATCH: 정확히 일치(0)에서 *, ? 와일드카드.
- *   - CONCATENATE·TEXTJOIN·LEN: 숫자를 문자열로 바꿀 때 유효 숫자 15자리 규칙(D-6).
+ *   - CONCATENATE·TEXTJOIN·LEN과 LEFT·RIGHT·MID·FIND·SEARCH·SUBSTITUTE·REPLACE·REPT·UPPER·LOWER·PROPER·CLEAN·TRIM·EXACT:
+ *     숫자를 문자열로 바꿀 때 유효 숫자 15자리 규칙(D-6). 후자는 Excel 실측 전이다.
  *   - TEXT: 지원하는 서식만 정확히 처리하고 나머지는 #VALUE!(excelFormat.ts).
  * Excel 동작 근거: Microsoft 지원 문서와 docs/EXCEL_DIFFERENCES.md의 2차 골든 대조.
  */
@@ -163,6 +164,96 @@ export class ExcelCompatPlugin extends FunctionPlugin {
       method: 'len',
       parameters: [{ argumentType: FunctionArgumentType.ANY }],
     },
+    LEFT: {
+      method: 'textLeft',
+      parameters: [
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.NUMBER, defaultValue: 1 },
+      ],
+    },
+    RIGHT: {
+      method: 'textRight',
+      parameters: [
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.NUMBER, defaultValue: 1 },
+      ],
+    },
+    MID: {
+      method: 'textMid',
+      parameters: [
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.NUMBER },
+        { argumentType: FunctionArgumentType.NUMBER },
+      ],
+    },
+    FIND: {
+      method: 'textFind',
+      parameters: [
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.NUMBER, defaultValue: 1 },
+      ],
+    },
+    SEARCH: {
+      method: 'textSearch',
+      parameters: [
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.NUMBER, defaultValue: 1 },
+      ],
+    },
+    SUBSTITUTE: {
+      method: 'textSubstitute',
+      parameters: [
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.NUMBER, optionalArg: true },
+      ],
+    },
+    REPLACE: {
+      method: 'textReplace',
+      parameters: [
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.NUMBER },
+        { argumentType: FunctionArgumentType.NUMBER },
+        { argumentType: FunctionArgumentType.ANY },
+      ],
+    },
+    REPT: {
+      method: 'textRept',
+      parameters: [
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.NUMBER },
+      ],
+    },
+    UPPER: {
+      method: 'textUpper',
+      parameters: [{ argumentType: FunctionArgumentType.ANY }],
+    },
+    LOWER: {
+      method: 'textLower',
+      parameters: [{ argumentType: FunctionArgumentType.ANY }],
+    },
+    PROPER: {
+      method: 'textProper',
+      parameters: [{ argumentType: FunctionArgumentType.ANY }],
+    },
+    CLEAN: {
+      method: 'textClean',
+      parameters: [{ argumentType: FunctionArgumentType.ANY }],
+    },
+    TRIM: {
+      method: 'textTrim',
+      parameters: [{ argumentType: FunctionArgumentType.ANY }],
+    },
+    EXACT: {
+      method: 'textExact',
+      parameters: [
+        { argumentType: FunctionArgumentType.ANY },
+        { argumentType: FunctionArgumentType.ANY },
+      ],
+    },
     INDEX: {
       method: 'index',
       parameters: [
@@ -298,6 +389,275 @@ export class ExcelCompatPlugin extends FunctionPlugin {
       const piece = textPiece(value);
       return piece instanceof CellError ? piece : piece.length;
     });
+  }
+
+  // ── 숫자 인수를 문자열로 바꾸는 텍스트 함수 (D-6) ──
+  // HyperFormula 원래 구현과 같은 계산을 하되, 숫자·논리값 인수를 textPiece(유효 숫자 15자리 규칙)로 바꾼다.
+  // Excel 값은 아직 골든 파일로 확인하지 않았다(docs/EXCEL_DIFFERENCES.md "다음 골든 라운드 확인 목록").
+
+  textLeft(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(
+      ast.args,
+      state,
+      this.metadata('LEFT'),
+      (value: unknown, length: number) => {
+        const text = textPiece(value);
+        if (text instanceof CellError) {
+          return text;
+        }
+        return length < 0
+          ? new CellError(ErrorType.VALUE, 'LEFT 글자 수는 0 이상이어야 합니다.')
+          : text.slice(0, length);
+      },
+    );
+  }
+
+  textRight(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(
+      ast.args,
+      state,
+      this.metadata('RIGHT'),
+      (value: unknown, length: number) => {
+        const text = textPiece(value);
+        if (text instanceof CellError) {
+          return text;
+        }
+        if (length < 0) {
+          return new CellError(ErrorType.VALUE, 'RIGHT 글자 수는 0 이상이어야 합니다.');
+        }
+        return length === 0 ? '' : text.slice(-length);
+      },
+    );
+  }
+
+  textMid(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(
+      ast.args,
+      state,
+      this.metadata('MID'),
+      (value: unknown, start: number, count: number) => {
+        const text = textPiece(value);
+        if (text instanceof CellError) {
+          return text;
+        }
+        if (start < 1 || count < 0) {
+          return new CellError(
+            ErrorType.VALUE,
+            'MID 시작 위치는 1 이상, 글자 수는 0 이상이어야 합니다.',
+          );
+        }
+        return text.substring(start - 1, start + count - 1);
+      },
+    );
+  }
+
+  textFind(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(
+      ast.args,
+      state,
+      this.metadata('FIND'),
+      (patternArg: unknown, textArg: unknown, start: number) => {
+        const pattern = textPiece(patternArg);
+        const text = textPiece(textArg);
+        if (pattern instanceof CellError) {
+          return pattern;
+        }
+        if (text instanceof CellError) {
+          return text;
+        }
+        if (start < 1 || start > text.length) {
+          return new CellError(ErrorType.VALUE, 'FIND 시작 위치가 텍스트 길이를 벗어났습니다.');
+        }
+        const index = text.substring(start - 1).indexOf(pattern) + start;
+        return index > 0 ? index : new CellError(ErrorType.VALUE, 'FIND: 찾는 텍스트가 없습니다.');
+      },
+    );
+  }
+
+  textSearch(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(
+      ast.args,
+      state,
+      this.metadata('SEARCH'),
+      (patternArg: unknown, textArg: unknown, start: number) => {
+        const pattern = textPiece(patternArg);
+        const text = textPiece(textArg);
+        if (pattern instanceof CellError) {
+          return pattern;
+        }
+        if (text instanceof CellError) {
+          return text;
+        }
+        if (start < 1 || start > text.length) {
+          return new CellError(ErrorType.VALUE, 'SEARCH 시작 위치가 텍스트 길이를 벗어났습니다.');
+        }
+        const normalizedPattern = pattern.toLowerCase();
+        const normalizedText = text.substring(start - 1).toLowerCase();
+        const index = this.arithmeticHelper.requiresRegex(normalizedPattern)
+          ? this.arithmeticHelper.searchString(normalizedPattern, normalizedText)
+          : normalizedText.indexOf(normalizedPattern);
+        return index > -1
+          ? index + start
+          : new CellError(ErrorType.VALUE, 'SEARCH: 찾는 텍스트가 없습니다.');
+      },
+    );
+  }
+
+  textSubstitute(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(
+      ast.args,
+      state,
+      this.metadata('SUBSTITUTE'),
+      (textArg: unknown, oldArg: unknown, newArg: unknown, occurrence?: number) => {
+        const text = textPiece(textArg);
+        const oldText = textPiece(oldArg);
+        const newText = textPiece(newArg);
+        for (const piece of [text, oldText, newText]) {
+          if (piece instanceof CellError) {
+            return piece;
+          }
+        }
+        if (
+          typeof text !== 'string' ||
+          typeof oldText !== 'string' ||
+          typeof newText !== 'string'
+        ) {
+          return new CellError(ErrorType.VALUE);
+        }
+        // 바꿀 텍스트가 비어 있으면 Excel은 원문을 그대로 돌려준다.
+        if (oldText === '') {
+          return text;
+        }
+        if (occurrence !== undefined && occurrence < 1) {
+          return new CellError(ErrorType.VALUE, 'SUBSTITUTE 번호는 1 이상이어야 합니다.');
+        }
+        const target = occurrence === undefined ? undefined : Math.trunc(occurrence);
+        let result = '';
+        let from = 0;
+        let seen = 0;
+        for (let at = text.indexOf(oldText); at !== -1; at = text.indexOf(oldText, from)) {
+          seen += 1;
+          result += text.slice(from, at);
+          result += target === undefined || seen === target ? newText : oldText;
+          from = at + oldText.length;
+          if (target !== undefined && seen === target) {
+            break;
+          }
+        }
+        return result + text.slice(from);
+      },
+    );
+  }
+
+  textReplace(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(
+      ast.args,
+      state,
+      this.metadata('REPLACE'),
+      (textArg: unknown, start: number, count: number, newArg: unknown) => {
+        const text = textPiece(textArg);
+        const newText = textPiece(newArg);
+        if (text instanceof CellError) {
+          return text;
+        }
+        if (newText instanceof CellError) {
+          return newText;
+        }
+        if (start < 1 || count < 0) {
+          return new CellError(
+            ErrorType.VALUE,
+            'REPLACE 시작 위치는 1 이상, 글자 수는 0 이상이어야 합니다.',
+          );
+        }
+        return text.substring(0, start - 1) + newText + text.substring(start + count - 1);
+      },
+    );
+  }
+
+  textRept(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(
+      ast.args,
+      state,
+      this.metadata('REPT'),
+      (value: unknown, count: number) => {
+        const text = textPiece(value);
+        if (text instanceof CellError) {
+          return text;
+        }
+        const times = Math.trunc(count);
+        if (times < 0 || text.length * times > EXCEL_MAX_CELL_TEXT) {
+          return new CellError(
+            ErrorType.VALUE,
+            `REPT 결과는 ${EXCEL_MAX_CELL_TEXT}자 이하여야 합니다.`,
+          );
+        }
+        return text.repeat(times);
+      },
+    );
+  }
+
+  textUpper(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(ast.args, state, this.metadata('UPPER'), (value: unknown) => {
+      const text = textPiece(value);
+      return text instanceof CellError ? text : text.toUpperCase();
+    });
+  }
+
+  textLower(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(ast.args, state, this.metadata('LOWER'), (value: unknown) => {
+      const text = textPiece(value);
+      return text instanceof CellError ? text : text.toLowerCase();
+    });
+  }
+
+  textProper(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(ast.args, state, this.metadata('PROPER'), (value: unknown) => {
+      const text = textPiece(value);
+      return text instanceof CellError
+        ? text
+        : text.replace(
+            /\p{L}+/gu,
+            (word) => word.charAt(0).toUpperCase() + word.substring(1).toLowerCase(),
+          );
+    });
+  }
+
+  textClean(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(ast.args, state, this.metadata('CLEAN'), (value: unknown) => {
+      const text = textPiece(value);
+      return text instanceof CellError
+        ? text
+        : [...text].filter((ch) => ch.charCodeAt(0) > 31).join('');
+    });
+  }
+
+  textTrim(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(ast.args, state, this.metadata('TRIM'), (value: unknown) => {
+      const text = textPiece(value);
+      // 공백(U+0020)만 다룬다. 줄바꿈 없는 공백(160)은 D-14a(미확인)로 기록해 두었다.
+      return text instanceof CellError
+        ? text
+        : text.replace(/^ +/g, '').replace(/ +$/g, '').replace(/ +/g, ' ');
+    });
+  }
+
+  textExact(ast: FunctionAst, state: InterpreterState) {
+    return this.runFunction(
+      ast.args,
+      state,
+      this.metadata('EXACT'),
+      (leftArg: unknown, rightArg: unknown) => {
+        const left = textPiece(leftArg);
+        const right = textPiece(rightArg);
+        if (left instanceof CellError) {
+          return left;
+        }
+        if (right instanceof CellError) {
+          return right;
+        }
+        return left === right;
+      },
+    );
   }
 
   index(ast: FunctionAst, state: InterpreterState) {
@@ -576,6 +936,20 @@ export const EXCEL_COMPAT_TRANSLATIONS = {
     CONCATENATE: 'CONCATENATE',
     TEXTJOIN: 'TEXTJOIN',
     LEN: 'LEN',
+    LEFT: 'LEFT',
+    RIGHT: 'RIGHT',
+    MID: 'MID',
+    FIND: 'FIND',
+    SEARCH: 'SEARCH',
+    SUBSTITUTE: 'SUBSTITUTE',
+    REPLACE: 'REPLACE',
+    REPT: 'REPT',
+    UPPER: 'UPPER',
+    LOWER: 'LOWER',
+    PROPER: 'PROPER',
+    CLEAN: 'CLEAN',
+    TRIM: 'TRIM',
+    EXACT: 'EXACT',
     INDEX: 'INDEX',
     MATCH: 'MATCH',
     INT: 'INT',
