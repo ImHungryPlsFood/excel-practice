@@ -18,10 +18,12 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:perf": "playwright test --config playwright.perf.config.ts",
     "audit:deps": "npm audit --audit-level=high",
     "audit:licenses": "node scripts/audit-licenses.mjs"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "3.14.13",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "7.18.4"

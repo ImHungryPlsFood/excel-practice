@@ -65,7 +65,7 @@
 | **R-03.04** | Routing: React Router | 기능 | Phase 1 | CARD-01A, CARD-01C | 빌드 검증 / 단위 / E2E | 완료됨 (routes.tsx: /, /dashboard, /learn/:courseId, /sandbox, 404. routes.test.tsx·routing.spec.ts) |
 | **R-03.05** | Server state: TanStack Query 또는 필요한 경우 Firebase SDK 중심의 간단한 구조 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.06** | Spreadsheet engine: HyperFormula 또는 요구사항을 충족하는 대안 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
-| **R-03.07** | Spreadsheet UI: 적절한 오픈소스 스프레드시트 라이브러리 또는 자체 React 기반 그리드 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
+| **R-03.07** | Spreadsheet UI: 적절한 오픈소스 스프레드시트 라이브러리 또는 자체 React 기반 그리드 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 (CARD-02A: 자체 React 그리드 + @tanstack/react-virtual 3.14.13 MIT, ADR-002) |
 | **R-03.08** | Backend services: Firebase Authentication, Cloud Firestore | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.09** | Hosting: Netlify | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.10** | Testing: Vitest, React Testing Library, Playwright | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 부분 완료 (Vitest·RTL 실행 검증, Playwright는 설정만 — 첫 E2E는 CARD-03D) |
@@ -303,19 +303,19 @@
 | **R-07.29** | 다음 문제 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
 | **R-07.30** | 결과 화면 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
 | **R-07.31** | 사용자의 작업을 방해하는 애니메이션은 사용하지 마라. | 금지규칙 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
-| **R-08.01** | 셀 선택 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.02** | 범위 선택 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.03** | 셀 편집 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.04** | Enter 및 Tab 이동 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.05** | 화살표 키 이동 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.06** | 행과 열의 기본 조작 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.07** | 복사 및 붙여넣기 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.08** | 실행 취소 및 다시 실행 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.09** | 셀 내용 삭제 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.10** | 자동 채우기 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.11** | 수식 입력줄 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.12** | 여러 워크시트 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
-| **R-08.13** | 저장 가능한 셀 상태 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 |
+| **R-08.01** | 셀 선택 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (클릭 선택. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
+| **R-08.02** | 범위 선택 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (드래그·Shift+클릭·Shift+화살표·Ctrl+A. GridSelection.test.ts·SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
+| **R-08.03** | 셀 편집 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (타이핑·F2·더블클릭 편집, Esc 취소, 한글 IME. 수식 입력줄 연동은 CARD-02C. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
+| **R-08.04** | Enter 및 Tab 이동 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (Enter/Shift+Enter, Tab/Shift+Tab. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
+| **R-08.05** | 화살표 키 이동 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (화살표·Home·Ctrl+Home·PageUp/Down. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
+| **R-08.06** | 행과 열의 기본 조작 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02A 범위에서 제외 — 사용자 결정 2026-10-23, 담당 카드 재배정 필요) |
+| **R-08.07** | 복사 및 붙여넣기 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02A 범위에서 제외 — 사용자 결정 2026-10-23, 담당 카드 재배정 필요) |
+| **R-08.08** | 실행 취소 및 다시 실행 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02D historyManager에서 구현) |
+| **R-08.09** | 셀 내용 삭제 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (Delete 범위 삭제, Backspace 비우고 편집. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
+| **R-08.10** | 자동 채우기 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02A 범위에서 제외 — 사용자 결정 2026-10-23, 담당 카드 재배정 필요) |
+| **R-08.11** | 수식 입력줄 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02C FormulaBar에서 구현) |
+| **R-08.12** | 여러 워크시트 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02D SheetTabs에서 구현) |
+| **R-08.13** | 저장 가능한 셀 상태 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02A 범위에서 제외 — 사용자 결정 2026-10-23, 담당 카드 재배정 필요) |
 | **R-08.14** | 수식은 직접 문자열을 비교하는 방식만으로 채점하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
 | **R-08.15** | 셀 간 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
 | **R-08.16** | 범위 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
@@ -431,8 +431,8 @@
 | **R-12.21** | 전환 곡선 | 기능 | Phase 1 | CARD-01A | CSS 토큰 검사 | 완료됨 (tokens.css + tokens.test.ts: 12개 범주 존재·컴포넌트 하드코딩 색상 0건) |
 | **R-12.22** | 상태별 강조 색상 | 기능 | Phase 1 | CARD-01A | CSS 토큰 검사 | 완료됨 (tokens.css + tokens.test.ts: 12개 범주 존재·컴포넌트 하드코딩 색상 0건) |
 | **R-12.23** | 컴포넌트마다 임의의 색상과 간격을 반복해서 정의하지 마라. | 금지규칙 | Phase 1 | CARD-01A | CSS 토큰 검사 | 완료됨 (tokens.css + tokens.test.ts: 12개 범주 존재·컴포넌트 하드코딩 색상 0건) |
-| **R-12.24** | 학습 UI는 그 위에서 작업을 안내하되, 그리드의 조작을 방해하지 않아야 한다. | 금지규칙 | Phase 2 | CARD-02A | E2E 테스트 | 계획됨 |
-| **R-12.25** | 표의 셀과 일반적인 카드 컴포넌트의 디자인을 혼합하지 마라. | 금지규칙 | Phase 2 | CARD-02A | E2E 테스트 | 계획됨 |
+| **R-12.24** | 학습 UI는 그 위에서 작업을 안내하되, 그리드의 조작을 방해하지 않아야 한다. | 금지규칙 | Phase 2 | CARD-02A | E2E 테스트 | 계획됨 (학습 UI가 아직 없음. CARD-02A는 좌표·선택 API만 제공) |
+| **R-12.25** | 표의 셀과 일반적인 카드 컴포넌트의 디자인을 혼합하지 마라. | 금지규칙 | Phase 2 | CARD-02A | E2E 테스트 | 완료됨 (셀은 그리드 토큰만 사용, 둥글기 0·그림자 없음을 spreadsheet-grid.spec.ts로 검증) |
 | **R-12.26** | 모바일 앱을 우선적으로 개발하지 마라. | 금지규칙 | Phase 1 | CARD-01B | 반응형 검수 | 부분 완료 (1440px/390px 스크린샷 점검·가로 넘침 없음, 사용자 반응형 검수 필요) |
 | **R-12.27** | 데스크톱과 노트북에서의 학습 경험 | 기능 | Phase 1 | CARD-01B | 반응형 검수 | 부분 완료 (1440px/390px 스크린샷 점검·가로 넘침 없음, 사용자 반응형 검수 필요) |
 | **R-12.28** | 일반적인 데스크톱 브라우저에서의 안정성 | 기능 | Phase 1 | CARD-01B | 반응형 검수 | 부분 완료 (1440px/390px 스크린샷 점검·가로 넘침 없음, 사용자 반응형 검수 필요) |
@@ -668,9 +668,9 @@
 | **Q-01** | Excel 대조 골든 테스트: tests/fixtures/golden-excel-calculations.xlsx 기준 통합 문서 대조 러너 및 차이 문서화(EXCEL_DIFFERENCES.md) | 비기능 | Phase 2 | CARD-02B | 골든 테스트 러너 | 계획됨 |
 | **Q-02** | 데이터 교란 채점 (Perturbation-Based Scoring): 3종 변형 데이터셋 주입을 통한 하드코딩/범위오류/참조오류 판정표 | 기능 | Phase 4 | CARD-04B | 단위 테스트 | 계획됨 |
 | **Q-03** | 콘텐츠 자체 검증 파이프라인: Zod 스키마 검증, 기준 정답 통과 및 대표 오답 실패 CI 자동 검증(scripts/verify-content.ts) | 비기능 | Phase 4 | CARD-04E | npm run verify-content | 계획됨 |
-| **Q-04** | 속성 기반 테스트 (fast-check): Undo/Redo 50회 왕복 불변성, 자동채우기 수식 주소 오프셋, F4 참조 순환성 검증 | 비기능 | Phase 2 | CARD-02A | fast-check 러너 | 계획됨 |
-| **Q-05** | 한글 입력기(IME) 조합 처리: isComposing 감지 및 compositionstart/end 처리를 통한 조합 중 커밋 및 중복 입력 방지 | 기능 | Phase 2 | CARD-02A | Playwright E2E | 계획됨 |
-| **Q-06** | 브라우저 단축키 충돌 방어 및 대체 안내: 가로채기 불가능한 단축키 투명 고지 및 F1/F4/Ctrl+Z 앱 인터셉터 | 기능 | Phase 2 | CARD-02A | 수동 / E2E | 계획됨 |
+| **Q-04** | 속성 기반 테스트 (fast-check): Undo/Redo 50회 왕복 불변성, 자동채우기 수식 주소 오프셋, F4 참조 순환성 검증 | 비기능 | Phase 2 | CARD-02A | fast-check 러너 | 계획됨 (정의된 불변식 3종: Undo 왕복은 CARD-02D, 자동 채우기·F4는 해당 기능 구현 카드. fast-check 미설치) |
+| **Q-05** | 한글 입력기(IME) 조합 처리: isComposing 감지 및 compositionstart/end 처리를 통한 조합 중 커밋 및 중복 입력 방지 | 기능 | Phase 2 | CARD-02A | Playwright E2E | 완료됨 (useImeInput + ImeInput.test.ts, Playwright CDP 조합 입력 "합계"·"홍길동" 검증) |
+| **Q-06** | 브라우저 단축키 충돌 방어 및 대체 안내: 가로채기 불가능한 단축키 투명 고지 및 F1/F4/Ctrl+Z 앱 인터셉터 | 기능 | Phase 2 | CARD-02A | 수동 / E2E | 부분 완료 (그리드에서 F1 기본 동작 차단만. F4는 CARD-02C, Ctrl+Z/Y는 CARD-02D, 안내 패널은 학습 화면 카드) |
 | **Q-07** | 날짜 일련번호 및 한국 로케일: 1900년 윤년 처리, 1900-01-01 기준 일련번호 호환성, 한국어 날짜/통화 서식 파싱 테스트 | 비기능 | Phase 2 | CARD-02B | 단위 테스트 | 계획됨 |
 | **Q-08** | CI 품질 게이트: typecheck, lint, format, test, rules, build 단일 파이프라인 병합 차단 자동화 | 비기능 | Phase 1 | CARD-01A | GitHub Actions CI | 부분 완료 (typecheck·lint·format·test·licenses·audit·build 단계 구성, rules는 CARD-06C·e2e는 CARD-03D에서 추가, 원격 미실행) |
 | **Q-09** | React 오류 경계(ErrorBoundary) 컴포넌트 격리 및 저장 실패 시 지수 백오프 자동 재시도/오프라인 캐시 | 기능 | Phase 1/6 | CARD-01C, CARD-06B | 단위 / E2E | 부분 완료 (ErrorBoundary 구현·테스트 완료. 지수 백오프 재시도·오프라인 캐시는 CARD-06B) |
@@ -685,8 +685,8 @@
 | **P-02** | 지연 로딩 및 코드 분할: 수식엔진, XLSX 파서, 차트, Level 7~10 고급/자격증 모듈의 dynamic import() 청크 분리 | 비기능 | Phase 8 | CARD-08A | 번들 분석기 | 계획됨 |
 | **P-03** | 애니메이션 원칙: transform 및 opacity 전용 모션 토큰 적용, 레이아웃 흔들림 금지, prefers-reduced-motion 및 인앱 모션 끄기 | 비기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
 | **P-04** | Spotlight 위치 실시간 동기화: ResizeObserver, 가상 스크롤 추적, 말풍선 뷰포트 충돌 시 자동 반전(Flip) 로직 | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
-| **P-05** | 3계층 입력 반응성 분리: 동기식 UI 렌더링(0ms) -> 비동기 수식/채점 연산 -> 1초 디바운스 영속화 저장 | 비기능 | Phase 2 | CARD-02A | 프로파일링 | 계획됨 |
-| **P-06** | 대규모 데이터 가상 스크롤 성능 벤치마크: 10,000행 × 100열 60 FPS 유지 및 드롭 프레임 5% 미만 보장 | 비기능 | Phase 2 | CARD-02A | Playwright 성능테스트 | 계획됨 |
+| **P-05** | 3계층 입력 반응성 분리: 동기식 UI 렌더링(0ms) -> 비동기 수식/채점 연산 -> 1초 디바운스 영속화 저장 | 비기능 | Phase 2 | CARD-02A | 프로파일링 | 부분 완료 (1계층: 편집 초안은 로컬 state, Enter/Tab/화살표/blur에서만 커밋. 2계층 CARD-02B, 3계층 CARD-06B) |
+| **P-06** | 대규모 데이터 가상 스크롤 성능 벤치마크: 10,000행 × 100열 60 FPS 유지 및 드롭 프레임 5% 미만 보장 | 비기능 | Phase 2 | CARD-02A | Playwright 성능테스트 | 부분 완료 (tests/perf/virtual-scroll.perf.ts 구현. 같은 PC에서 3/3 통과 2회, 배터리 구동 중 실패 — 전원 연결 환경 재측정 필요) |
 
 ---
 
@@ -776,3 +776,25 @@
   4. 대시보드는 모든 사용자에게 "기록 없음" 상태로 표시된다 (사용자 결정 2026-10-22).
 - **요구사항 ID 표기 불일치 (이번 카드 한정 기록):** HANDOFF의 CARD-01C 본문에 적힌 `R-04.2-01`, `R-04.2-02`, `R-17.1-01`은 본 추적표에 존재하지 않는다. MASTER_PROMPT §4.2 원문 기준으로 `R-04.08`~`R-04.17`에 대응시켜 갱신했다(사용자 결정 2026-10-22). `R-17.1-01`은 대응하는 ID를 확인하지 못해 Q-09(ErrorBoundary)와 R-03.04만 갱신했다. 다른 카드의 ID 표기는 이번에 수정하지 않았다.
 - **알려진 한계:** `favicon.ico` 없음(CARD-01B에서 이어짐). `/learn/level-0`의 courseId 규칙은 임시값이며 콘텐츠 스키마(CARD-03) 확정 시 맞춰야 한다.
+
+### CARD-02A (2026-10-23)
+- **완료됨:** R-03.07, R-08.01, R-08.02, R-08.03, R-08.04, R-08.05, R-08.09, R-12.25, Q-05
+- **부분 완료 (각 행 상태 칸에 남은 범위 명시):** Q-06, P-05, P-06
+- **CARD-02A 배정이지만 계획됨 유지:**
+  - R-08.06 행·열 조작, R-08.07 복사·붙여넣기, R-08.10 자동 채우기, R-08.13 저장 가능한 셀 상태: 카드 본문의 파일 목록·완료 조건에 없어 이번 범위에서 제외 (사용자 결정 2026-10-23). 담당 카드 재배정 필요.
+  - R-08.08 Undo·R-08.12 여러 시트 → CARD-02D, R-08.11 수식 입력줄 → CARD-02C (해당 카드에 실제 파일이 있음)
+  - R-12.24: 학습 UI가 아직 없음. Q-04: 정의된 불변식 3종이 모두 다른 카드 기능.
+- **요구사항 ID 대응 (이번 카드 한정 기록):** HANDOFF의 CARD-02A 본문 ID를 MASTER_PROMPT 원문 기준으로 다음과 같이 대응시켰다. 다른 카드의 ID 표기는 수정하지 않았다.
+  - `R-01.0-04` → R-01.04 (§1-4, 전체 공통 행이라 상태 변경 없음. 실제 셀·행·열 작업 환경의 첫 구현)
+  - `R-07.2-06` → R-07.19 (§7.2 6번째, 담당 CARD-03C. `getCellViewportRect`·`getRangeViewportRect`·`scrollToCell` 제공)
+  - `R-08.1-01` → R-08.01~R-08.13 (§8.1)
+  - `R-12.2-01` → R-12.24, `R-12.2-02` → R-12.25 (§12.2)
+  - `ADR-002`는 요구사항 ID가 아니라 결정 문서로 보고 준수만 함. R-03.07은 CARD-01A 기록에서 CARD-02A로 넘겨 둔 항목.
+- **Excel 기준 파일 선행 조건:** CARD-02A에는 없음(외부 사용자 조치: 없음). 수식 계산 결과 비교 부분이 없어 픽스처 없이 진행했다. 골든 픽스처는 CARD-02B(Q-01).
+- **카드 원문과의 차이 (사유 포함):**
+  1. 카드 미기재 추가 파일: `src/pages/dev/GridHarnessPage.tsx`(개발 전용 `/dev/grid`, 사용자 결정 2026-10-23), `src/app/routes.tsx`(개발 서버와 `--mode perf` 빌드에서만 등록, 프로덕션 번들에서 제외 확인), `tests/unit/spreadsheet/SpreadsheetGrid.test.tsx`, `tests/e2e/spreadsheet-grid.spec.ts`, `playwright.perf.config.ts`, `package.json`(`test:perf` 스크립트, `@tanstack/react-virtual` 3.14.13), `tsconfig.node.json`(perf 파일 타입 검사), `.gitignore`·`.prettierignore`·`eslint.config.js`(`dist-perf/` 무시).
+  2. `eslint.config.js`에서 `useVirtualGrid.ts` 한 파일만 `react-hooks/incompatible-library`를 껐다. useVirtualizer가 React Compiler 자동 메모이제이션과 맞지 않는다는 안내이며, 이 프로젝트는 React Compiler를 쓰지 않는다. 인라인 주석 비활성화는 쓰지 않았다.
+  3. ADR-002의 `getFormulaBarRect`는 수식 입력줄이 생기는 CARD-02C에서 추가한다(가짜 null 반환 스텁을 두지 않음).
+  4. `@tanstack/react-virtual`은 최신 3.14.22 대신 공개 2주 이상 지난 3.14.13을 고정했다(S-10).
+- **P-06 측정 기록:** 10,000행 × 100열, 프로덕션 최적화 perf 빌드, Playwright Chromium(1280×720). 전원 연결 상태로 보이는 실행 2회는 휠 60.0 FPS·드롭 0%, PageDown 58.6~58.8 FPS·드롭 2.1~2.4%, 연속 스크롤 60.0 FPS·드롭 0%로 3/3 통과. 다른 2회는 연속 스크롤 1건씩 실패(평균 56.0~56.7 FPS, 한 실행은 최악 99.9ms 1프레임). 배터리 구동이 확인된 뒤 실행에서는 3건 모두 실패(30~45 FPS). 기준값은 낮추지 않았고, 전원 연결 환경에서 다시 측정해 판정해야 한다.
+- **알려진 한계:** 드래그 중 그리드 가장자리 자동 스크롤 없음. Ctrl+화살표(데이터 끝 이동) 미구현. 숫자·문자 정렬 구분 없음(값 형식은 CARD-02B 엔진 연결 후).
