@@ -21,7 +21,7 @@ CELLCRAFT는 사용자가 직접 수식을 작성하고 셀을 조작하는 인�
 - **테스트 환경 및 선행 조건 (사용자 결정 2026-10-22 반영):**
   - 기준 파일: `tests/fixtures/golden-excel-calculations.xlsx` (사용자가 MS Excel 정품에서 직접 작성 및 저장하여 제공).
   - **[Phase 2 착수 선행 조건]**: 본 기준 파일이 `tests/fixtures/` 디렉터리에 존재하지 않는 경우, Phase 2의 `CARD-02B`(수식 계산 엔진 어댑터) 작업 카드는 착수할 수 없으며 대기해야 한다.
-  - 테스트 러너(`tests/unit/engine/golden-excel.test.ts`)는 SheetJS로 기준 파일의 사전 계산된 원본 캐시 값(`cell.v`)을 읽고, 동일한 수식(`cell.f`)을 CELLCRAFT 수식 엔진에 주입하여 재계산한 뒤 두 값을 비교한다.
+  - 테스트 러너(`tests/unit/engine/golden-excel.test.ts`)는 기준 파일의 사전 계산된 원본 캐시 값(`<v>`)을 읽고(2026-10-23 사용자 결정: SheetJS 대신 새 패키지 없는 테스트 전용 읽기 도구 `tests/unit/helpers/xlsx/readXlsx.ts` 사용), 동일한 수식(`cell.f`)을 CELLCRAFT 수식 엔진에 주입하여 재계산한 뒤 두 값을 비교한다.
   - 부동소수점 오차 허용치(Epsilon): `1e-9`.
   - **불일치 처리 원칙:** 불일치가 발생하면 테스트를 실패 처리하거나, 수학적/스펙상 정당한 차이인 경우 `docs/EXCEL_DIFFERENCES.md`에 사유(예: 1900년 윤년 버그 처리 방식, 부동소수점 반올림 규칙 차이)를 공식 기록한다.
 

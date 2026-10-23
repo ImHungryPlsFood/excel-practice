@@ -54,7 +54,7 @@
 | **IFERROR** | ✅ 지원 | ✅ 지원 | 완벽 지원 |
 | **LEFT, RIGHT, MID** | ✅ 지원 | ✅ 지원 | 완벽 지원 |
 | **LEN, TRIM** | ✅ 지원 | ⚠️ 부분 지원 (TRIM WIP) | 완벽 지원 |
-| **CONCAT** | ✅ 지원 | ✅ 지원 | 완벽 지원 |
+| **CONCAT** | ❌ 미지원 (2026-10-23 정정, 3.5.0 실측) | ✅ 지원 | 어댑터 플러그인으로 구현 (`excelCompatPlugin.ts`, EXCEL_DIFFERENCES D-1) |
 | **TEXTJOIN** | ✅ 지원 | ❌ 미지원 (WIP) | 완벽 지원 |
 | **TODAY, NOW** | ✅ 지원 | ✅ 지원 | 완벽 지원 |
 | **YEAR, MONTH, DAY** | ✅ 지원 | ✅ 지원 | 완벽 지원 |
@@ -109,7 +109,7 @@ export function createFormulaEngineInstance() {
 export type CellValue = string | number | boolean | null;
 
 export interface CellError {
-  type: '#DIV/0!' | '#VALUE!' | '#REF!' | '#NAME?' | '#NUM!' | '#N/A!' | '#NULL!' | '#CYCLE!';
+  type: '#DIV/0!' | '#VALUE!' | '#REF!' | '#NAME?' | '#NUM!' | '#N/A' | '#NULL!' | '#CYCLE!'; // 2026-10-23 정정: Excel 표기는 '#N/A'
   message: string;
 }
 

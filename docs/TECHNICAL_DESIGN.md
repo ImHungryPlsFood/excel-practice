@@ -109,7 +109,7 @@ export type CellErrorCode =
   | '#REF!' 
   | '#NAME?' 
   | '#NUM!' 
-  | '#N/A!' 
+  | '#N/A' // 2026-10-23 정정: Excel 표기는 '#N/A'
   | '#NULL!' 
   | '#CYCLE!' 
   | '#ERROR!';
