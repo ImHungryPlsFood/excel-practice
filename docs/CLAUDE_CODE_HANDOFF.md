@@ -238,7 +238,7 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - Undo 실행 시 직전 셀 값 및 수식이 100% 복원되어야 함.
   - 연습실 모드와 학습 모드의 상태 저장소를 명확히 분리.
 - **완료 조건:**
-  - Phase 2 완료 조건 충족: 사용자가 브라우저에서 실제로 데이터를 입력하고 수식을 계산하며, 다중 시트 전환 및 Undo/Redo가 안정적으로 동작한다.
+  - 사용자가 브라우저에서 실제로 데이터를 입력하고 수식을 계산하며, 다중 시트 전환 및 Undo/Redo가 안정적으로 동작한다. (Phase 2 완료 판정은 CARD-02E 이후)
 - **실행할 검증 명령:**
   ```powershell
   npm test tests/unit/history/
@@ -249,11 +249,44 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 
 ---
 
+#### CARD-02E: 행·열 조작, 복사·붙여넣기 및 자동 채우기 (Range Operations)
+- **관련 요구사항 ID:** R-08.06, R-08.07, R-08.10, R-08.17, Q-04
+- **선행 카드:** CARD-02D
+- **생성·수정할 파일:**
+  - `src/engine/spreadsheet/operations/referenceShift.ts` (수식 참조 이동 공통 로직, 상대/절대 참조 구분)
+  - `src/engine/spreadsheet/operations/rowColumnOps.ts` (행·열 삽입, 삭제, 크기 조절, 수식 참조 갱신)
+  - `src/engine/spreadsheet/operations/clipboard.ts` (복사, 잘라내기, 붙여넣기, TSV 변환, 붙여넣을 때 상대 참조 이동)
+  - `src/engine/spreadsheet/operations/autoFill.ts` (숫자·날짜 시퀀스와 수식 채우기)
+  - `src/components/spreadsheet/hooks/useClipboard.ts` (Ctrl+C/X/V 연결)
+  - `src/components/spreadsheet/hooks/useFillHandle.ts` (채우기 핸들 드래그, Ctrl+D/R)
+  - `src/components/spreadsheet/GridHeader.tsx` (행·열 머리글 메뉴: 삽입, 삭제, 너비·높이 조절)
+  - `tests/unit/engine/rowColumnOps.test.ts`
+  - `tests/unit/engine/clipboard.test.ts`
+  - `tests/unit/engine/autoFill.test.ts` (fast-check: 채우기 수식 주소 오프셋 속성 테스트)
+  - `tests/e2e/range-operations.spec.ts`
+- **구현 지침 및 금지 사항:**
+  - 모든 변경은 CARD-02D의 historyManager 명령으로 실행해 Undo/Redo가 되어야 한다.
+  - 참조 계산은 CARD-02B 엔진을 사용하고 수식 문자열을 정규식으로만 치환하는 방식 금지(`$A$1`, 시트 간 참조 포함).
+  - 문제 ID별 정답 하드코딩 금지. 삭제된 셀을 가리키는 참조는 `#REF!`로 처리한다.
+  - `fast-check`는 이 카드에서 설치하며 S-10에 따라 공개 2주 이상 지난 버전으로 고정한다.
+- **완료 조건:**
+  - 행·열을 삽입·삭제하면 수식 참조가 갱신되고, 복사한 수식은 상대 참조가 이동한 채 붙여넣어지며, 채우기 핸들로 숫자·날짜·수식이 확장된다. 세 동작 모두 Undo로 복원된다.
+- **실행할 검증 명령:**
+  ```powershell
+  npm test tests/unit/engine/
+  npm run typecheck
+  npm run lint
+  npx playwright test tests/e2e/range-operations.spec.ts
+  ```
+- **외부 사용자 조치:** 없음.
+
+---
+
 ### [Phase 3: 튜토리얼 엔진]
 
 #### CARD-03A: 선언적 튜토리얼 스키마 및 상태 머신 러너 (Tutorial Schema & FSM Runner)
 - **관련 요구사항 ID:** R-07.1-01, R-07.1-02, R-07.1-03
-- **선행 카드:** CARD-02D
+- **선행 카드:** CARD-02E
 - **생성·수정할 파일:**
   - `src/types/tutorial.schema.ts` (Zod 기반 `TutorialStepSchema`)
   - `src/engine/tutorials/tutorialRunner.ts` (XState 또는 경량 FSM 상태 머신)
@@ -537,22 +570,25 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-06B: Firestore 진도 모델, 오프라인 캐시 및 탈퇴 처리 (Firestore Progress & Privacy)
-- **관련 요구사항 ID:** R-13.2-01, R-13.2-02, R-13.4-01, R-13.4-02, S-12, Q-09
+- **관련 요구사항 ID:** R-13.2-01, R-13.2-02, R-13.4-01, R-13.4-02, R-08.13, S-12, Q-09
 - **선행 카드:** CARD-06A
 - **생성·수정할 파일:**
   - `src/services/firebase/progressService.ts` (디바운스 쓰기, 일괄 읽기 최적화)
   - `src/services/storage/offlineStorage.ts` (IndexedDB / localStorage 캐시)
+  - `src/engine/spreadsheet/serialization/cellStateSerializer.ts` (R-08.13: 수식·값·서식·시트 구성을 버전 필드가 있는 JSON으로 직렬화·복원)
+  - `tests/unit/engine/cellStateSerializer.test.ts` (저장 후 복원한 수식과 값이 원본과 같은지, 알 수 없는 버전 거부)
   - `src/features/profile/components/DataExportButton.tsx` (데이터 JSON 다운로드)
   - `src/features/profile/components/DeleteAccountModal.tsx` (계정 및 진도 영구 삭제)
   - `tests/unit/services/progressService.test.ts`
 - **구현 지침 및 금지 사항:**
   - 모든 문제를 매번 Firestore에서 새로 불러오지 말고 로컬 캐시 우선 사용 (R-13.4-01).
   - 네트워크 단절 시 오프라인 캐시를 유지하고 복구 시 지수 백오프로 재시도 (Q-09).
+  - 셀 상태 직렬화는 `eval` 없이 JSON만 사용하고 복원 시 스키마를 검증한다.
 - **완료 조건:**
-  - 진도 데이터가 오프라인에서도 보존되고, 계정 탈퇴 시 사용자 데이터가 영구 삭제된다.
+  - 진도 데이터가 오프라인에서도 보존되고, 계정 탈퇴 시 사용자 데이터가 영구 삭제된다. 저장한 셀 상태를 새로고침 후 복원하면 수식과 값이 동일하다.
 - **실행할 검증 명령:**
   ```powershell
-  npm test tests/unit/services/progressService.test.ts
+  npm test tests/unit/services/progressService.test.ts tests/unit/engine/cellStateSerializer.test.ts
   npm run typecheck
   ```
 - **외부 사용자 조치:** 없음.
