@@ -228,21 +228,29 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-02D: Undo/Redo 스택, 다중 시트 및 연습실 모드 (Undo/Redo & Sandbox)
-- **관련 요구사항 ID:** R-04.5-01, R-04.5-02, R-04.52, R-17.2-01, Q-04
+- **관련 요구사항 ID:** R-04.5-01, R-04.5-02, R-04.45, R-04.46, R-04.47, R-04.48, R-04.49, R-04.51, R-04.52, R-17.2-01, Q-04
 - **선행 카드:** CARD-02C
 - **생성·수정할 파일:**
   - `src/engine/spreadsheet/history/historyManager.ts` (Command 패턴 기반 Undo/Redo)
   - `src/components/spreadsheet/SheetTabs.tsx` (시트 추가, 이름 변경, 활성 탭 전환)
-  - `src/pages/SandboxPage.tsx`
+  - `src/pages/SandboxPage.tsx` (R-04.45: '빈 스프레드시트 만들기'와 R-04.46: '샘플 데이터 불러오기' 진입 동작 포함)
+  - `src/content/sandbox/sampleDatasets.ts` (R-04.46: 판매 내역·상품 재고·출석 기록 등 원문 10장 데이터셋 중 핵심 몇 종의 가상 샘플)
+  - `src/components/sandbox/SampleDataPicker.tsx` (샘플 선택 및 현재 시트로 불러오기)
   - `src/services/sandbox/sandboxFileStore.ts` (R-04.52: 연습실 학습 파일 저장·불러오기. 시트·셀 값·수식을 버전 필드가 있는 JSON으로 저장하고 복원 시 스키마 검증. 학습 모드 저장소와 분리)
   - `tests/unit/history/historyManager.test.ts` (속성 기반 50회 왕복 테스트)
   - `tests/unit/sandbox/sandboxFileStore.test.ts` (저장 후 복원 왕복, 손상된 파일 거부)
+  - `tests/unit/sandbox/sampleDatasets.test.ts` (스키마·가상 데이터 검증, 불러오기 후 셀 값 일치)
 - **구현 지침 및 금지 사항:**
   - Undo 실행 시 직전 셀 값 및 수식이 100% 복원되어야 함.
   - 연습실 모드와 학습 모드의 상태 저장소를 명확히 분리.
+  - 샘플 데이터(R-04.46)는 원문 10장에 따라 개인정보나 실제 기업의 기밀 데이터를 쓰지 않고 독창적인 가상 데이터만 사용한다. 실존 기업명·실존 인물명·실제 연락처 형식의 값을 넣지 않으며 테스트가 이를 점검한다. 빈 셀·중복 등 오류가 섞인 데이터를 넣더라도 난이도에 맞지 않는 불필요한 혼란은 만들지 않는다.
+  - 빈 스프레드시트(R-04.45)와 샘플 불러오기는 연습실 저장소에만 쓰고 학습 모드 상태를 건드리지 않는다.
+  - 셀 편집(R-04.47)과 수식 입력(R-04.48) 구현은 CARD-02B(수식 엔진)·CARD-02C(입력줄)가 맡는다. 02D는 새로 구현하지 않고 연습실에서 연결·검증만 한다.
   - 학습 파일 저장(R-04.52)은 `eval` 없이 JSON만 사용한다. 내구성 있는 IndexedDB 연동과 공통 직렬화 모듈은 CARD-06B(`cellStateSerializer.ts`)에서 통합한다.
 - **완료 조건:**
   - 사용자가 브라우저에서 실제로 데이터를 입력하고 수식을 계산하며, 다중 시트 전환 및 Undo/Redo가 안정적으로 동작한다.
+  - 연습실(`/sandbox`)에서 빈 스프레드시트를 만들고 가상 샘플 데이터를 불러올 수 있다(R-04.45, R-04.46).
+  - 연습실에서 셀 편집과 수식 입력이 동작한다(R-04.47, R-04.48. 구현은 02B·02C).
   - 연습실(`/sandbox`)에서 작업한 내용을 학습 파일로 저장하고, 새로고침 후 다시 불러오면 값·수식·시트 구성이 동일하게 복원된다(R-04.52). (Phase 2 완료 판정은 CARD-02E 이후)
 - **실행할 검증 명령:**
   ```powershell
@@ -632,12 +640,14 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-07B: Level 5 차트 및 시각화 엔진 (Level 5 Charts)
-- **관련 요구사항 ID:** R-05.5-01, R-05.5-02, P-02
+- **관련 요구사항 ID:** R-05.5-01, R-05.5-02, R-04.50, P-02
 - **선행 카드:** CARD-07A
 - **생성·수정할 파일:**
   - `src/components/charts/ChartView.tsx` (Recharts / Canvas 기반)
   - `src/content/exercises/level5/` (차트 선택 및 대시보드 8개 모듈)
-- **완료 조건:** 차트 컴포넌트 렌더링 및 올바른 차트 유형 판정 채점 통과.
+  - `src/components/sandbox/FormatChartToolbar.tsx` (R-04.50: 연습실의 셀 서식 및 차트 삽입. Phase 2에서 연기됨, MASTER_PROMPT 17장 Phase 7)
+  - `tests/unit/sandbox/formatChartToolbar.test.tsx`
+- **완료 조건:** 차트 컴포넌트 렌더링 및 올바른 차트 유형 판정 채점 통과. 연습실에서 셀 서식과 차트 삽입이 실제로 동작한 범위만 R-04.50을 완료로 표시한다.
 
 ---
 
@@ -690,16 +700,18 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-07H: 격리된 XLSX Web Worker 파이프라인 (Secure XLSX Worker Pipeline)
-- **관련 요구사항 ID:** R-04.5-01, S-09, ADR-003
+- **관련 요구사항 ID:** R-04.5-01, R-04.53, S-09, ADR-003
 - **선행 카드:** Phase 2 완료 후 독립 병행 가능
 - **생성·수정할 파일:**
   - `src/workers/xlsx.worker.ts` (`Object.freeze`, 5초 타임아웃, 5MB 상한, 매크로 제거)
   - `src/services/spreadsheet/xlsxService.ts`
+  - `src/components/sandbox/XlsxTransferModal.tsx` (R-04.53: 연습실 XLSX 가져오기·내보내기 모달과 지원 기능·제한 안내. Phase 2에서 연기됨, MASTER_PROMPT 17장 Phase 7)
   - `tests/unit/xlsx/xlsx-security.test.ts` (악성 Zip bomb 샘플 방어 테스트)
 - **구현 지침 및 금지 사항:**
   - `npm install xlsx` 표준 레지스트리 설치 금지 (ADR-003). 공식 CDN tarball 고정.
 - **완료 조건:**
   - 비정상 파일 업로드 시 메인 스레드 프리징 없이 안전하게 거부되고 정상 파일만 로드된다.
+  - 연습실에서 정상 XLSX를 가져오고 내보낼 수 있다(R-04.53).
 
 ---
 
