@@ -9,11 +9,12 @@
 
 ## 1. Claude Code 작업 규칙 및 환경 가이드 (G-01 ~ G-05)
 
-### [G-01] Claude Code 4대 절대 금지 규칙
+### [G-01] Claude Code 5대 절대 금지 규칙
 1. **테스트 통과를 위한 테스트 약화·삭제·건너뛰기(`skip`, `only`) 절대 금지:** 테스트가 실패하면 구현 코드를 수정하여 통과시켜야 하며, 테스트 기대값을 낮추거나 주석 처리하지 않는다.
 2. **정답 및 기대값 하드코딩 절대 금지:** 채점기나 수식 엔진 내부에서 특정 문제 ID(예: `if (id === 'MOD-SUM') return 150`)를 감지해 결과를 조작하는 행위를 엄격히 금지한다.
 3. **실패 은폐성 예외 처리 금지:** 오류를 숨기는 무의미한 `try { ... } catch (e) {}`, TypeScript 컴파일을 회피하는 `@ts-ignore`, `@ts-nocheck`, 무분별한 `any` 타입 캐스팅, `eslint-disable` 주입을 금지한다. 불가피한 경우 설계 문서 근거와 주석을 반드시 명시한다.
 4. **목업(Mock) 화면으로 완료 보고 금지:** 실제 동작하지 않는 가짜 버튼, 연결되지 않은 수식 입력줄을 만들고 구현이 완료되었다고 보고하지 않는다.
+5. **`package.json`에 없는 패키지를 `npx`로 내려받아 실행 금지:** 의존성에 선언되지 않은 패키지를 `npx`로 임시 설치해 실행하지 않는다. 필요하면 먼저 사용자에게 묻고 승인을 받은 뒤 `package.json`에 명시적으로 추가한다.
 
 ### [G-02] 세션 종료 시 완료 보고 표준 양식
 Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템플릿에 맞추어 사용자에게 보고해야 한다:
@@ -227,18 +228,22 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-02D: Undo/Redo 스택, 다중 시트 및 연습실 모드 (Undo/Redo & Sandbox)
-- **관련 요구사항 ID:** R-04.5-01, R-04.5-02, R-17.2-01, Q-04
+- **관련 요구사항 ID:** R-04.5-01, R-04.5-02, R-04.52, R-17.2-01, Q-04
 - **선행 카드:** CARD-02C
 - **생성·수정할 파일:**
   - `src/engine/spreadsheet/history/historyManager.ts` (Command 패턴 기반 Undo/Redo)
   - `src/components/spreadsheet/SheetTabs.tsx` (시트 추가, 이름 변경, 활성 탭 전환)
   - `src/pages/SandboxPage.tsx`
+  - `src/services/sandbox/sandboxFileStore.ts` (R-04.52: 연습실 학습 파일 저장·불러오기. 시트·셀 값·수식을 버전 필드가 있는 JSON으로 저장하고 복원 시 스키마 검증. 학습 모드 저장소와 분리)
   - `tests/unit/history/historyManager.test.ts` (속성 기반 50회 왕복 테스트)
+  - `tests/unit/sandbox/sandboxFileStore.test.ts` (저장 후 복원 왕복, 손상된 파일 거부)
 - **구현 지침 및 금지 사항:**
   - Undo 실행 시 직전 셀 값 및 수식이 100% 복원되어야 함.
   - 연습실 모드와 학습 모드의 상태 저장소를 명확히 분리.
+  - 학습 파일 저장(R-04.52)은 `eval` 없이 JSON만 사용한다. 내구성 있는 IndexedDB 연동과 공통 직렬화 모듈은 CARD-06B(`cellStateSerializer.ts`)에서 통합한다.
 - **완료 조건:**
-  - 사용자가 브라우저에서 실제로 데이터를 입력하고 수식을 계산하며, 다중 시트 전환 및 Undo/Redo가 안정적으로 동작한다. (Phase 2 완료 판정은 CARD-02E 이후)
+  - 사용자가 브라우저에서 실제로 데이터를 입력하고 수식을 계산하며, 다중 시트 전환 및 Undo/Redo가 안정적으로 동작한다.
+  - 연습실(`/sandbox`)에서 작업한 내용을 학습 파일로 저장하고, 새로고침 후 다시 불러오면 값·수식·시트 구성이 동일하게 복원된다(R-04.52). (Phase 2 완료 판정은 CARD-02E 이후)
 - **실행할 검증 명령:**
   ```powershell
   npm test tests/unit/history/
