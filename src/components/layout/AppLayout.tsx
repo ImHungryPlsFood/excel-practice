@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { AppHeader } from './AppHeader';
 import { AppSidebar } from './AppSidebar';
 
-/** 로그인 후 화면(대시보드·학습·샌드박스)의 공통 틀. 랜딩 페이지는 사용하지 않는다. */
+/** 로그인 후 화면(대시보드·학습·연습실)의 공통 틀. 랜딩 페이지는 사용하지 않는다. */
 export function AppLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">

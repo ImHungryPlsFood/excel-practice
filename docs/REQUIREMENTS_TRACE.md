@@ -120,16 +120,16 @@
 | **R-04.40** | 왼쪽: 학습 설명 및 단계별 안내 | 기능 | Phase 2 | CARD-02C | E2E / 단위 | 부분 완료 (왼쪽 280px 안내 슬롯과 좁은 화면 배치까지. 학습 설명·단계별 안내 내용은 CARD-03A~03C) |
 | **R-04.41** | 중앙: 실제 조작 가능한 스프레드시트 | 기능 | Phase 2 | CARD-02C | E2E / 단위 | 완료됨 (중앙에 수식 입력줄+그리드+수식 엔진이 연결된 Spreadsheet. FormulaBar.test.tsx·formula-bar.spec.ts) |
 | **R-04.42** | 오른쪽: 문제 조건, 목표, 선택적 힌트 | 기능 | Phase 2 | CARD-02C | E2E / 단위 | 부분 완료 (오른쪽 320px 문제·힌트 슬롯까지. 문제 조건·목표·힌트 내용은 CARD-04A·04C) |
-| **R-04.43** | 하단: 작업 상태, 실행 취소, 다시 시작, 필요에 따른 진행 버튼 | 기능 | Phase 2 | CARD-02C | E2E / 단위 | 부분 완료 (하단 40px 슬롯, 작업 상태 표시와 "다시 시작"(처음 데이터로 되돌리기)은 구현. 실행 취소는 CARD-02D, 진행 버튼은 CARD-03A) |
+| **R-04.43** | 하단: 작업 상태, 실행 취소, 다시 시작, 필요에 따른 진행 버튼 | 기능 | Phase 2 | CARD-02C | E2E / 단위 | 부분 완료 (하단 40px 슬롯, 작업 상태 표시와 "다시 시작"(02C). 실행 취소·다시 실행 버튼과 "다시 시작"의 실행 취소(02D, formula-bar.spec.ts). 진행 버튼은 CARD-03A) |
 | **R-04.44** | 불필요하게 패널을 많이 만들지 마라. 사용자가 실제 작업에 집중할 수 있도록 하라. | 금지규칙 | Phase 2 | CARD-02C | E2E / 단위 | 완료됨 (내용을 넘기지 않은 영역은 그리지 않음. LearningLayout.test.tsx·formula-bar.spec.ts) |
-| **R-04.45** | 빈 스프레드시트 만들기 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 계획됨 |
-| **R-04.46** | 샘플 데이터 불러오기 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 계획됨 |
-| **R-04.47** | 직접 셀 편집 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 계획됨 |
-| **R-04.48** | 수식 입력 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 계획됨 |
-| **R-04.49** | 여러 시트 사용 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 계획됨 |
+| **R-04.45** | 빈 스프레드시트 만들기 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 완료됨 (CARD-02D: 연습실 '빈 스프레드시트'. 저장 안 한 작업이 있으면 확인, 실행 취소 가능. SandboxPage.test.tsx·sandbox.spec.ts) |
+| **R-04.46** | 샘플 데이터 불러오기 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 완료됨 (CARD-02D: 가상 샘플 3종(판매 내역·상품 재고·출석 기록)을 지금 시트로 불러오기, 실행 취소 가능. 개인정보 형식·실존 기업명 점검. sampleDatasets.test.ts·SandboxPage.test.tsx·sandbox.spec.ts) |
+| **R-04.47** | 직접 셀 편집 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 완료됨 (구현 02A·02C, CARD-02D에서 연습실에 연결해 확인. SandboxPage.test.tsx·sandbox.spec.ts) |
+| **R-04.48** | 수식 입력 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 완료됨 (구현 02B·02C, CARD-02D에서 연습실에 연결해 확인. SandboxPage.test.tsx·sandbox.spec.ts) |
+| **R-04.49** | 여러 시트 사용 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 완료됨 (CARD-02D: SheetTabs 시트 추가·전환·이름 변경·삭제, 시트 간 참조와 이름 변경 시 수식 갱신. workbookModel.test.ts·SheetTabs.test.tsx·sandbox.spec.ts) |
 | **R-04.50** | 서식 및 차트 작업 | 기능 | Phase 7 | CARD-07B | 통합 / 단위 | 연기됨 (MASTER_PROMPT 17장 Phase 7 '차트'. 서식·차트는 차트 엔진(07B)에 의존하므로 Phase 2 범위에서 제외) |
-| **R-04.51** | 실행 취소와 다시 실행 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 계획됨 |
-| **R-04.52** | 학습 파일 저장 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 계획됨 |
+| **R-04.51** | 실행 취소와 다시 실행 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 완료됨 (CARD-02D: historyManager. 셀 값·수식·범위 지우기·시트 추가/삭제/이름 변경·샘플·통합 문서 교체 모두 실행 취소. Ctrl+Z/Y와 버튼. historyManager.test.ts(50회 왕복 속성)·sandbox.spec.ts) |
+| **R-04.52** | 학습 파일 저장 | 기능 | Phase 2 | CARD-02D | 통합 / 단위 | 완료됨 (CARD-02D: 버전 필드가 있는 JSON으로 브라우저 저장(연습실 전용 키)과 파일 내려받기·올리기. 불러올 때 형식 검증. 새로고침 후 복원 E2E. sandboxFileStore.test.ts·sandbox.spec.ts. 내구성 저장(IndexedDB) 통합은 CARD-06B) |
 | **R-04.53** | 지원하는 경우 XLSX 가져오기 및 내보내기 | 기능 | Phase 7 | CARD-07H | 통합 / 단위 | 연기됨 (MASTER_PROMPT 17장 Phase 7 'XLSX 파일 처리'. 격리 Worker 파이프라인(07H)이 선행되어야 안전함) |
 | **R-05.01** | 스프레드시트란 무엇인가 | 기능 | Phase 4 | CARD-04D | 단위 테스트 | 계획됨 |
 | **R-05.02** | Excel과 Google Sheets의 기본적인 차이 | 기능 | Phase 4 | CARD-04D | 단위 테스트 | 계획됨 |
@@ -310,11 +310,11 @@
 | **R-08.05** | 화살표 키 이동 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (화살표·Home·Ctrl+Home·PageUp/Down. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
 | **R-08.06** | 행과 열의 기본 조작 | 기능 | Phase 2 | CARD-02E | 단위 / E2E | 계획됨 (CARD-02E rowColumnOps에서 구현. CARD-02A에서 재배정 2026-10-23) |
 | **R-08.07** | 복사 및 붙여넣기 | 기능 | Phase 2 | CARD-02E | 단위 / E2E | 계획됨 (CARD-02E clipboard에서 구현. CARD-02A에서 재배정 2026-10-23) |
-| **R-08.08** | 실행 취소 및 다시 실행 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02D historyManager에서 구현) |
+| **R-08.08** | 실행 취소 및 다시 실행 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (CARD-02D historyManager·workbookModel, Ctrl+Z/Y. historyManager.test.ts·SheetTabs.test.tsx·formula-bar.spec.ts) |
 | **R-08.09** | 셀 내용 삭제 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (Delete 범위 삭제, Backspace 비우고 편집. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
 | **R-08.10** | 자동 채우기 | 기능 | Phase 2 | CARD-02E | 단위 / E2E | 계획됨 (CARD-02E autoFill에서 구현. CARD-02A에서 재배정 2026-10-23) |
 | **R-08.11** | 수식 입력줄 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (CARD-02C FormulaBar: 이름 상자·fx 버튼·입력 상자·안내 줄, 셀 편집기와 편집 상태 공유. FormulaBar.test.tsx·formula-bar.spec.ts) |
-| **R-08.12** | 여러 워크시트 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 계획됨 (CARD-02D SheetTabs에서 구현) |
+| **R-08.12** | 여러 워크시트 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (CARD-02D SheetTabs·workbookModel. SheetTabs.test.tsx·workbookModel.test.ts·sandbox.spec.ts) |
 | **R-08.13** | 저장 가능한 셀 상태 | 기능 | Phase 6 | CARD-06B | 단위 / E2E | 계획됨 (CARD-06B 셀 상태 직렬화와 offlineStorage 저장에서 구현. CARD-02A에서 재배정 2026-10-23) |
 | **R-08.14** | 수식은 직접 문자열을 비교하는 방식만으로 채점하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 부분 완료 (엔진이 수식을 실제 계산해 값 제공. 문자열 비교 없는 채점기는 Phase 3~4) |
 | **R-08.15** | 셀 간 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (formula-eval.test.ts, 골든 References) |
@@ -324,7 +324,7 @@
 | **R-08.19** | 수식 오류 처리 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (오류 코드 10종, 전파·IFERROR, 골든 ErrorValues. #NULL!은 EXCEL_DIFFERENCES D-3) |
 | **R-08.20** | 의존 셀의 값 변경에 따른 재계산 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (자동 재계산·의존 셀 조회 getDependents, dependencyGraph.ts) |
 | **R-08.21** | 지원 함수 목록 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (supportedFunctions.ts, 엔진 등록 여부를 테스트로 대조) |
-| **R-08.22** | 계산 결과 표시 | 기능 | Phase 2 | CARD-02B, CARD-02C, CARD-02D | 단위 테스트 | 부분 완료 (CellResult.displayValue 생성(02B)과 셀 표시·오류 코드·안내 문장(02C) 완료. FormulaBar.test.tsx·formula-bar.spec.ts. 값 종류에 따른 기본 정렬(숫자 오른쪽·문자 왼쪽·논리값·오류 가운데)은 CARD-02D, 2026-10-23 배정) |
+| **R-08.22** | 계산 결과 표시 | 기능 | Phase 2 | CARD-02B, CARD-02C, CARD-02D | 단위 테스트 | 완료됨 (CellResult.displayValue 생성(02B), 셀 표시·오류 코드·안내 문장(02C), 값 종류에 따른 기본 정렬(02D: 숫자·날짜 오른쪽, 문자·문자로 저장된 숫자 왼쪽, 논리값·오류 가운데, 결과 종류로 판정). FormulaBar.test.tsx·cellAlignment.test.tsx·formula-bar.spec.ts) |
 | **R-08.23** | 함수별 오류 메시지 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (errorMessages.ts 코드별·함수별 한국어 안내) |
 | **R-08.24** | 브라우저에서 사용자가 입력한 수식을 `eval()`로 실행하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (eval·Function 미사용, ESLint no-eval·no-new-func) |
 | **R-08.25** | 지원하지 않는 함수나 기능은 명확하게 알리고, 임의의 결과를 반환하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (미지원 함수 #NAME?+함수 이름, 대체 안내, 교집합 연산자 미지원 안내) |
@@ -668,9 +668,9 @@
 | **Q-01** | Excel 대조 골든 테스트: tests/fixtures/golden-excel-calculations.xlsx 기준 통합 문서 대조 러너 및 차이 문서화(EXCEL_DIFFERENCES.md) | 비기능 | Phase 2 | CARD-02B | 골든 테스트 러너 | 완료됨 (golden-excel.test.ts: 수식 96개 중 95개 Excel 일치, 1개는 EXCEL_DIFFERENCES D-3 단일 예외로 양쪽 값 검증) |
 | **Q-02** | 데이터 교란 채점 (Perturbation-Based Scoring): 3종 변형 데이터셋 주입을 통한 하드코딩/범위오류/참조오류 판정표 | 기능 | Phase 4 | CARD-04B | 단위 테스트 | 계획됨 |
 | **Q-03** | 콘텐츠 자체 검증 파이프라인: Zod 스키마 검증, 기준 정답 통과 및 대표 오답 실패 CI 자동 검증(scripts/verify-content.ts) | 비기능 | Phase 4 | CARD-04E | npm run verify-content | 계획됨 |
-| **Q-04** | 속성 기반 테스트 (fast-check): Undo/Redo 50회 왕복 불변성, 자동채우기 수식 주소 오프셋, F4 참조 순환성 검증 | 비기능 | Phase 2 | CARD-02A | fast-check 러너 | 부분 완료 (F4 참조 순환성: fast-check 4.10.2로 4회 왕복·참조 보존 속성 검증, formulaReference.test.ts. Undo 왕복은 CARD-02D, 자동 채우기 주소 오프셋은 CARD-02E) |
+| **Q-04** | 속성 기반 테스트 (fast-check): Undo/Redo 50회 왕복 불변성, 자동채우기 수식 주소 오프셋, F4 참조 순환성 검증 | 비기능 | Phase 2 | CARD-02A | fast-check 러너 | 부분 완료 (F4 참조 순환성: formulaReference.test.ts. Undo/Redo 50회 왕복: 실제 엔진에서 셀 값·수식·시트 추가/삭제/이름 변경 무작위 50회 → 전부 취소=처음, 전부 다시 실행=마지막, 새 엔진 재계산과 일치(CARD-02D, historyManager.test.ts, 기본 25회 실행·300회 1회 확인). 자동 채우기 주소 오프셋은 CARD-02E) |
 | **Q-05** | 한글 입력기(IME) 조합 처리: isComposing 감지 및 compositionstart/end 처리를 통한 조합 중 커밋 및 중복 입력 방지 | 기능 | Phase 2 | CARD-02A | Playwright E2E | 완료됨 (useImeInput + ImeInput.test.ts, Playwright CDP 조합 입력 "합계"·"홍길동" 검증) |
-| **Q-06** | 브라우저 단축키 충돌 방어 및 대체 안내: 가로채기 불가능한 단축키 투명 고지 및 F1/F4/Ctrl+Z 앱 인터셉터 | 기능 | Phase 2 | CARD-02A | 수동 / E2E | 부분 완료 (그리드·수식 입력줄에서 F1 기본 동작 차단, F4는 수식 편집 중 참조 고정 순환. Ctrl+Z/Y는 CARD-02D, 가로챌 수 없는 단축키 안내 패널은 학습 화면 카드) |
+| **Q-06** | 브라우저 단축키 충돌 방어 및 대체 안내: 가로채기 불가능한 단축키 투명 고지 및 F1/F4/Ctrl+Z 앱 인터셉터 | 기능 | Phase 2 | CARD-02A | 수동 / E2E | 부분 완료 (그리드·수식 입력줄에서 F1 기본 동작 차단, F4는 수식 편집 중 참조 고정 순환. Ctrl+Z, Ctrl+Y·Ctrl+Shift+Z는 편집 중이 아닐 때 앱 실행 취소로 가로챔(02D, 편집 중에는 입력 상자 글자 되돌리기). 가로챌 수 없는 단축키 안내 패널은 학습 화면 카드) |
 | **Q-07** | 날짜 일련번호 및 한국 로케일: 1900년 윤년 처리, 1900-01-01 기준 일련번호 호환성, 한국어 날짜/통화 서식 파싱 테스트 | 비기능 | Phase 2 | CARD-02B | 단위 테스트 | 부분 완료 (1900 윤년·일련번호 dateSerial.test.ts·골든 DateSerial. 한국어 날짜·통화 서식은 Phase 7 셀 서식 — 사용자 결정 2026-10-23) |
 | **Q-08** | CI 품질 게이트: typecheck, lint, format, test, rules, build 단일 파이프라인 병합 차단 자동화 | 비기능 | Phase 1 | CARD-01A | GitHub Actions CI | 부분 완료 (typecheck·lint·format·test·licenses·audit·build 단계 구성, rules는 CARD-06C·e2e는 CARD-03D에서 추가, 원격 미실행) |
 | **Q-09** | React 오류 경계(ErrorBoundary) 컴포넌트 격리 및 저장 실패 시 지수 백오프 자동 재시도/오프라인 캐시 | 기능 | Phase 1/6 | CARD-01C, CARD-06B | 단위 / E2E | 부분 완료 (ErrorBoundary 구현·테스트 완료. 지수 백오프 재시도·오프라인 캐시는 CARD-06B) |
@@ -837,3 +837,23 @@
 - **포인트 모드 → CARD-02E:** 수식 편집 중 셀 클릭·드래그로 참조를 넣는 기능. 원문에 별도 항목은 없고 §8.1 "범위 선택"(R-08.02)을 수식 편집 상황으로 확장한 것이며, §7.1 "사용자가 해야 할 행동"(R-07.05)·"허용되는 입력"(R-07.06)에서 범위를 드래그해 함수 인수를 넣는 튜토리얼 단계의 전제다. 관련 엔진 요구사항(R-08.16 범위 참조, R-08.18 시트 간 참조)은 02B에서 완료됐다. 시트 탭(02D)과 참조 이동 로직(02E `referenceShift.ts`)이 함께 필요해 02D가 아니라 02E에 넣었다. R-08.02 담당에 CARD-02E를 더하고 부분 완료로 바꿨다.
 - **셀 기본 정렬 → CARD-02D:** 숫자 오른쪽·문자열 왼쪽·논리값과 오류 가운데. 셀 서식(Phase 7)이 아닌 Excel 기본 표시이며 원문 Level 4 "데이터 형식 통일"(R-05.55)의 전제다. R-08.22(계산 결과 표시)의 남은 범위로 CARD-02D에 배정했고, CARD-02C 보고에서 완료로 적었던 R-08.22를 부분 완료로 정정했다.
 - **CARD-02E 지침 정정:** "fast-check는 이 카드에서 설치"를 "CARD-02C에서 4.10.2로 설치, 그대로 사용"으로 고쳤다.
+
+### CARD-02D (2026-10-23)
+- **완료됨:** R-04.45, R-04.46, R-04.47, R-04.48, R-04.49, R-04.51, R-04.52, R-08.08, R-08.12, R-08.22
+- **부분 완료 유지 (범위 추가):** R-04.43(실행 취소·다시 실행 버튼 추가, 진행 버튼은 03A), Q-04(Undo 50회 왕복 추가, 자동 채우기는 02E), Q-06(Ctrl+Z/Y 추가, 안내 패널 남음)
+- **상태 변경 없음:** R-17.14(Undo)·R-17.15(워크시트 관리)는 담당이 "Phase 2 완료 게이트"이고 판정은 CARD-02E 이후다.
+- **요구사항 ID 대응 (카드 본문 옛 ID):** `R-04.5-01`·`R-04.5-02` → R-04.45~R-04.53(MASTER_PROMPT §4.5, 02D 담당은 .45~.49·.51·.52. .50은 07B, .53은 07H), `R-17.2-01` → R-17.14·R-17.15(§17 Phase 2). 카드 본문에 현재 ID를 병기했다.
+- **카드 본문에 없던 02D 담당 항목:** R-04.43 하단 실행 취소, Q-06 Ctrl+Z/Y, R-08.08·R-08.12(담당 02A, 비고로 02D에 넘어옴). 카드 본문에 추가했다.
+- **사용자 결정 (2026-10-23):** 학습 파일 저장은 브라우저 저장(localStorage, 연습실 전용 키 `cellcraft.sandbox.files.v1`)과 JSON 파일 내려받기·올리기를 함께 제공한다.
+- **설계 결정:**
+  1. 모든 변경은 `WorkbookModel`(신규 `src/components/spreadsheet/workbookModel.ts`)이 만드는 historyManager 명령이다. 셀 입력은 이전·이후 원문만, 시트 구조 변경·통합 문서 교체는 전후 스냅샷을 기록한다. "다시 시작", 빈 스프레드시트, 샘플·파일 불러오기, 시트 삭제도 실행 취소할 수 있다(MASTER_PROMPT §9.2 "작성한 데이터를 무조건 삭제하지 않는다"). 기록 상한 100개를 넘으면 가장 오래된 기록만 버린다.
+  2. 시트 구조 변경 뒤에는 원문에서 엔진을 다시 만든다(`FormulaEngineAdapter.loadSheets` 추가). HyperFormula 3.5.0에서 시트 삭제·재추가를 이어 쓰면 내부 의존 그래프가 깨지는 경우를 속성 테스트가 찾았기 때문이다.
+  3. 속성 테스트가 찾은 엔진 버그 D-16(없는 시트를 가리키는 수식 덮어쓰기 예외)을 어댑터에서 회피했다. 02C부터 있던 문제로, `=Sheet9!A1`을 고쳐 쓰면 화면이 멈출 수 있었다.
+  4. 시트 이름을 바꾸면 엔진이 다른 시트 수식의 시트 이름을 고쳐 쓰므로 그 셀의 원문도 엔진 수식으로 맞춘다.
+  5. 따옴표 없는 한글 시트 이름 참조(`=자료!A1`)를 엔진이 읽지 못해(D-15) 수식 전처리에 따옴표 붙이기를 추가했다(`formulaPreprocess.ts`).
+  6. 사이드바 "샌드박스"를 원문 용어 "연습실"로 바꾸고 링크로 되돌렸다. "학습"은 계속 준비 중이다.
+  7. 연습실 화면은 수식 엔진을 포함해 커서 `routes.tsx`에서 따로 내려받는다(lazy). 첫 화면 번들은 207 kB로 유지되고, 연습실 청크(878 kB, 대부분 HyperFormula)는 `/sandbox`를 열 때만 받는다. 빌드는 이 청크에 대해 500 kB 경고를 낸다.
+- **카드 미기재 추가·수정 파일:** `src/components/spreadsheet/workbookModel.ts`, `hooks/useWorkbook.ts`(여러 시트·실행 취소), `SpreadsheetGrid.tsx`(Ctrl+Z/Y), `src/engine/spreadsheet/FormulaEngineAdapter.ts`·`adapters/HyperFormulaAdapter.ts`(loadSheets, D-16), `formulaPreprocess.ts`(D-15), `src/pages/dev/WorkspaceHarnessPage.tsx`(하단 버튼), `src/app/routes.tsx`, `src/components/layout/AppSidebar.tsx`·`AppLayout.tsx`, `docs/EXCEL_DIFFERENCES.md`(D-15~D-17), `docs/TECHNICAL_DESIGN.md`(인터페이스). 테스트: `tests/unit/spreadsheet/workbookModel.test.ts`·`SheetTabs.test.tsx`, `tests/unit/pages/SandboxPage.test.tsx`, `tests/unit/helpers/layoutStubs.ts`, `tests/e2e/sandbox.spec.ts`, 기존 `useWorkbook.test.ts`·`formulaPreprocess.test.ts`·`formula-eval.test.ts`·`routes.test.tsx`·`routing.spec.ts`·`formula-bar.spec.ts` 갱신.
+- **기존 테스트의 기대 변경 (약화 아님):** `useWorkbook.test.ts`의 "reset 후 loading"은 다시 시작이 동기 명령이 되어 "처음 데이터로 돌아가고 실행 취소로 직전 작업이 돌아온다"로 바꿨다. `routes.test.tsx`·`routing.spec.ts`의 "샌드박스는 준비 중" 단언은 연습실이 동작하게 되어 링크·화면 단언으로 바꿨고 "학습" 준비 중 단언은 유지했다.
+- **알려진 한계:** 연습실 브라우저 저장은 이 브라우저에만 남는다(기기 간 동기화는 Phase 6). 시트 순서 바꾸기(탭 끌기)와 Ctrl+PageUp/PageDown 시트 이동은 없다. D-15·D-17의 Excel 동작은 골든 실측 전이다.
+

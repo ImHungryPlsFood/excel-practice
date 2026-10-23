@@ -238,7 +238,7 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-02D: Undo/Redo 스택, 다중 시트 및 연습실 모드 (Undo/Redo & Sandbox)
-- **관련 요구사항 ID:** R-04.5-01, R-04.5-02, R-04.45, R-04.46, R-04.47, R-04.48, R-04.49, R-04.51, R-04.52, R-17.2-01, Q-04, R-08.22(셀 기본 정렬, 2026-10-23 추가)
+- **관련 요구사항 ID:** R-04.45, R-04.46, R-04.47, R-04.48, R-04.49, R-04.51, R-04.52, R-17.14·R-17.15(Phase 2 게이트 기여), Q-04, R-08.22(셀 기본 정렬, 2026-10-23 추가). 구현 시 추가(2026-10-23): R-04.43(하단 실행 취소), Q-06(Ctrl+Z/Y), R-08.08, R-08.12 (옛 표기 R-04.5-01·R-04.5-02 → R-04.45~R-04.53, R-17.2-01 → R-17.14·R-17.15)
 - **선행 카드:** CARD-02C
 - **생성·수정할 파일:**
   - `src/engine/spreadsheet/history/historyManager.ts` (Command 패턴 기반 Undo/Redo)
@@ -252,6 +252,8 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - `tests/unit/sandbox/sampleDatasets.test.ts` (스키마·가상 데이터 검증, 불러오기 후 셀 값 일치)
   - (2026-10-23 추가) `src/components/spreadsheet/GridCell.tsx`, `src/components/spreadsheet/types.ts`(`CellDisplay`에 값 종류 추가), `src/components/spreadsheet/Spreadsheet.tsx` (R-08.22: 셀 기본 정렬)
   - (2026-10-23 추가) `tests/unit/spreadsheet/cellAlignment.test.tsx`, `tests/e2e/formula-bar.spec.ts`에 정렬 확인 추가
+  - (구현 시 추가, 2026-10-23) `src/components/spreadsheet/workbookModel.ts`(여러 시트 + 실행 취소 명령), `hooks/useWorkbook.ts`, `SpreadsheetGrid.tsx`(Ctrl+Z/Y), `src/engine/spreadsheet/FormulaEngineAdapter.ts`·`adapters/HyperFormulaAdapter.ts`(`loadSheets`, D-16 회피), `formulaPreprocess.ts`(D-15 한글 시트 이름), `src/pages/dev/WorkspaceHarnessPage.tsx`(하단 실행 취소·다시 실행, R-04.43), `src/app/routes.tsx`, `src/components/layout/AppSidebar.tsx`(연습실 링크)
+  - (구현 시 추가, 2026-10-23) `tests/unit/spreadsheet/workbookModel.test.ts`, `tests/unit/spreadsheet/SheetTabs.test.tsx`, `tests/unit/pages/SandboxPage.test.tsx`, `tests/unit/helpers/layoutStubs.ts`, `tests/e2e/sandbox.spec.ts`
 - **구현 지침 및 금지 사항:**
   - Undo 실행 시 직전 셀 값 및 수식이 100% 복원되어야 함.
   - 연습실 모드와 학습 모드의 상태 저장소를 명확히 분리.
@@ -260,6 +262,9 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - 셀 편집(R-04.47)과 수식 입력(R-04.48) 구현은 CARD-02B(수식 엔진)·CARD-02C(입력줄)가 맡는다. 02D는 새로 구현하지 않고 연습실에서 연결·검증만 한다.
   - 셀 기본 정렬(R-08.22, 2026-10-23 추가): 서식을 지정하지 않은 셀은 Excel 기본 표시 동작대로 숫자(날짜 일련번호 포함)는 오른쪽, 문자열은 왼쪽, 논리값과 오류 값은 가운데 정렬한다. 원문 글자가 아니라 엔진 계산 결과의 값 종류(`CellResult.value`의 타입과 `error`)로 판정하므로, 작은따옴표로 입력한 숫자(`'123`)나 문자로 저장된 숫자는 왼쪽에 놓인다. 이것은 셀 서식(사용자가 정하는 정렬, Phase 7)이 아니라 기본 표시이며, 원문 Level 4 "데이터 형식 통일"(R-05.55)에서 숫자처럼 보이는 문자를 찾는 학습의 전제다.
   - 학습 파일 저장(R-04.52)은 `eval` 없이 JSON만 사용한다. 내구성 있는 IndexedDB 연동과 공통 직렬화 모듈은 CARD-06B(`cellStateSerializer.ts`)에서 통합한다.
+  - (구현 시 추가, 2026-10-23) 저장 방식(사용자 결정): 브라우저 저장(연습실 전용 localStorage 키)과 JSON 파일 내려받기·올리기. 불러오는 내용은 신뢰할 수 없는 입력으로 보고 크기·형식·버전·셀 주소·수식 길이를 검사한다.
+  - (구현 시 추가, 2026-10-23) 여러 시트(R-04.49): Excel 시트 이름 규칙(31자, `[]:*?/\` 금지, 앞뒤 작은따옴표 금지, 대소문자 무시 중복 금지), 시트 20개 상한, 마지막 시트 삭제 불가, 값이 있는 시트 삭제는 확인. 이름을 바꾸면 다른 시트 수식의 시트 이름도 바뀐다.
+  - (구현 시 추가, 2026-10-23) 실행 취소(MASTER_PROMPT §9.2): 셀 값·수식·시트 추가/삭제/이름 변경·샘플·빈 스프레드시트·파일 불러오기·학습 화면 "다시 시작" 모두 실행 취소 대상. 편집 중이 아닐 때 Ctrl+Z, Ctrl+Y·Ctrl+Shift+Z(Q-06). 학습 화면 하단 바에 실행 취소·다시 실행 버튼(R-04.43).
 - **완료 조건:**
   - 사용자가 브라우저에서 실제로 데이터를 입력하고 수식을 계산하며, 다중 시트 전환 및 Undo/Redo가 안정적으로 동작한다.
   - 연습실(`/sandbox`)에서 빈 스프레드시트를 만들고 가상 샘플 데이터를 불러올 수 있다(R-04.45, R-04.46).
@@ -270,7 +275,9 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   ```powershell
   npm test tests/unit/history/
   npm test tests/unit/spreadsheet/cellAlignment.test.tsx
+  npm test tests/unit/sandbox/
   npm run typecheck
+  npm run lint
   npm run build
   npx playwright test
   ```

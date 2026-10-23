@@ -54,6 +54,11 @@ export interface FormulaEngineAdapter {
 
   // 라이프사이클 및 초기화
   initWorkbook(sheets: Record<string, CellScalar[][]>): Promise<void>;
+  /**
+   * 통합 문서 전체를 즉시 다시 만든다 (CARD-02D). 실행 취소처럼 화면이 기다릴 수 없는 교체에 쓴다.
+   * 제한(S-09)을 넘으면 FormulaEngineInputError를 던지고 기존 상태를 그대로 둔다.
+   */
+  loadSheets(sheets: Record<string, CellScalar[][]>): void;
   destroy(): void;
 
   // 셀 조작. '='로 시작하는 문자열은 수식, 그 밖의 값은 상수로 저장한다.

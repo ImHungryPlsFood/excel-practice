@@ -6,7 +6,7 @@ import type { CellChange, SpreadsheetGridHandle } from '@/components/spreadsheet
 
 /*
  * 개발 전용 그리드 확인 화면 (/dev/grid). 개발 서버와 성능 측정 빌드(--mode perf)에서만 라우트가 등록된다.
- * 실제 샌드박스 화면은 CARD-02D(SandboxPage)에서 만든다.
+ * 실제 연습실 화면은 CARD-02D의 SandboxPage(/sandbox)다.
  *
  * 쿼리: rows, cols (기본 200×26), fill=1이면 모든 셀에 값을 채운다.
  * 채운 값은 함수로 계산해 1,000,000칸이어도 메모리에 쌓지 않고, 사용자가 바꾼 칸만 Map에 둔다.

@@ -415,6 +415,18 @@ describe('입력 제한 (S-09)', () => {
   it('없는 시트는 오류로 알린다', () => {
     expect(() => engine.getCellValue('없는시트', 0, 0)).toThrow(FormulaEngineInputError);
   });
+
+  it('없는 시트를 가리키는 수식을 다른 수식으로 고쳐 써도 엔진이 깨지지 않는다 (D-16)', () => {
+    engine.setCellContent('Sheet1', 0, 1, 5);
+    engine.setCellContent('Sheet1', 0, 2, '=A1*2');
+    engine.setCellContent('Sheet1', 0, 0, '=Sheet9!A1');
+    expect(engine.getCellValue('Sheet1', 0, 0).error?.code).toBe('#REF!');
+    expect(() => engine.setCellContent('Sheet1', 0, 0, '=Sheet9!A1+B1')).not.toThrow();
+    engine.addSheet('Sheet9');
+    engine.setCellContent('Sheet9', 0, 0, 7);
+    expect(engine.getCellValue('Sheet1', 0, 0).value).toBe(12);
+    expect(engine.getCellValue('Sheet1', 0, 2).value).toBe(24);
+  });
 });
 
 describe('엔진 설정 (ADR-001)', () => {

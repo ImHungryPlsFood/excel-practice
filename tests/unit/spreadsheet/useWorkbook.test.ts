@@ -77,16 +77,22 @@ describe('useWorkbook: 원문과 계산 결과를 따로 보관한다 (MASTER_PR
     expect(hook.result.current.getInput(4, 1)).toBe('나');
   });
 
-  it('reset은 처음 데이터로 되돌린다', async () => {
+  it('reset은 처음 데이터로 되돌리고, 실행 취소하면 직전 작업이 돌아온다 (MASTER_PROMPT §9.2)', async () => {
     const hook = await setup();
     act(() => {
       hook.result.current.applyChanges([{ row: 0, col: 0, value: '100' }]);
     });
+    act(() => hook.result.current.addSheet());
     act(() => hook.result.current.reset());
-    expect(hook.result.current.status).toBe('loading');
-    await waitFor(() => expect(hook.result.current.status).toBe('ready'));
     expect(hook.result.current.getInput(0, 0)).toBe('3');
     expect(hook.result.current.getResult(0, 1).value).toBe(6);
+    expect(hook.result.current.sheets).toEqual(['Sheet1']);
+    act(() => {
+      hook.result.current.undo();
+    });
+    expect(hook.result.current.sheets).toEqual(['Sheet1', 'Sheet2']);
+    act(() => hook.result.current.setActiveSheet('Sheet1'));
+    expect(hook.result.current.getInput(0, 0)).toBe('100');
   });
 
   it('오류 결과에는 코드와 한국어 안내가 있다', async () => {
@@ -97,5 +103,79 @@ describe('useWorkbook: 원문과 계산 결과를 따로 보관한다 (MASTER_PR
     const { error } = hook.result.current.getResult(5, 0);
     expect(error?.code).toBe('#DIV/0!');
     expect(error?.message).toContain('0으로 나눌 수 없습니다');
+  });
+});
+
+describe('useWorkbook: 여러 시트와 실행 취소 (CARD-02D)', () => {
+  it('셀 편집은 실행 취소·다시 실행된다', async () => {
+    const hook = await setup();
+    expect(hook.result.current.canUndo).toBe(false);
+    act(() => {
+      hook.result.current.applyChanges([{ row: 0, col: 0, value: '10' }]);
+    });
+    expect(hook.result.current.canUndo).toBe(true);
+    expect(hook.result.current.undoLabel).toBe('A1 입력');
+    act(() => {
+      expect(hook.result.current.undo()).toBe(true);
+    });
+    expect(hook.result.current.getInput(0, 0)).toBe('3');
+    expect(hook.result.current.getResult(0, 1).value).toBe(6);
+    expect(hook.result.current.canRedo).toBe(true);
+    act(() => {
+      expect(hook.result.current.redo()).toBe(true);
+    });
+    expect(hook.result.current.getResult(0, 1).value).toBe(20);
+  });
+
+  it('셀 읽기·쓰기는 보고 있는 시트 기준이다', async () => {
+    const hook = await setup();
+    act(() => {
+      expect(hook.result.current.addSheet()).toBeNull();
+    });
+    expect(hook.result.current.activeSheet).toBe('Sheet2');
+    expect(hook.result.current.getInput(0, 0)).toBe('');
+    act(() => {
+      hook.result.current.applyChanges([{ row: 0, col: 0, value: '=Sheet1!A1*10' }]);
+    });
+    expect(hook.result.current.getResult(0, 0).value).toBe(30);
+    act(() => hook.result.current.setActiveSheet('Sheet1'));
+    expect(hook.result.current.getInput(0, 0)).toBe('3');
+  });
+
+  it('시트 이름 변경·삭제가 실행 취소된다', async () => {
+    const hook = await setup();
+    act(() => {
+      hook.result.current.addSheet();
+    });
+    act(() => {
+      expect(hook.result.current.renameSheet('Sheet2', '자료')).toBeNull();
+    });
+    expect(hook.result.current.sheets).toEqual(['Sheet1', '자료']);
+    act(() => {
+      expect(hook.result.current.deleteSheet('자료')).toBeNull();
+    });
+    expect(hook.result.current.sheets).toEqual(['Sheet1']);
+    act(() => {
+      hook.result.current.undo();
+    });
+    expect(hook.result.current.sheets).toEqual(['Sheet1', '자료']);
+    act(() => {
+      hook.result.current.undo();
+    });
+    expect(hook.result.current.sheets).toEqual(['Sheet1', 'Sheet2']);
+  });
+
+  it('여러 시트 스냅샷으로도 시작할 수 있다', async () => {
+    const source = {
+      sheets: [
+        { name: '입력', cells: { A1: '4' } },
+        { name: '계산', cells: { A1: '=입력!A1^2' } },
+      ],
+      activeSheet: '계산',
+    };
+    const hook = renderHook(() => useWorkbook(source));
+    await waitFor(() => expect(hook.result.current.status).toBe('ready'));
+    expect(hook.result.current.sheets).toEqual(['입력', '계산']);
+    expect(hook.result.current.getResult(0, 0).value).toBe(16);
   });
 });

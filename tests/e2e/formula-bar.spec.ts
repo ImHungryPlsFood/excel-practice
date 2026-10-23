@@ -200,3 +200,75 @@ test('학습 화면 레이아웃: 상단·작업 공간·하단이 있고 작업
   // 내용이 없는 학습 안내·문제 패널은 그리지 않는다(R-04.44).
   await expect(page.getByRole('complementary')).toHaveCount(0);
 });
+
+// ---- CARD-02D: 셀 기본 정렬(R-08.22), 실행 취소(R-04.43·R-04.51, Q-06) ----
+
+const expectAlign = (page: Page, row: number, col: number, align: string) =>
+  expect(cell(page, row, col)).toHaveCSS('text-align', align);
+
+async function typeAt(page: Page, row: number, col: number, text: string) {
+  await cell(page, row, col).click();
+  await page.keyboard.type(text);
+  await page.keyboard.press('Enter');
+}
+
+test('서식 없는 셀은 값 종류에 따라 정렬된다: 숫자·날짜 오른쪽, 문자 왼쪽, 논리값·오류 가운데', async ({
+  page,
+}) => {
+  await typeAt(page, 6, 0, '2024-03-15');
+  await typeAt(page, 6, 1, "'123");
+  await typeAt(page, 6, 2, 'TRUE');
+  await typeAt(page, 6, 3, '=1/0');
+  await expect(cell(page, 6, 3)).toHaveText('#DIV/0!');
+
+  await expectAlign(page, 1, 1, 'right'); // 3
+  await expectAlign(page, 1, 3, 'right'); // 수식 결과 3600
+  await expectAlign(page, 0, 0, 'left'); // 품목
+  await expectAlign(page, 6, 0, 'right'); // 날짜
+  await expectAlign(page, 6, 1, 'left'); // 문자로 저장된 숫자
+  await expect(cell(page, 6, 1)).toHaveText('123');
+  await expectAlign(page, 6, 2, 'center');
+  await expectAlign(page, 6, 3, 'center');
+
+  // 수식 결과 종류가 바뀌면 정렬도 바뀐다.
+  await typeAt(page, 7, 0, '=IF(B2>5,"많음",B2)');
+  await expectAlign(page, 7, 0, 'right');
+  await typeAt(page, 1, 1, '9');
+  await expect(cell(page, 7, 0)).toHaveText('많음');
+  await expectAlign(page, 7, 0, 'left');
+});
+
+test('Ctrl+Z·Ctrl+Y와 하단 실행 취소·다시 실행 버튼으로 값과 수식을 되돌린다', async ({ page }) => {
+  const undo = page.getByRole('contentinfo').getByRole('button', { name: '실행 취소' });
+  const redo = page.getByRole('contentinfo').getByRole('button', { name: '다시 실행' });
+  await expect(undo).toBeDisabled();
+
+  await typeAt(page, 1, 1, '10');
+  await expect(cell(page, 1, 3)).toHaveText('12000');
+  await typeAt(page, 1, 3, '=B2+1');
+  await expect(cell(page, 1, 3)).toHaveText('11');
+
+  await page.keyboard.press('Control+z');
+  await expect(cell(page, 1, 3)).toHaveText('12000');
+  await cell(page, 1, 3).click();
+  await expect(formulaBar(page)).toHaveValue('=B2*C2');
+
+  await undo.click();
+  await expect(cell(page, 1, 1)).toHaveText('3');
+  await expect(cell(page, 3, 3)).toHaveText('8600');
+  await expect(undo).toBeDisabled();
+
+  await redo.click();
+  await expect(cell(page, 1, 1)).toHaveText('10');
+  await cell(page, 0, 0).click();
+  await page.keyboard.press('Control+y');
+  await expect(cell(page, 1, 3)).toHaveText('11');
+});
+
+test('다시 시작도 실행 취소로 되돌릴 수 있다 (MASTER_PROMPT §9.2)', async ({ page }) => {
+  await typeAt(page, 5, 0, '내가 쓴 값');
+  await page.getByRole('button', { name: '다시 시작' }).click();
+  await expect(cell(page, 5, 0)).toHaveText('');
+  await page.getByRole('contentinfo').getByRole('button', { name: '실행 취소' }).click();
+  await expect(cell(page, 5, 0)).toHaveText('내가 쓴 값');
+});

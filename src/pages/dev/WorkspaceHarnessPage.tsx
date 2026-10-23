@@ -12,6 +12,7 @@ import { LearningLayout } from '@/features/learning/components/LearningLayout';
  * 개발 서버와 성능 측정 빌드(--mode perf)에서만 라우트가 등록된다.
  * LearningLayout + 수식 입력줄 + 그리드 + 수식 엔진을 실제로 연결해 E2E로 검증한다.
  * 학습 설명·문제·힌트 영역은 내용이 생기는 카드(CARD-03A·04A 이후)에서 채우므로 여기서는 넘기지 않는다.
+ * 하단 바: 작업 상태, 실행 취소, 다시 실행, 다시 시작(R-04.43). 다시 시작도 실행 취소로 되돌릴 수 있다(§9.2).
  */
 
 declare global {
@@ -20,6 +21,9 @@ declare global {
     __cellcraftWorkspaceRef?: RefObject<SpreadsheetHandle | null>;
   }
 }
+
+const FOOTER_BUTTON =
+  'rounded-md border border-line px-3 py-1 text-sm hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-50';
 
 const ROWS = 100;
 const COLS = 26;
@@ -70,13 +74,29 @@ export function WorkspaceHarnessPage() {
           <span role="status" aria-label="작업 상태" className="truncate text-fg-secondary">
             {status}
           </span>
-          <button
-            type="button"
-            onClick={workbook.reset}
-            className="ml-auto rounded-md border border-line px-3 py-1 text-sm hover:bg-subtle"
-          >
-            다시 시작
-          </button>
+          <div className="ml-auto flex gap-2">
+            <button
+              type="button"
+              onClick={workbook.undo}
+              disabled={!workbook.canUndo}
+              title={workbook.undoLabel === null ? undefined : `실행 취소: ${workbook.undoLabel}`}
+              className={FOOTER_BUTTON}
+            >
+              실행 취소
+            </button>
+            <button
+              type="button"
+              onClick={workbook.redo}
+              disabled={!workbook.canRedo}
+              title={workbook.redoLabel === null ? undefined : `다시 실행: ${workbook.redoLabel}`}
+              className={FOOTER_BUTTON}
+            >
+              다시 실행
+            </button>
+            <button type="button" onClick={workbook.reset} className={FOOTER_BUTTON}>
+              다시 시작
+            </button>
+          </div>
         </>
       }
     >
