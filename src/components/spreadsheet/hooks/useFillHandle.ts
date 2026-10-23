@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import type { FillDirection } from '@/engine/spreadsheet/operations/autoFill';
 
@@ -45,7 +45,9 @@ export function useFillHandle({ onFill }: UseFillHandleOptions) {
   const targetRef = useRef<FillTarget | null>(null);
   const [preview, setPreview] = useState<CellRange | null>(null);
   const onFillRef = useRef(onFill);
-  useEffect(() => {
+  // useLayoutEffect로 맞춘다. 의존성 없는 useEffect(passive effect)는 커밋마다 React가 따로 비우는 작업을 예약하므로
+  // 스크롤 프레임마다 커밋하는 그리드에서 프레임마다 작업이 하나씩 늘어난다(CARD-02E P-06 재측정에서 확인).
+  useLayoutEffect(() => {
     onFillRef.current = onFill;
   });
 

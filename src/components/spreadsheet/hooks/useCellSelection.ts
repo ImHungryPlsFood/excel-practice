@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useMemo, useReducer } from 'react';
 
 import type { CellPosition, CellRange } from '../types';
 
@@ -124,5 +124,7 @@ export function useCellSelection(bounds: GridBounds) {
     (state: SelectionState, action: SelectionAction) => selectionReducer(state, action, bounds),
     { anchor: { row: 0, col: 0 }, active: { row: 0, col: 0 } },
   );
-  return { selection, range: selectionRange(selection), dispatch };
+  // 선택이 바뀔 때만 새 범위 객체를 만든다(스크롤 렌더마다 새 객체면 memo 컴포넌트가 다시 그려진다).
+  const range = useMemo(() => selectionRange(selection), [selection]);
+  return { selection, range, dispatch };
 }

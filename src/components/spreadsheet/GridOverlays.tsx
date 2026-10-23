@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { GRID_METRICS } from './hooks/useVirtualGrid';
 import type { CellRange } from './types';
 
@@ -48,7 +50,7 @@ interface GridOverlaysProps {
   fillPreview: CellRange | null;
 }
 
-export function GridOverlays({
+export const GridOverlays = memo(function GridOverlays({
   geometry,
   referenceRanges,
   pointRange,
@@ -104,4 +106,4 @@ export function GridOverlays({
       )}
     </>
   );
-}
+});

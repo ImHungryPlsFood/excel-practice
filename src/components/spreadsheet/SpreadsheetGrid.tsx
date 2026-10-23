@@ -5,6 +5,7 @@ import {
   useId,
   useImperativeHandle,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -149,6 +150,11 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
     const { active } = selection;
     const virtual = useVirtualGrid(rowCount, colCount, layout);
     const { scrollToCell } = virtual;
+    // 겹침 표시(GridOverlays, memo)가 스크롤 프레임마다 다시 그려지지 않도록 위치 함수 묶음을 고정한다.
+    const overlayGeometry = useMemo(
+      () => ({ rowTop: virtual.rowTop, colLeft: virtual.colLeft }),
+      [virtual.rowTop, virtual.colLeft],
+    );
 
     const ownEditor = useCellEditing({
       getCellValue,
@@ -250,10 +256,8 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
 
     // 머리글 경계를 끄는 동안 창 전체에서 마우스를 따라간다. 놓을 때의 선택 범위·동작은 매 렌더 갱신되는 ref에서 읽는다.
     const resizingRef = useRef<Resizing | null>(null);
+    // 아래 latestRef와 같은 레이아웃 효과에서 갱신한다(커밋마다 도는 효과를 늘리지 않는다).
     const resizeContextRef = useRef({ range, rowCount, colCount, structure });
-    useLayoutEffect(() => {
-      resizeContextRef.current = { range, rowCount, colCount, structure };
-    });
     const resizeAxis = resizing?.axis;
     useEffect(() => {
       if (resizeAxis === undefined) return;
@@ -320,6 +324,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
         getCellValue,
         active,
       };
+      resizeContextRef.current = { range, rowCount, colCount, structure };
     });
 
     useImperativeHandle(
@@ -611,9 +616,19 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
     };
 
     const handleMouseOver = (event: MouseEvent<HTMLDivElement>) => {
+      // 휠 스크롤 중에는 커서 아래 셀이 바뀔 때마다 mouseover가 온다. 끄는 중이 아니면 DOM을 찾지 않고 바로 끝낸다.
+      const pointing = pointMode?.dragging === true;
+      if (
+        !pointing &&
+        !draggingRef.current &&
+        headerDragRef.current === null &&
+        !fill.isFilling()
+      ) {
+        return;
+      }
       const position = positionFromTarget(event.target);
-      if (pointMode?.dragging) {
-        if (position !== null) pointMode.pointerMove(position);
+      if (pointing) {
+        if (position !== null) pointMode?.pointerMove(position);
         return;
       }
       if (fill.isFilling()) {
@@ -820,7 +835,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
           })}
 
           <GridOverlays
-            geometry={{ rowTop: virtual.rowTop, colLeft: virtual.colLeft }}
+            geometry={overlayGeometry}
             referenceRanges={referenceRanges}
             pointRange={pointMode?.range ?? null}
             marquee={clipboard?.marquee ?? null}
