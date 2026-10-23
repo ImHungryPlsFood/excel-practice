@@ -41,6 +41,10 @@
   --color-target-bg: var(--cc-state-target-bg);
   --color-success: var(--cc-state-success);
   --color-success-bg: var(--cc-state-success-bg);
+  --color-reference-1: var(--cc-state-reference-1);
+  --color-reference-2: var(--cc-state-reference-2);
+  --color-reference-3: var(--cc-state-reference-3);
+  --color-reference-4: var(--cc-state-reference-4);
   --color-warning: var(--cc-state-warning);
   --color-warning-bg: var(--cc-state-warning-bg);
 

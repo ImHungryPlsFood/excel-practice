@@ -11,6 +11,7 @@ import { HistoryManager, type Command } from '@/engine/spreadsheet/history/histo
 /*
  * CARD-02D historyManager (R-04.51, R-08.08, TEST_STRATEGY Q-04).
  * 스택 동작과, 실제 수식 엔진 위에서 셀 값·수식·시트 추가/삭제/이름 변경을 섞은 50회 왕복 속성.
+ * CARD-02E: 행·열 삽입·삭제, 열 너비·행 높이, 붙여넣기, 잘라내기, 자동 채우기, Ctrl+D/R, 시트 순서도 섞는다.
  */
 
 function counter() {
@@ -107,7 +108,22 @@ type Op =
   | { kind: 'add' }
   | { kind: 'rename'; sheet: number; name: string }
   | { kind: 'delete'; sheet: number }
-  | { kind: 'activate'; sheet: number };
+  | { kind: 'activate'; sheet: number }
+  // CARD-02E: 행·열, 크기, 붙여넣기, 잘라내기, 자동 채우기, 시트 순서
+  | {
+      kind: 'structure';
+      sheet: number;
+      axis: 'row' | 'col';
+      insert: boolean;
+      index: number;
+      count: number;
+    }
+  | { kind: 'size'; sheet: number; axis: 'row' | 'col'; index: number; size: number | null }
+  | { kind: 'paste'; sheet: number; row: number; col: number; fromRow: number; fromCol: number }
+  | { kind: 'move'; from: number; to: number; row: number; col: number; dRow: number; dCol: number }
+  | { kind: 'fill'; sheet: number; col: number; down: boolean; count: number }
+  | { kind: 'fillEdge'; sheet: number; right: boolean }
+  | { kind: 'moveSheet'; sheet: number; to: number };
 
 const CELL_VALUE = fc.oneof(
   fc.constant(''),
@@ -149,7 +165,84 @@ const OP: fc.Arbitrary<Op> = fc.oneof(
     weight: 1,
     arbitrary: fc.record({ kind: fc.constant('activate' as const), sheet: fc.nat(5) }),
   },
+  {
+    weight: 2,
+    arbitrary: fc.record({
+      kind: fc.constant('structure' as const),
+      sheet: fc.nat(5),
+      axis: fc.constantFrom<'row' | 'col'>('row', 'col'),
+      insert: fc.boolean(),
+      index: fc.nat(3),
+      count: fc.integer({ min: 1, max: 2 }),
+    }),
+  },
+  {
+    weight: 1,
+    arbitrary: fc.record({
+      kind: fc.constant('size' as const),
+      sheet: fc.nat(5),
+      axis: fc.constantFrom<'row' | 'col'>('row', 'col'),
+      index: fc.nat(3),
+      size: fc.option(fc.integer({ min: 30, max: 200 }), { nil: null }),
+    }),
+  },
+  {
+    weight: 2,
+    arbitrary: fc.record({
+      kind: fc.constant('paste' as const),
+      sheet: fc.nat(5),
+      row: fc.nat(4),
+      col: fc.nat(3),
+      fromRow: fc.nat(2),
+      fromCol: fc.nat(2),
+    }),
+  },
+  {
+    weight: 1,
+    arbitrary: fc.record({
+      kind: fc.constant('move' as const),
+      from: fc.nat(5),
+      to: fc.nat(5),
+      row: fc.nat(2),
+      col: fc.nat(2),
+      dRow: fc.integer({ min: 0, max: 2 }),
+      dCol: fc.integer({ min: 0, max: 2 }),
+    }),
+  },
+  {
+    weight: 1,
+    arbitrary: fc.record({
+      kind: fc.constant('fill' as const),
+      sheet: fc.nat(5),
+      col: fc.nat(2),
+      down: fc.boolean(),
+      count: fc.integer({ min: 1, max: 3 }),
+    }),
+  },
+  {
+    weight: 1,
+    arbitrary: fc.record({
+      kind: fc.constant('fillEdge' as const),
+      sheet: fc.nat(5),
+      right: fc.boolean(),
+    }),
+  },
+  {
+    weight: 1,
+    arbitrary: fc.record({
+      kind: fc.constant('moveSheet' as const),
+      sheet: fc.nat(5),
+      to: fc.nat(5),
+    }),
+  },
 );
+
+const cellRect = (startRow: number, startCol: number, endRow = startRow, endCol = startCol) => ({
+  startRow,
+  startCol,
+  endRow,
+  endCol,
+});
 
 function run(model: WorkbookModel, op: Op): void {
   const names = model.sheetNames;
@@ -169,6 +262,53 @@ function run(model: WorkbookModel, op: Op): void {
       return;
     case 'activate':
       model.setActiveSheet(pick(op.sheet));
+      return;
+    case 'structure':
+      model.changeStructure({
+        sheet: pick(op.sheet),
+        axis: op.axis,
+        kind: op.insert ? 'insert' : 'delete',
+        index: op.index,
+        count: op.count,
+      });
+      return;
+    case 'size':
+      model.setSizes(pick(op.sheet), op.axis, [op.index], op.size);
+      return;
+    case 'paste': {
+      const sheet = pick(op.sheet);
+      model.paste(
+        sheet,
+        {
+          values: [[model.getInput(sheet, op.fromRow, op.fromCol)]],
+          origin: { row: op.fromRow, col: op.fromCol },
+        },
+        cellRect(op.row, op.col),
+      );
+      return;
+    }
+    case 'move':
+      model.moveCells({
+        fromSheet: pick(op.from),
+        rect: cellRect(op.row, op.col, op.row + 1, op.col),
+        toSheet: pick(op.to),
+        dRow: op.dRow,
+        dCol: op.dCol,
+      });
+      return;
+    case 'fill':
+      model.fill(
+        pick(op.sheet),
+        op.down ? cellRect(0, op.col, 1, op.col) : cellRect(2, op.col, 3, op.col),
+        op.down ? 'down' : 'up',
+        op.count,
+      );
+      return;
+    case 'fillEdge':
+      model.fillFromEdge(pick(op.sheet), cellRect(0, 0, 2, 2), op.right ? 'right' : 'down');
+      return;
+    case 'moveSheet':
+      model.moveSheet(pick(op.sheet), op.to);
   }
 }
 

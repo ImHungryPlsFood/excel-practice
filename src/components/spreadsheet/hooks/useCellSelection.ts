@@ -22,7 +22,13 @@ export type SelectionAction =
   | { type: 'select'; position: CellPosition }
   | { type: 'extendTo'; position: CellPosition }
   | { type: 'move'; dRow: number; dCol: number; extend: boolean }
-  | { type: 'selectAll' };
+  | { type: 'selectAll' }
+  /** 열 머리글 클릭·끌기: from 열에서 to 열까지 전체 (CARD-02E) */
+  | { type: 'selectColumns'; from: number; to: number }
+  /** 행 머리글 클릭·끌기 */
+  | { type: 'selectRows'; from: number; to: number }
+  /** 범위를 직접 지정(붙여넣은 범위). 활성 셀은 왼쪽 위 */
+  | { type: 'selectRange'; range: CellRange };
 
 const clampIndex = (value: number, count: number): number =>
   Math.min(Math.max(value, 0), Math.max(count - 1, 0));
@@ -59,8 +65,35 @@ export function selectionReducer(
         anchor: { row: bounds.rowCount - 1, col: bounds.colCount - 1 },
         active: { row: 0, col: 0 },
       };
+    case 'selectColumns': {
+      // 활성 셀은 처음 누른 열의 맨 위, 반대 모서리는 끝 열의 맨 아래
+      const from = clampIndex(action.from, bounds.colCount);
+      const to = clampIndex(action.to, bounds.colCount);
+      return { active: { row: 0, col: from }, anchor: { row: bounds.rowCount - 1, col: to } };
+    }
+    case 'selectRows': {
+      const from = clampIndex(action.from, bounds.rowCount);
+      const to = clampIndex(action.to, bounds.rowCount);
+      return { active: { row: from, col: 0 }, anchor: { row: to, col: bounds.colCount - 1 } };
+    }
+    case 'selectRange': {
+      const start = clampPosition(
+        { row: action.range.startRow, col: action.range.startCol },
+        bounds,
+      );
+      const end = clampPosition({ row: action.range.endRow, col: action.range.endCol }, bounds);
+      return { active: start, anchor: end };
+    }
   }
 }
+
+/** 범위가 열 전체(맨 위~맨 아래)인지 */
+export const isWholeColumns = (range: CellRange, bounds: GridBounds): boolean =>
+  range.startRow === 0 && range.endRow === bounds.rowCount - 1;
+
+/** 범위가 행 전체인지 */
+export const isWholeRows = (range: CellRange, bounds: GridBounds): boolean =>
+  range.startCol === 0 && range.endCol === bounds.colCount - 1;
 
 export const selectionRange = ({ anchor, active }: SelectionState): CellRange => ({
   startRow: Math.min(anchor.row, active.row),

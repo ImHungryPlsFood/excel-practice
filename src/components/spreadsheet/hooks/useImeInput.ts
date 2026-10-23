@@ -45,5 +45,20 @@ export function useImeInput({ onCompositionStart }: UseImeInputOptions = {}) {
 
   const isComposing = useCallback(() => composingRef.current, []);
 
-  return { handleCompositionStart, handleCompositionEnd, isImeKeyEvent, isComposing };
+  /**
+   * 조합 표시를 끈다. 조합 중에 셀을 클릭해 편집이 확정되면 React가 입력 상자 값을 비우는데,
+   * Chromium은 이때 compositionend 없이 조합을 끝낸다(CARD-02E Playwright 실측). 표시가 켜진 채 남으면
+   * 이후 Enter·화살표가 모두 IME 몫으로 무시되므로, 편집이 끝나면 호출한다.
+   */
+  const resetComposition = useCallback(() => {
+    composingRef.current = false;
+  }, []);
+
+  return {
+    handleCompositionStart,
+    handleCompositionEnd,
+    isImeKeyEvent,
+    isComposing,
+    resetComposition,
+  };
 }

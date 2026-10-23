@@ -1,9 +1,11 @@
 import {
   forwardRef,
   type ChangeEventHandler,
+  type ClipboardEventHandler,
   type CompositionEventHandler,
   type FocusEventHandler,
   type KeyboardEventHandler,
+  type ReactEventHandler,
 } from 'react';
 
 import { KEEP_EDITING_ATTRIBUTE } from './editorFocus';
@@ -16,6 +18,7 @@ import { KEEP_EDITING_ATTRIBUTE } from './editorFocus';
  * 첫 자모가 조합되지 않거나 따로 떨어진다).
  *
  * data-keep-cell-editing: 포커스가 이 요소와 수식 입력줄 사이를 오갈 때는 편집을 확정하지 않는다는 표시다.
+ * CARD-02E: 커서 위치(onSelect, 포인트 모드)와 복사·잘라내기·붙여넣기 이벤트(편집 중이 아닐 때 셀 범위 복사)를 그리드에 넘긴다.
  */
 
 interface CellEditorProps {
@@ -32,6 +35,10 @@ interface CellEditorProps {
   onCompositionStart: CompositionEventHandler<HTMLInputElement>;
   onCompositionEnd: CompositionEventHandler<HTMLInputElement>;
   onBlur: FocusEventHandler<HTMLInputElement>;
+  onSelect: ReactEventHandler<HTMLInputElement>;
+  onCopy: ClipboardEventHandler<HTMLInputElement>;
+  onCut: ClipboardEventHandler<HTMLInputElement>;
+  onPaste: ClipboardEventHandler<HTMLInputElement>;
 }
 
 export const CellEditor = forwardRef<HTMLInputElement, CellEditorProps>(function CellEditor(
@@ -53,6 +60,10 @@ export const CellEditor = forwardRef<HTMLInputElement, CellEditorProps>(function
       onCompositionStart={handlers.onCompositionStart}
       onCompositionEnd={handlers.onCompositionEnd}
       onBlur={handlers.onBlur}
+      onSelect={handlers.onSelect}
+      onCopy={handlers.onCopy}
+      onCut={handlers.onCut}
+      onPaste={handlers.onPaste}
       className={[
         'absolute z-[5] m-0 border-0 px-1 text-sm leading-6 outline-2 -outline-offset-2',
         // 편집 중이 아닐 때는 마우스 이벤트를 아래 셀로 통과시켜 활성 셀에서도 더블클릭·드래그가 된다.

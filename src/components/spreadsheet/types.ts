@@ -1,4 +1,7 @@
+import type { FillDirection } from '@/engine/spreadsheet/operations/autoFill';
+
 import type { CellEditingController } from './hooks/useCellEditing';
+import type { PointModeController } from './hooks/usePointMode';
 
 /*
  * 스프레드시트 그리드 공개 타입 (CARD-02A, ADR-002 §4).
@@ -73,6 +76,34 @@ export interface CellDisplay {
   kind: CellValueKind;
 }
 
+/** 행 높이·열 너비 (CARD-02E). 기본 크기면 undefined를 돌려준다. */
+export interface GridLayout {
+  /** 크기가 바뀌면 달라지는 값. 그리드가 위치를 다시 계산하는 기준이다. */
+  key: string;
+  getColumnWidth: (col: number) => number | undefined;
+  getRowHeight: (row: number) => number | undefined;
+}
+
+/** 그리드의 복사·잘라내기·붙여넣기 연결 (CARD-02E, useClipboard) */
+export interface GridClipboard {
+  /** 점선으로 보여 줄 복사·잘라낸 범위(지금 보는 시트에 있을 때) */
+  marquee: CellRange | null;
+  /** 복사·잘라내기. data가 있으면(Ctrl+C·X 이벤트) 시스템 클립보드에 직접 쓴다. */
+  copy: (range: CellRange, cut: boolean, data: DataTransfer | null) => void;
+  /** 붙여넣기. text가 null이면(메뉴) 앱 안 클립보드나 시스템 클립보드를 읽는다. 붙여넣은 범위를 돌려준다. */
+  paste: (range: CellRange, text: string | null) => CellRange | null;
+  /** 복사 표시를 지운다(Esc). 지울 것이 있었으면 true */
+  clear: () => boolean;
+}
+
+/** 행·열 메뉴 동작 (CARD-02E, R-08.06) */
+export interface GridStructureActions {
+  /** index부터 count개 행·열 삽입·삭제 */
+  change: (axis: 'row' | 'col', kind: 'insert' | 'delete', index: number, count: number) => void;
+  /** 열 너비·행 높이. size가 null이면 기본값 */
+  resize: (axis: 'row' | 'col', indexes: readonly number[], size: number | null) => void;
+}
+
 export interface SpreadsheetGridProps {
   rowCount: number;
   colCount: number;
@@ -90,6 +121,24 @@ export interface SpreadsheetGridProps {
   onUndo?: () => void;
   /** 편집 중이 아닐 때 Ctrl+Y·Ctrl+Shift+Z */
   onRedo?: () => void;
+  /** 행 높이·열 너비. 없으면 모두 기본 크기 (CARD-02E) */
+  layout?: GridLayout;
+  /** 행·열 삽입·삭제·크기 조절. 없으면 머리글 메뉴·크기 끌기를 쓰지 않는다. */
+  structure?: GridStructureActions;
+  /** 복사·붙여넣기 (Ctrl+C/X/V) */
+  clipboard?: GridClipboard;
+  /** 채우기 핸들 끌기 */
+  onFill?: (source: CellRange, direction: FillDirection, count: number) => void;
+  /** Ctrl+D·Ctrl+R */
+  onFillFromEdge?: (selection: CellRange, direction: 'down' | 'right') => void;
+  /** 수식 편집 중 셀 클릭으로 참조 넣기 (CARD-02E). 없으면 셀 클릭은 늘 확정·선택이다. */
+  pointMode?: PointModeController;
+  /** 수식 속 참조를 색 테두리로 보여 줄 범위(지금 보는 시트 기준) */
+  referenceRanges?: readonly CellRange[];
+  /** 편집 중인 셀이 다른 시트에 있다(포인트 모드로 시트를 옮겨 봄). 셀 위 편집기를 숨긴다. */
+  editingElsewhere?: boolean;
+  /** Ctrl+PageUp/PageDown·Ctrl+Shift+PageUp/PageDown 시트 이동 (Q-06) */
+  onSheetNavigate?: (delta: 1 | -1) => void;
   /** 접근성 이름 */
   label: string;
   className?: string;

@@ -73,6 +73,11 @@ CELLCRAFT는 사용자가 직접 수식을 작성하고 셀을 조작하는 인�
   - `F1` (도움말) -> 브라우저 도움말이 열리므로 `e.preventDefault()` 적용.
   - `F4` (절대참조 토글 / 작업 반복) -> 브라우저 단축키와 충돌하지 않으므로 완벽 지원.
   - `Ctrl + Z`, `Ctrl + Y` (실행 취소 / 다시 실행) -> 브라우저 기본 히스토리를 차단하고 자체 Undo/Redo 스택과 연결.
+  - (CARD-02E 추가) 근거: Chromium `chrome/browser/ui/accelerator_table.cc`의 `kReservedCommandIds`(2026-10-23 main 확인). 예약 명령은 전체 화면·앱 창이 아니면 웹 페이지가 받지 못한다(`browser_command_controller.cc` `IsReservedCommandOrKey`).
+    - `Ctrl + PageUp/PageDown` (시트 이동) -> Chromium 예약(`IDC_SELECT_PREVIOUS_TAB/NEXT_TAB`, 브라우저 탭 전환). 앱도 처리기를 두지만 일반 창에서는 페이지에 오지 않는다. **대체 단축키 `Ctrl + Shift + PageUp/PageDown`**(Chromium의 `IDC_MOVE_TAB_*`는 예약이 아니어서 페이지가 막을 수 있다)와 시트 탭 클릭. 시트 탭 영역 툴팁·접근성 설명에 안내한다. Playwright는 CDP로 키를 페이지에 직접 넣어 브라우저 단축키 처리를 건너뛰므로 E2E 통과가 "가로챌 수 있음"을 뜻하지 않는다 — 실제 Chrome 수동 확인 항목.
+    - `Ctrl + D` (아래로 채우기, 브라우저 북마크), `Ctrl + R` (오른쪽으로 채우기, 브라우저 새로고침) -> 예약 아님. 편집 중이 아닐 때 `preventDefault`로 앱 동작에 연결.
+    - `Ctrl + C/X/V` -> 편집 중이 아닐 때 입력 상자의 copy/cut/paste 이벤트에서 처리(권한 요청 없음). 편집 중이면 입력 상자 글자 복사 그대로.
+    - `Shift + F10`, 메뉴 키 -> 그리드 메뉴(행·열 삽입·삭제·크기, 복사·붙여넣기).
 - 대체할 수 없는 단축키는 학습 화면 우측 정보 패널에 "웹 브라우저 환경 안내: 본 단축키는 브라우저 정책상 버튼 클릭으로 대체됩니다"라고 투명하게 표시.
 
 ### [Q-07] 날짜 일련번호 및 한국 로케일(Locale) 정밀 테스트

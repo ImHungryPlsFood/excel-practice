@@ -7,6 +7,27 @@ import {
   type FormulaEngineAdapter,
 } from '@/engine/spreadsheet/FormulaEngineAdapter';
 import { HistoryManager, type Command } from '@/engine/spreadsheet/history/historyManager';
+import {
+  copyFillWrites,
+  fillWrites,
+  type FillDirection,
+} from '@/engine/spreadsheet/operations/autoFill';
+import {
+  moveCells as moveSheetCells,
+  pasteWrites,
+  type PasteSource,
+} from '@/engine/spreadsheet/operations/clipboard';
+import type {
+  CellMove,
+  CellRect,
+  StructuralChange,
+} from '@/engine/spreadsheet/operations/referenceShift';
+import {
+  applyStructuralChange,
+  isValidSize,
+  sizeKey,
+  sizeKeyIndex,
+} from '@/engine/spreadsheet/operations/rowColumnOps';
 
 import { parseCellReference } from './formulaReference';
 import { cellAddress } from './hooks/useCellSelection';
@@ -25,16 +46,25 @@ import type { CellChange } from './types';
  *   이후 작업이 "There's no sheet with id = N"으로 실패하는 경우가 속성 테스트(Q-04)에서 재현되었다.
  *   원문을 기준으로 다시 만들면 엔진 상태가 항상 원문과 같다.
  * - 이름 변경 시 엔진이 다른 시트 수식 속 시트 이름을 바꿔 쓰므로(='My Data'!A1) 그 수식 원문도 함께 맞춘다.
+ *
+ * CARD-02E: 행·열 삽입·삭제, 잘라내서 붙여넣기, 시트 순서는 스냅샷 명령이다. 수식 참조는 원문 토큰을 고쳐
+ * (operations/referenceShift.ts) 원문과 엔진이 늘 같다. 붙여넣기·자동 채우기는 셀 입력 명령,
+ * 행 높이·열 너비는 크기만 되돌리는 명령이다(엔진을 다시 만들 필요가 없다).
  */
 
 export const DEFAULT_SHEET = 'Sheet1';
 export const MAX_SHEETS = 20;
 export const MAX_SHEET_NAME_LENGTH = 31;
 
-/** 시트 하나의 원문. 키는 A1 주소, 값은 입력 원문(빈 셀은 넣지 않는다). */
+/**
+ * 시트 하나의 원문. 키는 A1 주소, 값은 입력 원문(빈 셀은 넣지 않는다).
+ * 크기는 기본값과 다른 것만 둔다(열 너비는 열 문자, 행 높이는 1부터 시작하는 행 번호가 키. CARD-02E).
+ */
 export interface SheetSnapshot {
   readonly name: string;
   readonly cells: Readonly<Record<string, string>>;
+  readonly columnWidths?: Readonly<Record<string, number>>;
+  readonly rowHeights?: Readonly<Record<string, number>>;
 }
 
 export interface WorkbookSnapshot {
@@ -124,6 +154,30 @@ export function checkSnapshot(snapshot: WorkbookSnapshot): string | null {
         return `${sheet.name}!${address}: 수식은 ${ENGINE_LIMITS.maxFormulaLength}자까지 입력할 수 있습니다.`;
       }
     }
+    const sizeProblem =
+      checkSizes(sheet.name, sheet.columnWidths, 'col') ??
+      checkSizes(sheet.name, sheet.rowHeights, 'row');
+    if (sizeProblem !== null) return sizeProblem;
+  }
+  return null;
+}
+
+function checkSizes(
+  sheetName: string,
+  sizes: Readonly<Record<string, number>> | undefined,
+  axis: 'row' | 'col',
+): string | null {
+  if (sizes === undefined) return null;
+  const limit = axis === 'col' ? ENGINE_LIMITS.maxColumns : ENGINE_LIMITS.maxRows;
+  const label = axis === 'col' ? '열 너비' : '행 높이';
+  for (const [key, size] of Object.entries(sizes)) {
+    const index = sizeKeyIndex(key, axis);
+    if (index === null || index >= limit) {
+      return `${sheetName} 시트의 ${label} 위치가 올바르지 않습니다: ${key}`;
+    }
+    if (!isValidSize(size, axis)) {
+      return `${sheetName} 시트의 ${label} 값이 허용 범위를 벗어났습니다: ${key}`;
+    }
   }
   return null;
 }
@@ -149,6 +203,42 @@ export function cellsFromRows(rows: readonly (readonly string[])[]): Record<stri
 interface SheetState {
   name: string;
   inputs: Map<string, string>;
+  /** 기본값과 다른 열 너비·행 높이 (키: 0부터 시작하는 위치) */
+  columnWidths: Map<number, number>;
+  rowHeights: Map<number, number>;
+}
+
+function sizesFromRecord(
+  sizes: Readonly<Record<string, number>> | undefined,
+  axis: 'row' | 'col',
+): Map<number, number> {
+  const map = new Map<number, number>();
+  for (const [key, size] of Object.entries(sizes ?? {})) {
+    const index = sizeKeyIndex(key, axis);
+    if (index !== null) map.set(index, size);
+  }
+  return map;
+}
+
+function sizesToRecord(
+  sizes: ReadonlyMap<number, number>,
+  axis: 'row' | 'col',
+): Record<string, number> | undefined {
+  if (sizes.size === 0) return undefined;
+  const record: Record<string, number> = {};
+  for (const [index, size] of [...sizes].sort(([a], [b]) => a - b)) {
+    record[sizeKey(index, axis)] = size;
+  }
+  return record;
+}
+
+function sheetStateFrom(sheet: SheetSnapshot): SheetState {
+  return {
+    name: sheet.name,
+    inputs: inputsFromCells(sheet.cells),
+    columnWidths: sizesFromRecord(sheet.columnWidths, 'col'),
+    rowHeights: sizesFromRecord(sheet.rowHeights, 'row'),
+  };
 }
 
 function inputsFromCells(cells: Readonly<Record<string, string>>): Map<string, string> {
@@ -180,10 +270,7 @@ export class WorkbookModel {
     private readonly engine: FormulaEngineAdapter,
     snapshot: WorkbookSnapshot,
   ) {
-    this.sheets = snapshot.sheets.map(({ name, cells }) => ({
-      name,
-      inputs: inputsFromCells(cells),
-    }));
+    this.sheets = snapshot.sheets.map(sheetStateFrom);
     this.active = this.pickActive(snapshot.activeSheet);
   }
 
@@ -239,13 +326,39 @@ export class WorkbookModel {
     return this.sheet(name).inputs.size > 0;
   }
 
+  /** 시트의 기본값과 다른 열 너비·행 높이 (화면 배치용) */
+  getSizes(sheet: string): {
+    columnWidths: ReadonlyMap<number, number>;
+    rowHeights: ReadonlyMap<number, number>;
+  } {
+    const { columnWidths, rowHeights } = this.sheet(sheet);
+    return { columnWidths, rowHeights };
+  }
+
+  /** 열 너비. 기본값이면 undefined */
+  getColumnWidth(sheet: string, col: number): number | undefined {
+    return this.sheet(sheet).columnWidths.get(col);
+  }
+
+  /** 행 높이. 기본값이면 undefined */
+  getRowHeight(sheet: string, row: number): number | undefined {
+    return this.sheet(sheet).rowHeights.get(row);
+  }
+
   snapshot(): WorkbookSnapshot {
     return {
       activeSheet: this.active,
-      sheets: this.sheets.map(({ name, inputs }) => {
+      sheets: this.sheets.map(({ name, inputs, columnWidths, rowHeights }) => {
         const cells: Record<string, string> = {};
         for (const [key, raw] of inputs) cells[cellAddress(positionOf(key))] = raw;
-        return { name, cells };
+        const widths = sizesToRecord(columnWidths, 'col');
+        const heights = sizesToRecord(rowHeights, 'row');
+        return {
+          name,
+          cells,
+          ...(widths === undefined ? {} : { columnWidths: widths }),
+          ...(heights === undefined ? {} : { rowHeights: heights }),
+        };
       }),
     };
   }
@@ -263,7 +376,7 @@ export class WorkbookModel {
    * 셀 원문을 바꾼다. 엔진이 받아들이지 않는 변경(수식 길이 상한 등)에서 멈추고 안내 문장을 돌려준다.
    * 그 앞의 변경은 반영되고 하나의 실행 취소 단위로 기록된다.
    */
-  setCells(sheetName: string, changes: readonly CellChange[]): string | null {
+  setCells(sheetName: string, changes: readonly CellChange[], label?: string): string | null {
     const sheet = this.sheet(sheetName);
     const applied: { row: number; col: number; before: string; after: string }[] = [];
     let refusal: string | null = null;
@@ -281,13 +394,14 @@ export class WorkbookModel {
     }
     if (applied.length > 0) {
       const first = applied[0];
-      const label =
-        applied.length === 1 && first !== undefined
+      const commandLabel =
+        label ??
+        (applied.length === 1 && first !== undefined
           ? `${cellAddress(first)} ${first.after === '' ? '지우기' : '입력'}`
-          : `셀 ${applied.length}개 변경`;
+          : `셀 ${applied.length}개 변경`);
       // 이름 변경은 스냅샷 명령이 되돌리므로, 이 명령이 다시 실행될 때 시트 이름은 지금과 같다.
       const command: WorkbookCommand = {
-        label,
+        label: commandLabel,
         apply: () => {
           const target = this.sheet(sheetName);
           for (const cell of applied) this.writeCell(target, cell.row, cell.col, cell.after);
@@ -315,7 +429,12 @@ export class WorkbookModel {
     const problem = validateSheetName(sheetName, this.sheetNames);
     if (problem !== null) return { error: problem };
     this.runStructural('시트 추가', () => {
-      this.sheets.push({ name: sheetName, inputs: new Map() });
+      this.sheets.push({
+        name: sheetName,
+        inputs: new Map(),
+        columnWidths: new Map(),
+        rowHeights: new Map(),
+      });
       this.active = sheetName;
       this.rebuildEngine();
     });
@@ -391,6 +510,137 @@ export class WorkbookModel {
     return this.replaceWorkbook(next, label);
   }
 
+  /** 시트를 다른 자리로 옮긴다(탭 순서). 참조는 시트 이름으로 하므로 수식은 바뀌지 않는다. */
+  moveSheet(name: string, toIndex: number): string | null {
+    this.sheet(name);
+    const from = this.sheets.findIndex((sheet) => sheet.name === name);
+    const to = Math.min(Math.max(toIndex, 0), this.sheets.length - 1);
+    if (from === to) return null;
+    this.runStructural('시트 이동', () => {
+      const [moved] = this.sheets.splice(from, 1);
+      if (moved !== undefined) this.sheets.splice(to, 0, moved);
+      this.active = name;
+      this.rebuildEngine();
+    });
+    return null;
+  }
+
+  // ---- 행·열, 복사·붙여넣기, 자동 채우기 (CARD-02E) ----
+
+  /** 행·열을 삽입하거나 삭제한다. 모든 시트의 수식 참조가 같이 움직인다. 거부되면 안내 문장. */
+  changeStructure(change: StructuralChange): string | null {
+    const result = applyStructuralChange(this.snapshot().sheets, change);
+    if ('error' in result) return result.error;
+    const problem = checkSnapshot({ sheets: result.sheets });
+    if (problem !== null) return problem;
+    const axis = change.axis === 'row' ? '행' : '열';
+    const label = `${axis} ${change.count}개 ${change.kind === 'insert' ? '삽입' : '삭제'}`;
+    this.runStructural(label, () =>
+      this.applySnapshot({ activeSheet: this.active, sheets: result.sheets }),
+    );
+    return null;
+  }
+
+  /**
+   * 열 너비(axis 'col')나 행 높이('row')를 바꾼다. size가 null이면 기본 크기로 되돌린다.
+   * 크기만 되돌리는 명령이라 엔진은 그대로다.
+   */
+  setSizes(
+    sheetName: string,
+    axis: 'row' | 'col',
+    indexes: readonly number[],
+    size: number | null,
+  ): string | null {
+    const sheet = this.sheet(sheetName);
+    if (size !== null && !isValidSize(size, axis)) {
+      return axis === 'col'
+        ? '열 너비가 허용 범위를 벗어났습니다.'
+        : '행 높이가 허용 범위를 벗어났습니다.';
+    }
+    const limit = axis === 'col' ? ENGINE_LIMITS.maxColumns : ENGINE_LIMITS.maxRows;
+    const sizesOf = (target: SheetState) =>
+      axis === 'col' ? target.columnWidths : target.rowHeights;
+    const changes = indexes
+      .filter((index) => Number.isInteger(index) && index >= 0 && index < limit)
+      .map((index) => ({ index, before: sizesOf(sheet).get(index) ?? null, after: size }))
+      .filter((change) => change.before !== change.after);
+    if (changes.length === 0) return null;
+    const write = (key: 'before' | 'after') => {
+      const sizes = sizesOf(this.sheet(sheetName));
+      for (const change of changes) {
+        const value = change[key];
+        if (value === null) sizes.delete(change.index);
+        else sizes.set(change.index, value);
+      }
+    };
+    write('after');
+    this.history.record({
+      label: axis === 'col' ? '열 너비 변경' : '행 높이 변경',
+      apply: () => write('after'),
+      revert: () => write('before'),
+      sheetAfter: () => sheetName,
+      sheetBefore: () => sheetName,
+    });
+    return null;
+  }
+
+  /** 붙여넣기. 앱 안에서 복사한 수식은 상대 참조를 옮긴다. 붙여넣은 범위나 거부 이유를 돌려준다. */
+  paste(
+    sheetName: string,
+    source: PasteSource,
+    target: CellRect,
+  ): { rect: CellRect } | { error: string } {
+    this.sheet(sheetName);
+    const result = pasteWrites(source, target);
+    if ('error' in result) return result;
+    const refusal = this.setCells(sheetName, result.writes, '붙여넣기');
+    return refusal === null ? { rect: result.rect } : { error: refusal };
+  }
+
+  /** 잘라낸 셀을 옮긴다. 다른 수식이 가리키던 참조도 따라간다. 거부되면 안내 문장. */
+  moveCells(move: CellMove): string | null {
+    this.sheet(move.fromSheet);
+    this.sheet(move.toSheet);
+    const result = moveSheetCells(this.snapshot().sheets, move);
+    if ('error' in result) return result.error;
+    const problem = checkSnapshot({ sheets: result.sheets });
+    if (problem !== null) return problem;
+    this.runStructural('잘라내서 붙여넣기', () =>
+      this.applySnapshot({ activeSheet: move.toSheet, sheets: result.sheets }),
+    );
+    return null;
+  }
+
+  /** 채우기 핸들로 source를 direction 방향으로 count칸 채운다. */
+  fill(
+    sheetName: string,
+    source: CellRect,
+    direction: FillDirection,
+    count: number,
+  ): string | null {
+    const writes = fillWrites(
+      (row, col) => this.getInput(sheetName, row, col),
+      source,
+      direction,
+      count,
+    );
+    return this.setCells(sheetName, writes, '자동 채우기');
+  }
+
+  /** Ctrl+D(아래로)·Ctrl+R(오른쪽으로) 채우기 */
+  fillFromEdge(sheetName: string, selection: CellRect, direction: 'down' | 'right'): string | null {
+    const writes = copyFillWrites(
+      (row, col) => this.getInput(sheetName, row, col),
+      selection,
+      direction,
+    );
+    return this.setCells(
+      sheetName,
+      writes,
+      direction === 'down' ? '아래로 채우기' : '오른쪽으로 채우기',
+    );
+  }
+
   /** 실행 취소. 되돌린 뒤 보여 줄 시트로 옮겨 가고, 되돌린 명령을 돌려준다. */
   undo(): WorkbookCommand | null {
     const command = this.history.undo();
@@ -463,10 +713,7 @@ export class WorkbookModel {
 
   /** 엔진과 원문을 스냅샷과 같게 만든다. 시트 순서는 스냅샷을 따른다. */
   private applySnapshot(snapshot: WorkbookSnapshot): void {
-    this.sheets = snapshot.sheets.map(({ name, cells }) => ({
-      name,
-      inputs: inputsFromCells(cells),
-    }));
+    this.sheets = snapshot.sheets.map(sheetStateFrom);
     this.active = this.pickActive(snapshot.activeSheet);
     this.rebuildEngine();
   }
