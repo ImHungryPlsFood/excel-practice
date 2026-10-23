@@ -215,13 +215,14 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-02C: 수식 입력줄 및 인라인 에디터 통합 (Formula Bar & Inline Editor)
-- **관련 요구사항 ID:** R-04.4-01, R-04.4-02, R-08.1-01
+- **관련 요구사항 ID:** R-04.38~R-04.44, R-08.11 (구 표기 R-04.4-01·R-04.4-02·R-08.1-01, 2026-10-23 정정). 함께 처리: R-08.22 화면 표시, Q-06·Q-04 F4, ADR-002 getFormulaBarRect
 - **선행 카드:** CARD-02B
 - **생성·수정할 파일:**
   - `src/components/spreadsheet/FormulaBar.tsx` (이름 상자 + fx 버튼 + 수식 입력 인풋)
   - `src/components/spreadsheet/CellEditor.tsx` (셀 더블클릭/F2 시 활성화되는 인라인 오버레이 인풋)
   - `src/features/learning/components/LearningLayout.tsx` (데스크톱 3분할 5영역 워크스페이스)
   - `tests/unit/spreadsheet/FormulaBar.test.tsx`
+  - (구현 시 추가, 2026-10-23) `src/components/spreadsheet/Spreadsheet.tsx`, `hooks/useCellEditing.ts`, `hooks/useWorkbook.ts`, `formulaReference.ts`, `editorFocus.ts`, `src/pages/dev/WorkspaceHarnessPage.tsx`, `tests/e2e/formula-bar.spec.ts`
 - **구현 지침 및 금지 사항:**
   - 활성 셀 변경 시 수식 입력줄과 셀 에디터 간 양방향 실시간 동기화.
   - Enter 입력 시 계산 결과 반영 및 아래 행 셀로 포커스 자동 이동.

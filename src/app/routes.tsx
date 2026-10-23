@@ -19,6 +19,13 @@ const GridHarnessPage = DEV_ROUTES_ENABLED
       })),
     )
   : null;
+const WorkspaceHarnessPage = DEV_ROUTES_ENABLED
+  ? lazy(() =>
+      import('@/pages/dev/WorkspaceHarnessPage').then((module) => ({
+        default: module.WorkspaceHarnessPage,
+      })),
+    )
+  : null;
 
 /** 앱 라우트 정의 (R-03.04). 라우터(BrowserRouter/MemoryRouter)는 호출하는 쪽에서 제공한다. */
 export function AppRoutes() {
@@ -52,6 +59,16 @@ export function AppRoutes() {
           element={
             <Suspense fallback={null}>
               <GridHarnessPage />
+            </Suspense>
+          }
+        />
+      )}
+      {WorkspaceHarnessPage !== null && (
+        <Route
+          path="/dev/workspace"
+          element={
+            <Suspense fallback={null}>
+              <WorkspaceHarnessPage />
             </Suspense>
           }
         />
