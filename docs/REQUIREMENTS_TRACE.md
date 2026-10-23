@@ -185,7 +185,7 @@
 | **R-05.52** | 드롭다운 목록 | 기능 | Phase 7 | CARD-07A | 단위 테스트 | 연기됨 (Post-MVP 확장) |
 | **R-05.53** | 조건부 서식 | 기능 | Phase 7 | CARD-07A | 단위 테스트 | 연기됨 (Post-MVP 확장) |
 | **R-05.54** | 표 기능과 구조화된 참조 | 기능 | Phase 7 | CARD-07A | 단위 테스트 | 연기됨 (Post-MVP 확장) |
-| **R-05.55** | 데이터 형식 통일 | 기능 | Phase 7 | CARD-07A | 단위 테스트 | 연기됨 (Post-MVP 확장) |
+| **R-05.55** | 데이터 형식 통일 | 기능 | Phase 7 | CARD-07A | 단위 테스트 | 연기됨 (Post-MVP 확장. 전제인 셀 기본 정렬은 CARD-02D에서 먼저 구현) |
 | **R-05.56** | 빈 셀과 오류 데이터 처리 | 기능 | Phase 7 | CARD-07A | 단위 테스트 | 연기됨 (Post-MVP 확장) |
 | **R-05.57** | 데이터 정제 및 품질 검사 | 기능 | Phase 7 | CARD-07A | 단위 테스트 | 연기됨 (Post-MVP 확장) |
 | **R-05.58** | 적절한 차트 선택 | 기능 | Phase 7 | CARD-07B | 단위 / E2E | 연기됨 (Post-MVP 확장) |
@@ -276,8 +276,8 @@
 | **R-07.02** | 설명 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 계획됨 |
 | **R-07.03** | 강조할 UI 요소 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 계획됨 |
 | **R-07.04** | 강조할 셀 또는 범위 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 계획됨 |
-| **R-07.05** | 사용자가 해야 할 행동 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 계획됨 |
-| **R-07.06** | 허용되는 입력 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 계획됨 |
+| **R-07.05** | 사용자가 해야 할 행동 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 계획됨 (수식 인수로 범위를 고르는 단계는 CARD-02E 포인트 모드가 전제) |
+| **R-07.06** | 허용되는 입력 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 계획됨 (수식 인수로 범위를 고르는 단계는 CARD-02E 포인트 모드가 전제) |
 | **R-07.07** | 완료 조건 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 계획됨 |
 | **R-07.08** | 실패 조건 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 계획됨 |
 | **R-07.09** | 힌트 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 계획됨 |
@@ -304,7 +304,7 @@
 | **R-07.30** | 결과 화면 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
 | **R-07.31** | 사용자의 작업을 방해하는 애니메이션은 사용하지 마라. | 금지규칙 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
 | **R-08.01** | 셀 선택 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (클릭 선택. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
-| **R-08.02** | 범위 선택 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (드래그·Shift+클릭·Shift+화살표·Ctrl+A. GridSelection.test.ts·SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
+| **R-08.02** | 범위 선택 | 기능 | Phase 2 | CARD-02A, CARD-02E | 단위 / E2E | 부분 완료 (그리드 범위 선택은 CARD-02A에서 완료: 드래그·Shift+클릭·Shift+화살표·Ctrl+A. GridSelection.test.ts·SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts. 수식 편집 중 범위 선택(포인트 모드)은 CARD-02E, 2026-10-23 배정) |
 | **R-08.03** | 셀 편집 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (타이핑·F2·더블클릭 편집, Esc 취소, 한글 IME. CARD-02C에서 수식 입력줄과 편집 상태 공유. SpreadsheetGrid.test.tsx·FormulaBar.test.tsx·spreadsheet-grid.spec.ts·formula-bar.spec.ts) |
 | **R-08.04** | Enter 및 Tab 이동 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (Enter/Shift+Enter, Tab/Shift+Tab. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
 | **R-08.05** | 화살표 키 이동 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (화살표·Home·Ctrl+Home·PageUp/Down. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
@@ -324,7 +324,7 @@
 | **R-08.19** | 수식 오류 처리 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (오류 코드 10종, 전파·IFERROR, 골든 ErrorValues. #NULL!은 EXCEL_DIFFERENCES D-3) |
 | **R-08.20** | 의존 셀의 값 변경에 따른 재계산 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (자동 재계산·의존 셀 조회 getDependents, dependencyGraph.ts) |
 | **R-08.21** | 지원 함수 목록 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (supportedFunctions.ts, 엔진 등록 여부를 테스트로 대조) |
-| **R-08.22** | 계산 결과 표시 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (CellResult.displayValue를 셀에 표시, 오류 셀은 오류 코드와 안내 문장. CARD-02C에서 화면 연결. FormulaBar.test.tsx·formula-bar.spec.ts) |
+| **R-08.22** | 계산 결과 표시 | 기능 | Phase 2 | CARD-02B, CARD-02C, CARD-02D | 단위 테스트 | 부분 완료 (CellResult.displayValue 생성(02B)과 셀 표시·오류 코드·안내 문장(02C) 완료. FormulaBar.test.tsx·formula-bar.spec.ts. 값 종류에 따른 기본 정렬(숫자 오른쪽·문자 왼쪽·논리값·오류 가운데)은 CARD-02D, 2026-10-23 배정) |
 | **R-08.23** | 함수별 오류 메시지 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (errorMessages.ts 코드별·함수별 한국어 안내) |
 | **R-08.24** | 브라우저에서 사용자가 입력한 수식을 `eval()`로 실행하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (eval·Function 미사용, ESLint no-eval·no-new-func) |
 | **R-08.25** | 지원하지 않는 함수나 기능은 명확하게 알리고, 임의의 결과를 반환하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (미지원 함수 #NAME?+함수 이름, 대체 안내, 교집합 연산자 미지원 안내) |
@@ -822,8 +822,8 @@
 - 2차 골든 대조(`golden-formulas-2.xlsx` 291셀 + 배열 펼침 43칸을 웹 Excel로 계산, `golden-excel-2.test.ts`)에서 처음 46셀이 달라 31셀을 어댑터에서 고치고(INT·ROUND 계열·EDATE·DATEDIF 단위·MATCH 와일드카드·INDEX·FILTER·CONCATENATE/TEXTJOIN/LEN 및 LEFT/RIGHT/MID/FIND/SEARCH/SUBSTITUTE/REPLACE/REPT/UPPER/LOWER/PROPER/CLEAN/TRIM/EXACT의 15자리 변환·TEXT 지원 서식·지수 표기 전처리), 15셀은 `EXCEL_DIFFERENCES.md` D-9~D-14로 기록했으며 Excel 실측 전 항목은 "다음 골든 라운드 확인 목록"에 모았다(R-08.26~R-08.29 상태 변화 없음, ADR-001 §3.1·§3.2 갱신).
 
 ### CARD-02C (2026-10-23)
-- **완료됨:** R-04.38, R-04.39, R-04.41, R-04.44, R-08.03(입력줄 연동 잔여분), R-08.11, R-08.22
-- **부분 완료 (각 행 상태 칸에 남은 범위 명시):** R-04.40, R-04.42, R-04.43, Q-04(F4 속성만), Q-06(F4 추가)
+- **완료됨:** R-04.38, R-04.39, R-04.41, R-04.44, R-08.03(입력줄 연동 잔여분), R-08.11
+- **부분 완료 (각 행 상태 칸에 남은 범위 명시):** R-04.40, R-04.42, R-04.43, R-08.22(기본 정렬은 CARD-02D), Q-04(F4 속성만), Q-06(F4 추가)
 - **요구사항 ID 대응 (이번 카드 한정 기록):** 카드 본문 `R-04.4-01`·`R-04.4-02` → R-04.38~R-04.44(MASTER_PROMPT §4.4), `R-08.1-01` → R-08.11(§8.1 수식 입력줄). 카드 본문 ID도 현재 ID로 고쳤다.
 - **카드 본문에 없던 02C 담당 항목:** R-08.22 화면 표시, Q-06·Q-04의 F4, ADR-002 `getFormulaBarRect`를 이번에 함께 처리했다.
 - **사용자 결정 (2026-10-23):** LearningLayout은 개발 화면(`/dev/workspace`)에만 붙이고 `/learn/:courseId`는 내용이 생길 때까지 지금 화면 유지. F4와 fast-check(4.10.2, MIT, devDependency) 설치. 하단 바는 작업 상태와 "다시 시작"만(실행 취소는 CARD-02D).
@@ -831,4 +831,9 @@
   1. 카드 미기재 추가 파일: `Spreadsheet.tsx`(입력줄+그리드 묶음, `getFormulaBarRect` 핸들), `hooks/useCellEditing.ts`(공유 편집 상태), `hooks/useWorkbook.ts`(원문·결과 분리 보관, MASTER_PROMPT §8.2), `formulaReference.ts`(F4), `editorFocus.ts`, `src/pages/dev/WorkspaceHarnessPage.tsx`, 테스트 `formulaReference.test.ts`·`useCellEditing.test.ts`·`useWorkbook.test.ts`·`tests/unit/features/LearningLayout.test.tsx`·`tests/e2e/formula-bar.spec.ts`.
   2. `getFormulaBarRect`는 ADR-002가 `SpreadsheetGridHandle`에 두었으나 그리드는 수식 입력줄을 갖지 않아 `SpreadsheetHandle`(Spreadsheet)에 두었다. ADR-002에 메모했다.
   3. `SpreadsheetGridHandle`에 `focus()`를 더했다(입력줄 Esc 후 그리드로 포커스 반환).
-- **알려진 한계:** 수식 편집 중 셀을 클릭해 참조를 넣는 방식(Excel 포인트 모드)은 지원하지 않는다. 셀 클릭은 편집을 확정하고 그 셀을 고른다. 숫자 오른쪽 정렬 등 셀 서식은 Phase 7.
+- **알려진 한계:** 수식 편집 중 셀을 클릭해 참조를 넣는 방식(Excel 포인트 모드)은 아직 없다. 셀 클릭은 편집을 확정하고 그 셀을 고른다(CARD-02E로 배정). 값 종류별 기본 정렬도 아직 없다(CARD-02D로 배정). 이 때문에 R-08.22는 완료됨에서 부분 완료로 정정했다.
+
+### CARD-02C 후속 배정 (2026-10-23, 문서 변경만)
+- **포인트 모드 → CARD-02E:** 수식 편집 중 셀 클릭·드래그로 참조를 넣는 기능. 원문에 별도 항목은 없고 §8.1 "범위 선택"(R-08.02)을 수식 편집 상황으로 확장한 것이며, §7.1 "사용자가 해야 할 행동"(R-07.05)·"허용되는 입력"(R-07.06)에서 범위를 드래그해 함수 인수를 넣는 튜토리얼 단계의 전제다. 관련 엔진 요구사항(R-08.16 범위 참조, R-08.18 시트 간 참조)은 02B에서 완료됐다. 시트 탭(02D)과 참조 이동 로직(02E `referenceShift.ts`)이 함께 필요해 02D가 아니라 02E에 넣었다. R-08.02 담당에 CARD-02E를 더하고 부분 완료로 바꿨다.
+- **셀 기본 정렬 → CARD-02D:** 숫자 오른쪽·문자열 왼쪽·논리값과 오류 가운데. 셀 서식(Phase 7)이 아닌 Excel 기본 표시이며 원문 Level 4 "데이터 형식 통일"(R-05.55)의 전제다. R-08.22(계산 결과 표시)의 남은 범위로 CARD-02D에 배정했고, CARD-02C 보고에서 완료로 적었던 R-08.22를 부분 완료로 정정했다.
+- **CARD-02E 지침 정정:** "fast-check는 이 카드에서 설치"를 "CARD-02C에서 4.10.2로 설치, 그대로 사용"으로 고쳤다.

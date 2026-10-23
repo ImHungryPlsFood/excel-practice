@@ -238,7 +238,7 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-02D: Undo/Redo 스택, 다중 시트 및 연습실 모드 (Undo/Redo & Sandbox)
-- **관련 요구사항 ID:** R-04.5-01, R-04.5-02, R-04.45, R-04.46, R-04.47, R-04.48, R-04.49, R-04.51, R-04.52, R-17.2-01, Q-04
+- **관련 요구사항 ID:** R-04.5-01, R-04.5-02, R-04.45, R-04.46, R-04.47, R-04.48, R-04.49, R-04.51, R-04.52, R-17.2-01, Q-04, R-08.22(셀 기본 정렬, 2026-10-23 추가)
 - **선행 카드:** CARD-02C
 - **생성·수정할 파일:**
   - `src/engine/spreadsheet/history/historyManager.ts` (Command 패턴 기반 Undo/Redo)
@@ -250,30 +250,36 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - `tests/unit/history/historyManager.test.ts` (속성 기반 50회 왕복 테스트)
   - `tests/unit/sandbox/sandboxFileStore.test.ts` (저장 후 복원 왕복, 손상된 파일 거부)
   - `tests/unit/sandbox/sampleDatasets.test.ts` (스키마·가상 데이터 검증, 불러오기 후 셀 값 일치)
+  - (2026-10-23 추가) `src/components/spreadsheet/GridCell.tsx`, `src/components/spreadsheet/types.ts`(`CellDisplay`에 값 종류 추가), `src/components/spreadsheet/Spreadsheet.tsx` (R-08.22: 셀 기본 정렬)
+  - (2026-10-23 추가) `tests/unit/spreadsheet/cellAlignment.test.tsx`, `tests/e2e/formula-bar.spec.ts`에 정렬 확인 추가
 - **구현 지침 및 금지 사항:**
   - Undo 실행 시 직전 셀 값 및 수식이 100% 복원되어야 함.
   - 연습실 모드와 학습 모드의 상태 저장소를 명확히 분리.
   - 샘플 데이터(R-04.46)는 원문 10장에 따라 개인정보나 실제 기업의 기밀 데이터를 쓰지 않고 독창적인 가상 데이터만 사용한다. 실존 기업명·실존 인물명·실제 연락처 형식의 값을 넣지 않으며 테스트가 이를 점검한다. 빈 셀·중복 등 오류가 섞인 데이터를 넣더라도 난이도에 맞지 않는 불필요한 혼란은 만들지 않는다.
   - 빈 스프레드시트(R-04.45)와 샘플 불러오기는 연습실 저장소에만 쓰고 학습 모드 상태를 건드리지 않는다.
   - 셀 편집(R-04.47)과 수식 입력(R-04.48) 구현은 CARD-02B(수식 엔진)·CARD-02C(입력줄)가 맡는다. 02D는 새로 구현하지 않고 연습실에서 연결·검증만 한다.
+  - 셀 기본 정렬(R-08.22, 2026-10-23 추가): 서식을 지정하지 않은 셀은 Excel 기본 표시 동작대로 숫자(날짜 일련번호 포함)는 오른쪽, 문자열은 왼쪽, 논리값과 오류 값은 가운데 정렬한다. 원문 글자가 아니라 엔진 계산 결과의 값 종류(`CellResult.value`의 타입과 `error`)로 판정하므로, 작은따옴표로 입력한 숫자(`'123`)나 문자로 저장된 숫자는 왼쪽에 놓인다. 이것은 셀 서식(사용자가 정하는 정렬, Phase 7)이 아니라 기본 표시이며, 원문 Level 4 "데이터 형식 통일"(R-05.55)에서 숫자처럼 보이는 문자를 찾는 학습의 전제다.
   - 학습 파일 저장(R-04.52)은 `eval` 없이 JSON만 사용한다. 내구성 있는 IndexedDB 연동과 공통 직렬화 모듈은 CARD-06B(`cellStateSerializer.ts`)에서 통합한다.
 - **완료 조건:**
   - 사용자가 브라우저에서 실제로 데이터를 입력하고 수식을 계산하며, 다중 시트 전환 및 Undo/Redo가 안정적으로 동작한다.
   - 연습실(`/sandbox`)에서 빈 스프레드시트를 만들고 가상 샘플 데이터를 불러올 수 있다(R-04.45, R-04.46).
   - 연습실에서 셀 편집과 수식 입력이 동작한다(R-04.47, R-04.48. 구현은 02B·02C).
   - 연습실(`/sandbox`)에서 작업한 내용을 학습 파일로 저장하고, 새로고침 후 다시 불러오면 값·수식·시트 구성이 동일하게 복원된다(R-04.52). (Phase 2 완료 판정은 CARD-02E 이후)
+  - 숫자·날짜는 오른쪽, 문자열(문자로 저장된 숫자 포함)은 왼쪽, TRUE/FALSE와 `#DIV/0!` 같은 오류는 가운데 정렬되어 보이고, 수식 결과가 바뀌면 정렬도 결과 종류에 맞게 바뀐다(R-08.22). 단위 테스트와 Chromium E2E로 확인한다.
 - **실행할 검증 명령:**
   ```powershell
   npm test tests/unit/history/
+  npm test tests/unit/spreadsheet/cellAlignment.test.tsx
   npm run typecheck
   npm run build
+  npx playwright test
   ```
 - **외부 사용자 조치:** 없음.
 
 ---
 
 #### CARD-02E: 행·열 조작, 복사·붙여넣기 및 자동 채우기 (Range Operations)
-- **관련 요구사항 ID:** R-08.06, R-08.07, R-08.10, R-08.17, Q-04
+- **관련 요구사항 ID:** R-08.06, R-08.07, R-08.10, R-08.17, Q-04, R-08.02(수식 편집 중 범위 선택 = 포인트 모드, 2026-10-23 추가. 튜토리얼 R-07.05·R-07.06의 전제)
 - **선행 카드:** CARD-02D
 - **생성·수정할 파일:**
   - `src/engine/spreadsheet/operations/referenceShift.ts` (수식 참조 이동 공통 로직, 상대/절대 참조 구분)
@@ -287,19 +293,28 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - `tests/unit/engine/clipboard.test.ts`
   - `tests/unit/engine/autoFill.test.ts` (fast-check: 채우기 수식 주소 오프셋 속성 테스트)
   - `tests/e2e/range-operations.spec.ts`
+  - (2026-10-23 추가, 포인트 모드) `src/components/spreadsheet/hooks/usePointMode.ts` (수식 편집 중 셀 클릭·드래그·Shift+클릭·화살표로 참조 삽입·교체), `src/components/spreadsheet/formulaReference.ts` (커서 위치 참조 삽입·교체 함수 추가), `src/components/spreadsheet/SpreadsheetGrid.tsx`, `src/components/spreadsheet/FormulaBar.tsx`, `src/components/spreadsheet/SheetTabs.tsx` (다른 시트 탭 클릭 시 시트 참조 삽입)
+  - (2026-10-23 추가, 포인트 모드) `tests/unit/spreadsheet/pointMode.test.ts`, `tests/e2e/point-mode.spec.ts`
 - **구현 지침 및 금지 사항:**
   - 모든 변경은 CARD-02D의 historyManager 명령으로 실행해 Undo/Redo가 되어야 한다.
   - 참조 계산은 CARD-02B 엔진을 사용하고 수식 문자열을 정규식으로만 치환하는 방식 금지(`$A$1`, 시트 간 참조 포함).
   - 문제 ID별 정답 하드코딩 금지. 삭제된 셀을 가리키는 참조는 `#REF!`로 처리한다.
-  - `fast-check`는 이 카드에서 설치하며 S-10에 따라 공개 2주 이상 지난 버전으로 고정한다.
+  - `fast-check`는 CARD-02C에서 4.10.2(공개 2주 이상 지난 버전, S-10)로 설치했다. 이 카드는 그것을 그대로 쓴다.
+  - 포인트 모드(2026-10-23 추가): 수식을 편집 중이고 커서가 참조를 넣을 수 있는 자리(`=`, 연산자, `(`, `,`, `:` 바로 뒤, 또는 직전에 포인트 모드로 넣은 참조 위)에 있을 때만 켠다. 그 밖에 셀을 클릭하면 지금처럼 편집을 확정하고 그 셀을 고른다(CARD-02C 동작 유지).
+  - 포인트 모드에서 셀을 클릭하면 `B3`, 드래그하거나 Shift+클릭하면 `B3:B7`이 커서 자리에 들어가고, 드래그하는 동안 실시간으로 바뀐다. 셀에서 바로 타이핑해 시작한 편집(enter 모드)에서는 화살표 키도 참조를 움직인다. 다른 시트 탭을 누르면 `Sheet2!A1`처럼 시트 이름을 붙이고, 공백·특수문자가 있으면 작은따옴표로 감싼다. 넣은 참조 범위는 색 테두리로 보여 준다.
+  - 셀 편집기와 수식 입력줄 어느 쪽에서 편집 중이어도 같은 동작이어야 한다(CARD-02C 공유 편집 컨트롤러 사용). 한글 조합 중에는 포인트 모드로 바꾸지 않는다(useImeInput).
+  - 참조 삽입·교체는 `formulaReference.ts`의 토큰 단위 처리로 하고 정규식 치환을 쓰지 않는다. 포인트 모드 중 이동은 Undo 대상이 아니며, Enter로 확정한 수식만 historyManager 명령이 된다. 확정하면 편집을 시작한 셀로 돌아간다.
+  - 튜토리얼(CARD-03B)이 "범위를 드래그해 SUM 인수 넣기" 같은 단계를 검증할 수 있도록, 포인트 모드 시작·참조 변경·종료를 그리드 외부에서 구독할 수 있는 이벤트로 알린다.
 - **완료 조건:**
   - 행·열을 삽입·삭제하면 수식 참조가 갱신되고, 복사한 수식은 상대 참조가 이동한 채 붙여넣어지며, 채우기 핸들로 숫자·날짜·수식이 확장된다. 세 동작 모두 Undo로 복원된다.
+  - `=SUM(`까지 입력한 상태에서 B3:B7을 드래그하면 `=SUM(B3:B7`이 들어가고, `)`와 Enter로 확정하면 결과가 보인다. 셀 편집기와 수식 입력줄에서 모두 된다. 다른 시트 탭을 눌러 `Sheet2!A1` 참조를 넣을 수 있다. 커서가 참조를 넣을 수 없는 자리면 셀 클릭은 확정·선택으로 동작한다. Chromium E2E(`point-mode.spec.ts`)로 확인한다.
 - **실행할 검증 명령:**
   ```powershell
   npm test tests/unit/engine/
+  npm test tests/unit/spreadsheet/pointMode.test.ts
   npm run typecheck
   npm run lint
-  npx playwright test tests/e2e/range-operations.spec.ts
+  npx playwright test tests/e2e/range-operations.spec.ts tests/e2e/point-mode.spec.ts
   ```
 - **외부 사용자 조치:** 없음.
 
