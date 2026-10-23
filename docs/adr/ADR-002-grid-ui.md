@@ -71,6 +71,7 @@ export interface SpreadsheetGridHandle {
   getRangeViewportRect: (startRow: number, startCol: number, endRow: number, endCol: number) => ViewportRect | null;
   
   // 수식 입력줄 DOM 요소 참조 반환
+  // (2026-10-23 CARD-02C) 그리드는 수식 입력줄을 갖지 않으므로 입력줄+그리드를 묶은 Spreadsheet의 SpreadsheetHandle에 둔다.
   getFormulaBarRect: () => ViewportRect | null;
   
   // 셀 선택 강제 설정

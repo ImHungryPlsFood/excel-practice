@@ -6,15 +6,19 @@ import {
   useImperativeHandle,
   useLayoutEffect,
   useRef,
-  useState,
   type ChangeEvent,
+  type FocusEvent,
   type KeyboardEvent,
   type MouseEvent,
 } from 'react';
 
+import { CellEditor } from './CellEditor';
+import { movesFocusWithinEditors } from './editorFocus';
+import { toggleReferenceAt } from './formulaReference';
 import { GridCell } from './GridCell';
 import { ColumnHeader, RowHeaderCell } from './GridHeader';
 import { cellAddress, isInRange, useCellSelection } from './hooks/useCellSelection';
+import { useCellEditing, type EditingState } from './hooks/useCellEditing';
 import { useImeInput } from './hooks/useImeInput';
 import { GRID_METRICS, useVirtualGrid } from './hooks/useVirtualGrid';
 import type {
@@ -27,24 +31,13 @@ import type {
 /*
  * 가상화 스프레드시트 그리드 (CARD-02A, ADR-002).
  *
- * 키보드 입력은 활성 셀 위에 겹친 <input> 하나가 항상 받는다. 편집 중이 아닐 때는 투명하게 두는데,
- * 이렇게 해야 셀을 고른 뒤 바로 한글을 쳐도 IME 조합이 정상으로 시작된다(div에 포커스를 두면
- * 첫 자모가 조합되지 않거나 따로 떨어진다). 첫 글자가 들어오거나 조합이 시작되면 편집 모드가 된다.
+ * 키보드 입력은 활성 셀 위에 겹친 CellEditor(<input>) 하나가 항상 받는다. 첫 글자가 들어오거나
+ * IME 조합이 시작되면 편집 모드가 된다.
  *
- * 편집 모드 두 가지 (Excel 방식):
- * - enter: 셀에 바로 타이핑해 시작. 화살표를 누르면 확정하고 이동한다.
- * - edit: F2·더블클릭으로 시작. 화살표는 글자 사이 커서를 움직인다.
- *
- * 편집 초안은 이 컴포넌트의 state에만 있고 Enter/Tab/화살표/포커스 이탈 때 onCellsChange로 확정된다
- * (UX_MOTION_PERF P-05 1계층).
+ * 편집 상태는 useCellEditing 컨트롤러가 가진다(CARD-02C). editor prop으로 받으면 수식 입력줄과 같은
+ * 컨트롤러를 공유하고, 없으면 그리드가 직접 만든다. 초안은 Enter/Tab/화살표/포커스 이탈 때 확정된다
+ * (UX_MOTION_PERF P-05 1계층). 포커스가 수식 입력줄로 옮겨 갈 때는 같은 편집이 이어지므로 확정하지 않는다.
  */
-
-interface EditingState {
-  row: number;
-  col: number;
-  draft: string;
-  mode: 'enter' | 'edit';
-}
 
 const ARROW_DELTAS: Partial<Record<string, CellPosition>> = {
   ArrowUp: { row: -1, col: 0 },
@@ -62,7 +55,17 @@ function positionFromTarget(target: EventTarget | null): CellPosition | null {
 
 export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGridProps>(
   function SpreadsheetGrid(
-    { rowCount, colCount, getCellValue, onCellsChange, label, className },
+    {
+      rowCount,
+      colCount,
+      getCellValue,
+      getCellDisplay,
+      onCellsChange,
+      onActiveCellChange,
+      editor: sharedEditor,
+      label,
+      className,
+    },
     ref,
   ) {
     const idPrefix = useId();
@@ -73,16 +76,26 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
     const virtual = useVirtualGrid(rowCount, colCount);
     const { scrollToCell } = virtual;
 
-    const [editing, setEditing] = useState<EditingState | null>(null);
+    const ownEditor = useCellEditing({
+      getCellValue,
+      applyChanges: (changes) => {
+        onCellsChange(changes);
+        return null;
+      },
+    });
+    const editor = sharedEditor ?? ownEditor;
+    const { editing } = editor;
     const inputRef = useRef<HTMLInputElement>(null);
     const draggingRef = useRef(false);
+    // F4로 참조를 바꾼 뒤 다시 그려진 입력 상자에 커서를 놓을 위치
+    const pendingCaretRef = useRef<number | null>(null);
 
     const beginEditing = useCallback(
       (mode: EditingState['mode'], draft: string) => {
-        setEditing({ row: active.row, col: active.col, draft, mode });
+        editor.begin({ row: active.row, col: active.col, draft, mode });
         inputRef.current?.focus();
       },
-      [active.row, active.col],
+      [active.row, active.col, editor],
     );
 
     const { handleCompositionStart, handleCompositionEnd, isImeKeyEvent } = useImeInput({
@@ -91,16 +104,10 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
       },
     });
 
-    /** 편집 중인 초안을 확정한다. 내용이 바뀌었을 때만 변경을 알린다. */
-    const commitEditing = useCallback(() => {
-      if (editing === null) return;
-      if (editing.draft !== getCellValue(editing.row, editing.col)) {
-        onCellsChange([{ row: editing.row, col: editing.col, value: editing.draft }]);
-      }
-      setEditing(null);
-    }, [editing, getCellValue, onCellsChange]);
+    /** 편집 중인 초안을 확정한다. 거부되어(수식 길이 상한 등) 편집이 계속되면 false. */
+    const commitEditing = useCallback(() => editor.commit(), [editor]);
 
-    const cancelEditing = () => setEditing(null);
+    const cancelEditing = () => editor.cancel();
 
     const clearRange = () => {
       const changes: CellChange[] = [];
@@ -115,6 +122,23 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
     useLayoutEffect(() => {
       scrollToCell(active.row, active.col);
     }, [active.row, active.col, scrollToCell]);
+
+    // 활성 셀이 바뀌면 바깥(수식 입력줄·이름 상자)에 알린다. 콜백 참조가 바뀌어도 다시 알리지 않도록 ref로 둔다.
+    const activeListenerRef = useRef(onActiveCellChange);
+    useLayoutEffect(() => {
+      activeListenerRef.current = onActiveCellChange;
+    });
+    useEffect(() => {
+      activeListenerRef.current?.({ row: active.row, col: active.col });
+    }, [active.row, active.col]);
+
+    useLayoutEffect(() => {
+      const caret = pendingCaretRef.current;
+      if (caret !== null && inputRef.current !== null) {
+        inputRef.current.setSelectionRange(caret, caret);
+        pendingCaretRef.current = null;
+      }
+    }, [editing?.draft]);
 
     useEffect(() => {
       const stopDragging = () => {
@@ -167,6 +191,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
             latest.beginEditing('enter', initialChar);
           }
         },
+        focus: () => inputRef.current?.focus(),
       }),
       [dispatch],
     );
@@ -186,24 +211,34 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
         event.preventDefault();
         return;
       }
+      // F4는 수식 편집 중 참조 고정($)을 바꾼다(Excel). 그 밖에는 브라우저 기본 동작만 막는다 (Q-06).
+      if (key === 'F4') {
+        event.preventDefault();
+        if (editing !== null && editing.draft.startsWith('=')) {
+          const caret = event.currentTarget.selectionStart ?? editing.draft.length;
+          const toggled = toggleReferenceAt(editing.draft, caret);
+          if (toggled.changed) {
+            pendingCaretRef.current = toggled.caret;
+            editor.update(toggled.text);
+          }
+        }
+        return;
+      }
 
       if (editing !== null) {
         const arrow = ARROW_DELTAS[key];
         if (key === 'Enter') {
           event.preventDefault();
-          commitEditing();
-          move(shiftKey ? -1 : 1, 0);
+          if (commitEditing()) move(shiftKey ? -1 : 1, 0);
         } else if (key === 'Tab') {
           event.preventDefault();
-          commitEditing();
-          move(0, shiftKey ? -1 : 1);
+          if (commitEditing()) move(0, shiftKey ? -1 : 1);
         } else if (key === 'Escape') {
           event.preventDefault();
           cancelEditing();
         } else if (arrow !== undefined && editing.mode === 'enter') {
           event.preventDefault();
-          commitEditing();
-          move(arrow.row, arrow.col);
+          if (commitEditing()) move(arrow.row, arrow.col);
         }
         return;
       }
@@ -265,8 +300,14 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
       if (editing === null) {
         beginEditing('enter', draft);
       } else {
-        setEditing({ ...editing, draft });
+        editor.update(draft);
       }
+    };
+
+    /** 수식 입력줄로 포커스가 옮겨 가면 같은 편집이 이어지므로 확정하지 않는다. */
+    const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+      if (movesFocusWithinEditors(event.relatedTarget)) return;
+      commitEditing();
     };
 
     const handleMouseDown = (event: MouseEvent<HTMLDivElement>) => {
@@ -274,7 +315,8 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
       if (position === null || event.button !== 0) return;
       // 포커스를 입력 상자에 그대로 두기 위해 기본 동작(포커스 이동·텍스트 선택)을 막는다.
       event.preventDefault();
-      commitEditing();
+      // 확정이 거부되면(수식 길이 상한 등) 편집 중인 셀에 머문다.
+      if (!commitEditing()) return;
       dispatch(event.shiftKey ? { type: 'extendTo', position } : { type: 'select', position });
       draggingRef.current = true;
       inputRef.current?.focus();
@@ -289,7 +331,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
     const handleDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
       const position = positionFromTarget(event.target);
       if (position === null) return;
-      setEditing({ ...position, draft: getCellValue(position.row, position.col), mode: 'edit' });
+      editor.begin({ ...position, draft: getCellValue(position.row, position.col), mode: 'edit' });
       inputRef.current?.focus();
     };
 
@@ -331,6 +373,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
                 />
                 {virtual.colItems.map((colItem) => {
                   const col = colItem.index;
+                  const display = getCellDisplay?.(row, col);
                   return (
                     <GridCell
                       key={colItem.key}
@@ -339,7 +382,8 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
                       col={col}
                       left={colItem.start}
                       width={colItem.size}
-                      value={getCellValue(row, col)}
+                      value={display?.text ?? getCellValue(row, col)}
+                      isError={display?.isError ?? false}
                       inRange={isInRange(range, row, col)}
                       isActive={row === active.row && col === active.col}
                     />
@@ -349,32 +393,21 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
             );
           })}
 
-          <input
+          <CellEditor
             ref={inputRef}
-            aria-label={`${label} ${activeAddress} 셀${isEditing ? ' 편집 중' : ''}`}
-            aria-activedescendant={cellId(active.row, active.col)}
-            data-editing={isEditing ? 'true' : 'false'}
-            autoComplete="off"
-            spellCheck={false}
+            label={`${label} ${activeAddress} 셀${isEditing ? ' 편집 중' : ''}`}
+            activeDescendant={cellId(active.row, active.col)}
+            isEditing={isEditing}
             value={editing?.draft ?? ''}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onCompositionStart={handleCompositionStart}
             onCompositionEnd={handleCompositionEnd}
-            onBlur={commitEditing}
-            className={[
-              'absolute z-[5] m-0 border-0 px-1 text-sm leading-6 outline-2 -outline-offset-2',
-              // 편집 중이 아닐 때는 마우스 이벤트를 아래 셀로 통과시켜 활성 셀에서도 더블클릭·드래그가 된다.
-              isEditing
-                ? 'bg-cell text-fg outline-editing'
-                : 'pointer-events-none bg-transparent text-transparent caret-transparent outline-selected',
-            ].join(' ')}
-            style={{
-              top: GRID_METRICS.colHeaderHeight + active.row * GRID_METRICS.rowHeight,
-              left: GRID_METRICS.rowHeaderWidth + active.col * GRID_METRICS.colWidth,
-              width: GRID_METRICS.colWidth,
-              height: GRID_METRICS.rowHeight,
-            }}
+            onBlur={handleBlur}
+            top={GRID_METRICS.colHeaderHeight + active.row * GRID_METRICS.rowHeight}
+            left={GRID_METRICS.rowHeaderWidth + active.col * GRID_METRICS.colWidth}
+            width={GRID_METRICS.colWidth}
+            height={GRID_METRICS.rowHeight}
           />
         </div>
       </div>
