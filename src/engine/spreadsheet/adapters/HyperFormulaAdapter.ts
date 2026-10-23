@@ -28,10 +28,17 @@ import { describeError } from '../errorMessages';
 import { formatSerialAsIsoDate } from '../dateSerial';
 import { DependencyGraph } from '../evaluator/dependencyGraph';
 import { formatGeneralNumber } from '../numberFormat';
-import { EXCEL_COMPAT_TRANSLATIONS, ExcelCompatPlugin } from './excelCompatPlugin';
+import {
+  EXCEL_COMPAT_TRANSLATIONS,
+  EXCEL_FILTER_TRANSLATIONS,
+  ExcelCompatPlugin,
+  ExcelFilterPlugin,
+} from './excelCompatPlugin';
+import { normalizeNumberLiterals } from '../formulaPreprocess';
 
-// CONCAT 추가, INDEX를 Excel 동작으로 교체한다. 함수 등록은 HyperFormula 전역이며 같은 플러그인을 다시 등록해도 덮어쓸 뿐이다.
+// CONCAT 추가, INDEX·ROUND·FILTER 등을 Excel 동작으로 교체한다(excelCompatPlugin.ts 머리 주석). 함수 등록은 HyperFormula 전역이며 같은 플러그인을 다시 등록해도 덮어쓸 뿐이다.
 HyperFormula.registerFunctionPlugin(ExcelCompatPlugin, EXCEL_COMPAT_TRANSLATIONS);
+HyperFormula.registerFunctionPlugin(ExcelFilterPlugin, EXCEL_FILTER_TRANSLATIONS);
 
 const ENGINE_CONFIG: Partial<ConfigParams> = {
   licenseKey: 'gpl-v3',
@@ -141,7 +148,23 @@ export class HyperFormulaAdapter implements FormulaEngineAdapter {
         cells.forEach(checkContent);
       });
     }
-    const next = HyperFormula.buildFromSheets(sheets, ENGINE_CONFIG, NAMED_EXPRESSIONS);
+    // 수식 안의 지수 표기를 엔진이 읽는 형태로 바꾼다(formulaPreprocess.ts).
+    const prepared = Object.fromEntries(
+      Object.entries(sheets).map(([name, rows]) => [
+        name,
+        rows.map((cells) =>
+          cells.map((cell) => {
+            if (typeof cell !== 'string') {
+              return cell;
+            }
+            const converted = normalizeNumberLiterals(cell);
+            checkContent(converted);
+            return converted;
+          }),
+        ),
+      ]),
+    );
+    const next = HyperFormula.buildFromSheets(prepared, ENGINE_CONFIG, NAMED_EXPRESSIONS);
     this.engine.destroy();
     this.engine = next;
     this.rebuildGraph();
@@ -156,7 +179,10 @@ export class HyperFormulaAdapter implements FormulaEngineAdapter {
     checkPosition(row, col);
     checkContent(content);
     const sheet = this.sheetId(sheetName);
-    this.engine.setCellContents({ sheet, row, col }, [[content]]);
+    const prepared = typeof content === 'string' ? normalizeNumberLiterals(content) : content;
+    // 지수 표기를 풀어 쓰면 길어질 수 있어 변환 뒤에도 상한(S-09)을 확인한다.
+    checkContent(prepared);
+    this.engine.setCellContents({ sheet, row, col }, [[prepared]]);
     this.updateGraphFor(sheet, row, col);
   }
 

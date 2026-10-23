@@ -33,6 +33,17 @@
 16. **`environmentSupport` (지원 환경):** Excel Desktop, Excel Web, Google Sheets 지원 여부
 17. **`completionCriteria` (학습 완료 조건):** 명확하고 측정 가능한 완료 판정 기준
 
+### 1.3 콘텐츠 작성 지침: 수식 엔진 차이 반영 (CARD-02B 추가 작업)
+
+이 플랫폼의 계산 엔진(HyperFormula)은 Excel과 일부 결과가 다르다(`docs/EXCEL_DIFFERENCES.md`). 문항과 예제는 아래를 지킨다. 문항 검증(`verify-content`)이 엔진 결과를 기준으로 하기 때문에, 이 차이를 피하지 않으면 Excel에서는 다른 값이 나오는 문항이 만들어진다.
+
+- **계산 결과가 소수인 값을 `&`로 이어 붙이는 예제는 피하거나 ROUND를 먼저 적용한다.** `="합계: "&(0.1+0.2)`는 엔진에서 `합계: 0.30000000000000004`, Excel에서 `합계: 0.3`이다. `="합계: "&ROUND(A1/3,2)`처럼 쓴다. (D-9)
+- **TEXT 함수는 지원하는 서식만 쓴다.** 숫자(`0`, `000`, `0.00`, `#,##0`, `#,##0.00`), 백분율(`0%`, `0.0%`), 날짜(`yyyy-mm-dd` 등)만 가능하고 시간·월 이름·통화·한글 문구 서식은 `#VALUE!`가 된다. (EXCEL_DIFFERENCES "TEXT 함수")
+- **문항 정답에 엔진이 지원하지 않는 함수를 쓰지 않는다.** AVERAGEIFS, RANK, XMATCH, LOOKUP, SORTBY, LET, INDIRECT 등은 대체 방법으로 출제한다. (ADR-001 §3.2, D-8)
+- **FILTER가 일치하는 값이 없을 수 있는 문항에는 IFERROR로 감싸거나 세 번째 인수(`if_empty`)를 쓴다.** Excel(`#CALC!`)과 엔진(`#N/A`)의 오류 코드가 다르다. (D-12)
+- **UNIQUE 대상 범위에 빈 셀을 두지 않는다.** Excel은 0, 엔진은 빈 칸으로 보인다. (D-13)
+- **INDEX의 행·열 번호 0(행·열 전체)과 DATEDIF의 `"YD"` 단위는 문항에 쓰지 않는다.** (D-7, D-14b)
+
 ---
 
 ## 2. 전체 레벨 상세 명세 (Level 0 ~ Level 10)

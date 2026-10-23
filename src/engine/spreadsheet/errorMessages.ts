@@ -4,6 +4,7 @@
  */
 
 import type { CellErrorCode } from './FormulaEngineAdapter';
+import { TEXT_FORMAT_HELP } from './excelFormat';
 import { KNOWN_UNSUPPORTED_FUNCTIONS } from './supportedFunctions';
 
 const GENERIC_MESSAGES: Record<CellErrorCode, string> = {
@@ -39,6 +40,14 @@ const FUNCTION_MESSAGES: Readonly<Record<string, Partial<Record<CellErrorCode, s
   DATE: { '#NUM!': 'DATE: 1900-01-01 이전이거나 표현할 수 없는 날짜입니다.' },
   DATEVALUE: { '#VALUE!': 'DATEVALUE: 날짜로 해석할 수 없는 문자열입니다.' },
   AVERAGE: { '#DIV/0!': 'AVERAGE: 평균을 낼 숫자가 하나도 없습니다.' },
+  DATEDIF: {
+    '#NUM!':
+      'DATEDIF: 시작일이 종료일보다 늦거나 단위가 올바르지 않습니다. 단위는 Y, M, D, MD, YM, YD입니다.',
+  },
+  FILTER: { '#N/A': 'FILTER: 조건에 맞는 값이 없거나 조건의 크기가 배열과 맞지 않습니다.' },
+  TEXT: {
+    '#VALUE!': `TEXT: 지원하지 않는 서식입니다. ${TEXT_FORMAT_HELP} 날짜 서식은 1900-01-01 이후 날짜에만 쓸 수 있습니다.`,
+  },
 };
 
 /**

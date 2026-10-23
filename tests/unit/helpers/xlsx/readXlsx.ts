@@ -21,6 +21,8 @@ export interface XlsxCell {
   col: number; // 0부터
   /** '='를 붙인 수식. Excel 파일 형식의 _xlfn. 같은 접두사는 떼어 낸다. */
   formula?: string;
+  /** 배열 수식(<f t="array">)이면 결과가 채워지는 범위. 예: 'A2:A4'. */
+  arrayRef?: string;
   /** 파일에 저장된 값. 수식 셀이면 Excel이 계산해 둔 결과. */
   cached: XlsxCellValue;
 }
@@ -151,6 +153,7 @@ export function readXlsx(path: string): XlsxWorkbook {
       const raw = v?.textContent ?? null;
 
       let formula: string | undefined;
+      let arrayRef: string | undefined;
       if (f) {
         const text = f.textContent ?? '';
         if (f.getAttribute('t') === 'shared' && text === '') {
@@ -159,6 +162,9 @@ export function readXlsx(path: string): XlsxWorkbook {
           );
         }
         formula = `=${text.replace(/_xlfn\.|_xlws\./g, '')}`;
+        if (f.getAttribute('t') === 'array') {
+          arrayRef = f.getAttribute('ref') ?? undefined;
+        }
       }
 
       let cached: XlsxCellValue = { kind: 'empty' };
@@ -182,7 +188,13 @@ export function readXlsx(path: string): XlsxWorkbook {
           cached = { kind: 'number', value: Number(raw) };
         }
       }
-      return { ref, ...parseRef(ref), ...(formula === undefined ? {} : { formula }), cached };
+      return {
+        ref,
+        ...parseRef(ref),
+        ...(formula === undefined ? {} : { formula }),
+        ...(arrayRef === undefined ? {} : { arrayRef }),
+        cached,
+      };
     });
     return { name, cells };
   });
