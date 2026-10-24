@@ -26,7 +26,9 @@ const REQUIRED_TOKEN_PREFIXES: Record<string, string> = {
 
 // import.meta.glob은 변환 결과가 vitest 캐시(node_modules/.vitest-cache)에 남아, 나중에 추가된 파일을 빼먹은 채
 // 통과했다(CARD-03C의 tutorial/ 파일들). 실행할 때마다 실제 파일 시스템에서 대상 파일을 새로 찾는다.
-const SCANNED_DIRS = ['components', 'pages'];
+// src 아래 모든 .tsx를 검사한다(features/ 포함). 검사에서 빼야 하는 파일은 이유와 함께 여기에만 적는다.
+// 값은 src 기준 경로('/src/...')와 제외 이유다. 현재 제외 대상은 없다.
+const EXCLUDED_FILES: Readonly<Record<string, string>> = {};
 const srcRoot = resolve(process.cwd(), 'src');
 
 function collectTsx(dir: string): string[] {
@@ -37,11 +39,13 @@ function collectTsx(dir: string): string[] {
   });
 }
 
+const toKey = (relativePath: string) => `/src/${relativePath.split(sep).join('/')}`;
+
 const componentSources: Record<string, string> = Object.fromEntries(
-  SCANNED_DIRS.flatMap((dir) => collectTsx(join(srcRoot, dir))).map((file) => [
-    `/src/${relative(srcRoot, file).split(sep).join('/')}`,
-    readFileSync(file, 'utf8'),
-  ]),
+  collectTsx(srcRoot)
+    .map((file) => [toKey(relative(srcRoot, file)), file] as const)
+    .filter(([key]) => !(key in EXCLUDED_FILES))
+    .map(([key, file]) => [key, readFileSync(file, 'utf8')]),
 );
 
 describe('design tokens (R-12.11 ~ R-12.23)', () => {
@@ -65,14 +69,19 @@ describe('design tokens (R-12.11 ~ R-12.23)', () => {
     expect(Object.keys(componentSources).length).toBeGreaterThanOrEqual(8);
   });
 
-  it('scans every .tsx file under the scanned src directories', () => {
-    // 위 수집과 다른 방법(recursive readdir)으로 센 실제 파일 수와 같아야 한다. 파일이 빠지면 여기서 실패한다.
-    const actual = readdirSync(srcRoot, { recursive: true, encoding: 'utf8' }).filter(
-      (path) => path.endsWith('.tsx') && SCANNED_DIRS.some((dir) => path.split(sep)[0] === dir),
-    );
-    expect(Object.keys(componentSources).sort()).toEqual(
-      actual.map((path) => `/src/${path.split(sep).join('/')}`).sort(),
-    );
+  it('scans every .tsx file under src except the explicitly excluded ones', () => {
+    // 위 수집과 다른 방법(recursive readdir)으로 센 실제 파일 목록과 같아야 한다. 파일이 빠지면 여기서 실패한다.
+    const actual = readdirSync(srcRoot, { recursive: true, encoding: 'utf8' })
+      .filter((path) => path.endsWith('.tsx'))
+      .map(toKey)
+      .filter((key) => !(key in EXCLUDED_FILES));
+    expect(Object.keys(componentSources).sort()).toEqual(actual.sort());
+  });
+
+  it('scans features/ and the app entry files', () => {
+    const keys = Object.keys(componentSources);
+    expect(keys.some((key) => key.startsWith('/src/features/'))).toBe(true);
+    expect(keys).toContain('/src/main.tsx');
   });
 
   it.each(Object.entries(componentSources))(
