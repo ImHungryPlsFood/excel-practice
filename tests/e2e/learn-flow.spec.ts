@@ -65,11 +65,11 @@ test('개념을 읽고 풀고 틀리면 고치고 다음 문제로 넘어가 코
 
   // 3번: 채우기 핸들로 D2를 D7까지
   await expect(task).toContainText('채우기로 금액 열 완성하기');
-  await typeAt(page, 6, 3, '=B2*C2');
-  await submitButton(page).click();
-  await expect(page.getByTestId('feedback-misconception')).toContainText('첫 줄의 수식이 그대로');
-  await cell(page, 6, 3).click();
-  await page.keyboard.press('Delete');
+  // 이 문제는 채우기·복사만 허용한다. 수식을 새로 입력하면 거부된다.
+  await typeAt(page, 6, 3, '=B7*C7');
+  await expect(page.getByText('수식을 입력할 수 없습니다').first()).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(cell(page, 6, 3)).toHaveText('');
   await cell(page, 1, 3).click();
   await expect(cell(page, 1, 3)).toHaveAttribute('aria-selected', 'true');
   const handle = await center(page.locator('[data-fill-handle]'));

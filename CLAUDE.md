@@ -46,7 +46,7 @@ npm run format:check
 # 단위 및 통합 테스트 (Vitest)
 npm test
 
-# 콘텐츠 스키마 및 정답 자체 검증 (CARD-04E에서 추가 예정)
+# 콘텐츠 스키마 및 정답 자체 검증 (모든 문제의 기준 정답·대표 오답·허용 작업·엔진 실행 검증, CI 포함)
 npm run verify-content
 
 # Firestore 보안 규칙 테스트 (로컬 에뮬레이터) (CARD-06C에서 추가 예정)

@@ -17,7 +17,7 @@ import { RestartConfirmDialog } from './RestartConfirmDialog';
 /*
  * 문제 하나를 푸는 작업 화면 (CARD-04C의 /dev/problem 본문을 CARD-04D에서 추출).
  * 실제 학습 화면(/learn/:courseId)과 개발 확인 화면이 같이 쓴다. 문제 ID별 분기는 없다.
- * 문제의 readOnlyRanges는 통합 문서 모델이 강제한다(workbookModel).
+ * 문제의 readOnlyRanges와 allowedActions는 통합 문서 모델이 강제한다(workbookModel). 거부 안내는 시트가 보여 준다.
  * 문제가 바뀌면 호출하는 쪽에서 key={problem.id}로 새로 만든다.
  */
 
@@ -59,7 +59,7 @@ interface ProblemWorkspaceProps {
 export function ProblemWorkspace({ problem, header, guide, footerAction }: ProblemWorkspaceProps) {
   const source = useMemo(() => snapshotOf(problem), [problem]);
   const readOnlyRanges = useMemo(() => readOnlyRangesOf(problem), [problem]);
-  const workbook = useWorkbook(source, readOnlyRanges);
+  const workbook = useWorkbook(source, readOnlyRanges, problem.allowedActions);
   const session = useProblemSession(problem, workbook);
   const [confirmingRestart, setConfirmingRestart] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);

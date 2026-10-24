@@ -34,7 +34,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['ENTER_FORMULA'],
+    allowedActions: ['ENTER_VALUE', 'ENTER_FORMULA'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'B6',
@@ -78,6 +78,7 @@ export const problems: ProblemDefinitionInput[] = [
     recommendedSolution: {
       steps: ['B6 칸을 선택한다', '=D3 을 입력하고 Enter를 누른다'],
       formula: '=D3',
+      requiredActions: ['ENTER_FORMULA'],
     },
     completionCriteria: 'B6이 D3 칸을 참조해 과학 3주 차 대출 권수를 보여 준다.',
   },
@@ -109,7 +110,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['ENTER_FORMULA'],
+    allowedActions: ['ENTER_VALUE', 'ENTER_FORMULA'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'B8',
@@ -156,6 +157,7 @@ export const problems: ProblemDefinitionInput[] = [
         ') 를 닫고 Enter를 누른다',
       ],
       formula: '=SUM(D3:F3)',
+      requiredActions: ['ENTER_FORMULA'],
     },
     completionCriteria: 'B8이 서윤의 수·목·금 칸(D3:F3)을 SUM으로 더한다.',
   },
@@ -189,7 +191,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['AUTOFILL', 'COPY_PASTE'],
+    allowedActions: ['ENTER_VALUE', 'AUTOFILL', 'COPY_PASTE'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'D7',
@@ -237,7 +239,15 @@ export const problems: ProblemDefinitionInput[] = [
         'D7의 수식이 =B7*C7 인지 확인한다',
       ],
       formula: '=B7*C7',
+      requiredActions: ['AUTOFILL'],
     },
+    alternativeSolutions: [
+      {
+        description: 'D2를 복사해 D3:D7에 붙여넣는다',
+        formula: '=B7*C7',
+        requiredActions: ['COPY_PASTE'],
+      },
+    ],
     completionCriteria: 'D7이 같은 줄의 단가와 수량(B7, C7)을 곱한다.',
   },
 ];

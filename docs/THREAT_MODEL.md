@@ -137,6 +137,10 @@
 - 모든 의존성은 `package.json`에서 정확한 버전(Exact Version)으로 고정한다.
 - 새 의존성은 공개 2주 이상 지난 버전을 쓴다. 단, 고위험 보안 취약점을 고치는 버전은 이 규칙의 예외이며 수정된 가장 낮은 버전을 고정한다 (예: zod 4.6.6, GHSA-mrhx-c7xc-m3w5, 2026-10-24).
 - CI 파이프라인에서 `npm audit --audit-level=high`를 실행하여 고위험 취약점 발견 시 빌드를 실패 처리한다.
+- **설치 스크립트 허용 예외 (esbuild 0.28.2, 사용자 결정 2026-10-24):** `tsx 4.23.15`(CARD-04E, `npm run verify-content`용 devDependency)가 `esbuild`를 끌어오고, `esbuild`는 설치 때 `postinstall`(`node install.js`)을 실행한다. 이 스크립트만 예외로 허용한다.
+  - 이유: 하는 일이 플랫폼용 실행 파일(`@esbuild/<플랫폼>` 선택 의존성, `package-lock.json`의 무결성 해시로 고정)이 맞는지 확인하고 실행 속도를 위해 연결을 최적화하는 것이다. 선택 의존성이 설치되지 않은 환경에서만 `registry.npmjs.org`에서 같은 버전의 패키지를 받아 내려받은 파일의 무결성을 검사한다.
+  - 범위: 개발·CI 전용이다. 배포 번들에는 들어가지 않는다. 다른 패키지의 설치 스크립트는 허용하지 않는다.
+  - 재검토: `esbuild` 버전이 바뀌거나 `install.js`가 달라지면 이 예외를 다시 검토한다. 새 설치 스크립트가 생기면 사용자에게 먼저 묻는다.
 - HyperFormula의 GPLv3 라이선스 채택에 따라, 모든 의존성 패키지의 라이선스가 GPLv3와 법적으로 호환되는지 점검하는 `npm run audit:licenses` 단계를 포함한다.
 
 ### [S-11] 비밀 정보 유출 방지 (Secret Scanning)

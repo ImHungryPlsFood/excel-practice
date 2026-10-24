@@ -29,6 +29,8 @@ import {
   sizeKeyIndex,
 } from '@/engine/spreadsheet/operations/rowColumnOps';
 
+import type { AllowedAction } from '@/types/problem.schema';
+
 import { parseCellReference } from './formulaReference';
 import { cellAddress } from './hooks/useCellSelection';
 import type { CellChange } from './types';
@@ -264,6 +266,32 @@ function denseRows(inputs: ReadonlyMap<string, string>): CellScalar[][] {
 /** 수정할 수 없는 영역 (문제의 readOnlyRanges, CARD-04D). 키는 시트 이름, 값은 "A1:D1" 같은 범위 */
 export type ReadOnlyRanges = Readonly<Record<string, readonly string[]>>;
 
+/**
+ * 문제가 허용한 작업 (문제의 allowedActions, CARD-04E). undefined면 제한하지 않는다(연습실·튜토리얼).
+ * 실행 취소·다시 실행·다시 시작, 시트 탭 조작은 어느 경우에도 허용한다.
+ * FORMAT_CELLS는 아직 서식 기능이 없어 강제할 조작이 없다. 서식 기능이 생기면 그 명령에서 확인한다.
+ */
+export type AllowedActions = readonly AllowedAction[];
+
+const ACTION_REFUSALS: Record<AllowedAction, string> = {
+  ENTER_VALUE: '이 문제에서는 값을 직접 입력하거나 지울 수 없습니다.',
+  ENTER_FORMULA: '이 문제에서는 수식을 입력할 수 없습니다.',
+  COPY_PASTE: '이 문제에서는 복사·붙여넣기와 잘라내기를 쓸 수 없습니다.',
+  AUTOFILL: '이 문제에서는 자동 채우기를 쓸 수 없습니다.',
+  FORMAT_CELLS: '이 문제에서는 셀 서식을 바꿀 수 없습니다.',
+  INSERT_DELETE_ROW_COLUMN: '이 문제에서는 행이나 열을 삽입하거나 삭제할 수 없습니다.',
+};
+
+/** 거부할 때 대신 무엇을 하면 되는지 알려 주는 문장. 허용한 작업을 학생 말로 풀어 쓴다. */
+function alternativeGuide(allowed: AllowedActions): string {
+  const ways: string[] = [];
+  if (allowed.includes('AUTOFILL')) ways.push('채우기 핸들을 끌어');
+  if (allowed.includes('COPY_PASTE')) ways.push('복사해 붙여넣어');
+  if (allowed.includes('ENTER_FORMULA')) ways.push('수식을 입력해');
+  if (ways.length === 0) return '';
+  return ` 이 문제는 ${ways.join(' 보거나 ')} 보세요.`;
+}
+
 const READ_ONLY_MESSAGE = '문제의 원본 데이터 칸이라 수정할 수 없습니다.';
 const READ_ONLY_SHEET_MESSAGE = '원본 데이터가 있는 시트라 이름을 바꾸거나 삭제할 수 없습니다.';
 
@@ -291,6 +319,7 @@ export class WorkbookModel {
     private readonly engine: FormulaEngineAdapter,
     snapshot: WorkbookSnapshot,
     readOnlyRanges: ReadOnlyRanges = {},
+    private readonly allowedActions?: AllowedActions,
   ) {
     this.sheets = snapshot.sheets.map(sheetStateFrom);
     this.active = this.pickActive(snapshot.activeSheet);
@@ -305,10 +334,11 @@ export class WorkbookModel {
     snapshot: WorkbookSnapshot,
     createEngine: () => FormulaEngineAdapter = () => new HyperFormulaAdapter(),
     readOnlyRanges: ReadOnlyRanges = {},
+    allowedActions?: AllowedActions,
   ): Promise<WorkbookModel> {
     const problem = checkSnapshot(snapshot);
     if (problem !== null) throw new FormulaEngineInputError(problem);
-    const model = new WorkbookModel(createEngine(), snapshot, readOnlyRanges);
+    const model = new WorkbookModel(createEngine(), snapshot, readOnlyRanges, allowedActions);
     try {
       await model.engine.initWorkbook(
         Object.fromEntries(model.sheets.map((sheet) => [sheet.name, denseRows(sheet.inputs)])),
@@ -415,20 +445,52 @@ export class WorkbookModel {
     );
   }
 
+  /** 문제가 허용하지 않은 작업이면 거부 안내 문장, 허용하면 null */
+  private actionRefusal(action: AllowedAction): string | null {
+    const allowed = this.allowedActions;
+    if (allowed === undefined || allowed.includes(action)) return null;
+    return `${ACTION_REFUSALS[action]}${alternativeGuide(allowed)}`;
+  }
+
   // ---- 변경 (모두 실행 취소 가능) ----
 
   /**
-   * 셀 원문을 바꾼다. 값이 달라지는 칸 중 수정 금지 칸이 하나라도 있으면 아무것도 바꾸지 않고 거부한다.
+   * 사용자가 셀에 직접 입력하거나 지운다. 값이 달라지는 칸이 수식이면 ENTER_FORMULA, 아니면 ENTER_VALUE가
+   * 허용돼야 한다. 허용하지 않은 작업이 하나라도 있으면 아무것도 바꾸지 않고 거부한다.
+   */
+  setCells(sheetName: string, changes: readonly CellChange[], label?: string): string | null {
+    return this.writeCells(sheetName, changes, label, () => {
+      const sheet = this.sheet(sheetName);
+      for (const { row, col, value } of changes) {
+        if ((sheet.inputs.get(keyOf(row, col)) ?? '') === value) continue;
+        const refusal = this.actionRefusal(value.startsWith('=') ? 'ENTER_FORMULA' : 'ENTER_VALUE');
+        if (refusal !== null) return refusal;
+      }
+      return null;
+    });
+  }
+
+  /**
+   * 셀 원문을 바꾼다(붙여넣기·채우기도 이 길로 쓴다). 값이 달라지는 칸 중 수정 금지 칸이 하나라도 있으면
+   * 아무것도 바꾸지 않고 거부한다. 수정 금지 검사 다음에 refuseAction이 안내 문장을 돌려주면 그것도 거부한다
+   * (원본 칸을 건드리려 했다면 작업 종류보다 그 안내가 먼저 나온다).
    * 엔진이 받아들이지 않는 변경(수식 길이 상한 등)에서 멈추고 안내 문장을 돌려준다.
    * 그 앞의 변경은 반영되고 하나의 실행 취소 단위로 기록된다.
    */
-  setCells(sheetName: string, changes: readonly CellChange[], label?: string): string | null {
+  private writeCells(
+    sheetName: string,
+    changes: readonly CellChange[],
+    label?: string,
+    refuseAction?: () => string | null,
+  ): string | null {
     const sheet = this.sheet(sheetName);
     const blocked = changes.some(
       ({ row, col, value }) =>
         this.isReadOnly(sheetName, row, col) && (sheet.inputs.get(keyOf(row, col)) ?? '') !== value,
     );
     if (blocked) return READ_ONLY_MESSAGE;
+    const notAllowed = refuseAction?.() ?? null;
+    if (notAllowed !== null) return notAllowed;
     const applied: { row: number; col: number; before: string; after: string }[] = [];
     let refusal: string | null = null;
     for (const { row, col, value } of changes) {
@@ -587,6 +649,8 @@ export class WorkbookModel {
       (rect) => change.index <= (change.axis === 'row' ? rect.endRow : rect.endCol),
     );
     if (affectsReadOnly) return READ_ONLY_MESSAGE;
+    const notAllowed = this.actionRefusal('INSERT_DELETE_ROW_COLUMN');
+    if (notAllowed !== null) return notAllowed;
     const result = applyStructuralChange(this.snapshot().sheets, change);
     if ('error' in result) return result.error;
     const problem = checkSnapshot({ sheets: result.sheets });
@@ -651,7 +715,9 @@ export class WorkbookModel {
     this.sheet(sheetName);
     const result = pasteWrites(source, target);
     if ('error' in result) return result;
-    const refusal = this.setCells(sheetName, result.writes, '붙여넣기');
+    const refusal = this.writeCells(sheetName, result.writes, '붙여넣기', () =>
+      this.actionRefusal('COPY_PASTE'),
+    );
     return refusal === null ? { rect: result.rect } : { error: refusal };
   }
 
@@ -671,6 +737,8 @@ export class WorkbookModel {
     ) {
       return READ_ONLY_MESSAGE;
     }
+    const notAllowed = this.actionRefusal('COPY_PASTE');
+    if (notAllowed !== null) return notAllowed;
     const result = moveSheetCells(this.snapshot().sheets, move);
     if ('error' in result) return result.error;
     const problem = checkSnapshot({ sheets: result.sheets });
@@ -694,7 +762,7 @@ export class WorkbookModel {
       direction,
       count,
     );
-    return this.setCells(sheetName, writes, '자동 채우기');
+    return this.writeCells(sheetName, writes, '자동 채우기', () => this.actionRefusal('AUTOFILL'));
   }
 
   /** Ctrl+D(아래로)·Ctrl+R(오른쪽으로) 채우기 */
@@ -704,10 +772,11 @@ export class WorkbookModel {
       selection,
       direction,
     );
-    return this.setCells(
+    return this.writeCells(
       sheetName,
       writes,
       direction === 'down' ? '아래로 채우기' : '오른쪽으로 채우기',
+      () => this.actionRefusal('AUTOFILL'),
     );
   }
 

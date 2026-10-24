@@ -71,7 +71,7 @@ test.describe('읽기 전용 칸', () => {
   test('자동 채우기가 원본 칸으로 이어지면 막힌다', async ({ page }) => {
     await openProblem(page);
     await cell(page, 5, 1).click();
-    await page.keyboard.type('7');
+    await page.keyboard.type('=D3');
     await page.keyboard.press('Enter');
     await cell(page, 5, 1).click();
     await expect(cell(page, 5, 1)).toHaveAttribute('aria-selected', 'true');

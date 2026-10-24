@@ -36,7 +36,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['ENTER_FORMULA'],
+    allowedActions: ['ENTER_VALUE', 'ENTER_FORMULA'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'C11',
@@ -83,6 +83,7 @@ export const problems: ProblemDefinitionInput[] = [
         ') 를 닫고 Enter를 누른다',
       ],
       formula: '=SUM(C2:C9)',
+      requiredActions: ['ENTER_FORMULA'],
     },
     completionCriteria: 'C11이 금액 열 전체(C2:C9)를 SUM으로 더한다.',
   },
@@ -116,7 +117,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['ENTER_FORMULA'],
+    allowedActions: ['ENTER_VALUE', 'ENTER_FORMULA'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'G7',
@@ -163,6 +164,7 @@ export const problems: ProblemDefinitionInput[] = [
         ') 를 닫고 Enter를 누른다',
       ],
       formula: '=AVERAGE(B3:E3)',
+      requiredActions: ['ENTER_FORMULA'],
     },
     completionCriteria: 'G7이 서윤의 점수 구간(B3:E3)을 AVERAGE로 평균 낸다.',
   },
