@@ -52,7 +52,7 @@ export function SpotlightOverlay({ target }: SpotlightOverlayProps) {
         y="0"
         width="100%"
         height="100%"
-        fill="rgb(16 24 40 / 0.38)"
+        fill="var(--cc-overlay-dim)"
         mask={`url(#${maskId})`}
         data-testid="spotlight-dim"
       />

@@ -1,6 +1,6 @@
 /// <reference types="node" />
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, relative, resolve, sep } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
@@ -24,9 +24,24 @@ const REQUIRED_TOKEN_PREFIXES: Record<string, string> = {
   '상태별 강조 색상': '--cc-state-',
 };
 
-const componentSources = import.meta.glob<string>(
-  ['/src/components/**/*.tsx', '/src/pages/**/*.tsx'],
-  { query: '?raw', import: 'default', eager: true },
+// import.meta.glob은 변환 결과가 vitest 캐시(node_modules/.vitest-cache)에 남아, 나중에 추가된 파일을 빼먹은 채
+// 통과했다(CARD-03C의 tutorial/ 파일들). 실행할 때마다 실제 파일 시스템에서 대상 파일을 새로 찾는다.
+const SCANNED_DIRS = ['components', 'pages'];
+const srcRoot = resolve(process.cwd(), 'src');
+
+function collectTsx(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) return collectTsx(full);
+    return entry.name.endsWith('.tsx') ? [full] : [];
+  });
+}
+
+const componentSources: Record<string, string> = Object.fromEntries(
+  SCANNED_DIRS.flatMap((dir) => collectTsx(join(srcRoot, dir))).map((file) => [
+    `/src/${relative(srcRoot, file).split(sep).join('/')}`,
+    readFileSync(file, 'utf8'),
+  ]),
 );
 
 describe('design tokens (R-12.11 ~ R-12.23)', () => {
@@ -48,6 +63,16 @@ describe('design tokens (R-12.11 ~ R-12.23)', () => {
 
   it('scans at least the landing components', () => {
     expect(Object.keys(componentSources).length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('scans every .tsx file under the scanned src directories', () => {
+    // 위 수집과 다른 방법(recursive readdir)으로 센 실제 파일 수와 같아야 한다. 파일이 빠지면 여기서 실패한다.
+    const actual = readdirSync(srcRoot, { recursive: true, encoding: 'utf8' }).filter(
+      (path) => path.endsWith('.tsx') && SCANNED_DIRS.some((dir) => path.split(sep)[0] === dir),
+    );
+    expect(Object.keys(componentSources).sort()).toEqual(
+      actual.map((path) => `/src/${path.split(sep).join('/')}`).sort(),
+    );
   });
 
   it.each(Object.entries(componentSources))(

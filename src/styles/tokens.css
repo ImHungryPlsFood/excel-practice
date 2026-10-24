@@ -61,6 +61,9 @@
   --cc-shadow-md: 0 2px 6px rgb(16 24 40 / 0.08), 0 1px 2px rgb(16 24 40 / 0.04);
   --cc-shadow-lg: 0 12px 24px rgb(16 24 40 / 0.1), 0 2px 6px rgb(16 24 40 / 0.05);
 
+  /* 오버레이 — Spotlight가 화면을 어둡게 하는 막 (CARD-03C) */
+  --cc-overlay-dim: rgb(16 24 40 / 0.38);
+
   /* 여백 — 4px 기준 단위. Tailwind 간격 유틸리티(p-4 = 4 × 단위)가 이 값을 사용한다. */
   --cc-space-unit: 0.25rem;
 
@@ -102,6 +105,13 @@
   /* 전환 곡선 (UX_MOTION_PERF P-03) */
   --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 다크 모드: 어두운 화면에서는 같은 투명도로는 대비가 약해 더 짙은 막을 쓴다. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cc-overlay-dim: rgb(0 0 0 / 0.6);
+  }
 }
 
 /* 모션 감소 설정 존중: 모든 전환 시간을 사실상 0으로 줄인다 (UX_MOTION_PERF P-03). */
