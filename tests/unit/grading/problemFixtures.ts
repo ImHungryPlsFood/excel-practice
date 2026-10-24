@@ -183,3 +183,71 @@ export const fixtureCourse: CourseMeta = {
     },
   ],
 };
+
+/** 절대 참조 문제: 수량(B열)에 배수(E1)를 곱해 C2에 넣고, 아래로 복사한다. */
+export function buildAbsoluteRefProblem(
+  overrides: Partial<ProblemDefinitionInput> = {},
+): ProblemDefinitionInput {
+  const base = buildProblem();
+  return buildProblem({
+    id: 'PRB-L03-ABS-01',
+    title: '배수 곱하기',
+    goal: 'C2에 B2에 E1의 배수를 곱한 값을 구하고, 아래로 복사해도 같은 배수를 쓰게 하세요.',
+    initialWorkbook: {
+      activeSheet: 'Sheet1',
+      sheets: {
+        Sheet1: {
+          rowCount: 20,
+          colCount: 10,
+          initialData: [
+            ['품목', '수량', '금액', '배수', 3],
+            ['A', 100],
+            ['B', 250],
+            ['C', 80],
+            ['D', 300],
+            ['E', 120],
+          ],
+          readOnlyRanges: ['A1:B6', 'D1:E1'],
+        },
+      },
+    },
+    grading: {
+      ...base.grading,
+      targetCell: 'C2',
+      canonicalFormula: '=B2*$E$1',
+      expectedResult: 300,
+      mode: 'ALLOW_EQUIVALENT',
+      requiredFunctions: [],
+    },
+    misconceptions: [
+      {
+        diagnosis: 'HARDCODED_VALUE',
+        input: '300',
+        feedback: '계산된 값을 직접 입력하셨습니다. 수량이 바뀌어도 따라오는 수식을 쓰세요.',
+      },
+      {
+        diagnosis: 'MISSING_ABSOLUTE_REF',
+        input: '=B2*E1',
+        feedback: '배수 셀은 아래로 복사해도 움직이지 않도록 고정해야 합니다.',
+      },
+    ],
+    recommendedSolution: { steps: ['C2에 입력한다'], formula: '=B2*$E$1' },
+    alternativeSolutions: [],
+    explanation: '배수 셀을 $E$1로 고정하면 복사해도 같은 셀을 곱합니다.',
+    ...overrides,
+  });
+}
+
+/** 합계 문제에 '현재 데이터에서만 맞는 답' 대표 오답을 더한 문제 */
+export function buildDataDependentProblem(): ProblemDefinitionInput {
+  return buildProblem({
+    misconceptions: [
+      ...sampleMisconceptions,
+      {
+        diagnosis: 'DATA_DEPENDENT',
+        input: '=SUM(B2:B5)+120',
+        feedback: '마지막 값을 직접 써 넣어 지금 데이터에서만 맞습니다.',
+      },
+    ],
+  });
+}
