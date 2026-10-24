@@ -57,6 +57,8 @@ export interface Workbook {
   getInputOf: (sheet: string, row: number, col: number) => string;
   /** 보고 있는 시트의 셀 계산 결과 */
   getResult: (row: number, col: number) => CellResult;
+  /** 지정한 시트의 셀 계산 결과 */
+  getResultOf: (sheet: string, row: number, col: number) => CellResult;
   /** 변경을 엔진에 반영한다(실행 취소 가능). 엔진이 받아들이지 않으면 반영을 멈추고 안내 문장을 돌려준다. */
   applyChanges: (changes: readonly CellChange[]) => string | null;
   /** 지정한 시트에 변경을 반영한다. */
@@ -199,6 +201,8 @@ export function useWorkbook(source: WorkbookSource): Workbook {
       getInputOf: (sheet, row, col) =>
         model !== null && model.hasSheet(sheet) ? model.getInput(sheet, row, col) : '',
       getResult: (row, col) => model?.getResult(activeSheet, row, col) ?? EMPTY_RESULT,
+      getResultOf: (sheet, row, col) =>
+        model !== null && model.hasSheet(sheet) ? model.getResult(sheet, row, col) : EMPTY_RESULT,
       applyChanges: (changes) => applyChangesTo(activeSheet, changes),
       applyChangesTo,
       reset: () => {

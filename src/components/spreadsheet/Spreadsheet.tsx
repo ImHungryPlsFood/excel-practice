@@ -6,8 +6,10 @@ import {
   useMemo,
   useRef,
   useState,
+  type KeyboardEvent,
 } from 'react';
 
+import { filledRange, normalizeKey, type GridUserAction } from '@/engine/tutorials/actionDetector';
 import type { CellResult } from '@/engine/spreadsheet/FormulaEngineAdapter';
 
 import { FormulaBar } from './FormulaBar';
@@ -15,7 +17,7 @@ import { referencedRanges } from './formulaReference';
 import { cellAddress } from './hooks/useCellSelection';
 import { useCellEditing } from './hooks/useCellEditing';
 import { useClipboard } from './hooks/useClipboard';
-import { usePointMode, type PointModeEvent } from './hooks/usePointMode';
+import { usePointMode, type PointModeController, type PointModeEvent } from './hooks/usePointMode';
 import type { Workbook } from './hooks/useWorkbook';
 import { SheetTabs } from './SheetTabs';
 import { SpreadsheetGrid } from './SpreadsheetGrid';
@@ -23,6 +25,7 @@ import type {
   CellChange,
   CellDisplay,
   CellPosition,
+  CellRange,
   CellValueKind,
   GridStructureActions,
   SpreadsheetGridHandle,
@@ -37,7 +40,13 @@ import type {
  * CARD-02E: 행·열 삽입·삭제·크기, 복사·붙여넣기, 자동 채우기, 시트 순서·이동 단축키, 포인트 모드.
  *   포인트 모드로 다른 시트 탭을 누르면 편집을 확정하지 않고 그 시트를 보여 주며 수식 입력줄에서 편집을 이어 간다.
  *   확정·취소하면 편집을 시작한 시트로 돌아간다.
+ * CARD-03B: 실제 조작(선택·입력 확정·키·채우기·포인트 모드 범위)을 onUserAction으로 알리고,
+ *   inputGuard가 안내 문장을 돌려주면 그 입력(셀 입력·단축키)을 막는다. 한글 조합 중 조작은 composing으로 표시해 알린다.
  */
+
+/** composing 없이 사실만 적은 조작 (emit이 composing을 붙인다) */
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+type UserFact = DistributiveOmit<GridUserAction, 'composing'>;
 
 /** 계산 결과의 값 종류 (R-08.22). 원문이 아니라 결과로 정하므로 '123은 문자(text)다. */
 export function cellValueKind(result: CellResult): CellValueKind {
@@ -68,13 +77,27 @@ interface SpreadsheetProps {
   onActiveCellChange?: (position: CellPosition) => void;
   /** 포인트 모드 시작·참조 변경·종료 (튜토리얼 CARD-03B가 구독한다) */
   onPointModeChange?: (event: PointModeEvent) => void;
+  /** 실제 조작이 끝났을 때 알린다 (튜토리얼 CARD-03B) */
+  onUserAction?: (action: GridUserAction) => void;
+  /** 조작을 막을지 정한다. 문장을 돌려주면 막고 그 문장을 보여 준다(허용 입력, R-07.06). 없으면 막지 않는다. */
+  inputGuard?: (action: GridUserAction) => string | null;
   className?: string;
 }
 
 const clamp = (value: number, max: number) => Math.min(Math.max(value, 0), max - 1);
 
 export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(function Spreadsheet(
-  { workbook, label, rowCount, colCount, onActiveCellChange, onPointModeChange, className },
+  {
+    workbook,
+    label,
+    rowCount,
+    colCount,
+    onActiveCellChange,
+    onPointModeChange,
+    onUserAction,
+    inputGuard,
+    className,
+  },
   ref,
 ) {
   const gridRef = useRef<SpreadsheetGridHandle>(null);
@@ -86,20 +109,102 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
   // 포인트 모드로 다른 시트를 보는 중이면, 편집이 끝났을 때 돌아갈 시트
   const returnSheetRef = useRef<string | null>(null);
 
+  // 콜백은 매 렌더 바뀔 수 있으므로 ref로 읽는다(편집 컨트롤러가 최신 값을 쓰도록)
+  const actionRef = useRef({ onUserAction, inputGuard });
+  useLayoutEffect(() => {
+    actionRef.current = { onUserAction, inputGuard };
+  });
+  const emit = useCallback((fact: UserFact, composing = false) => {
+    actionRef.current.onUserAction?.({ ...fact, composing });
+  }, []);
+
+  /** 입력을 막아야 하면 안내 문장. 거부되면 반영하지 않는다. */
+  const guardChanges = useCallback(
+    (sheet: string, changes: readonly CellChange[]): string | null => {
+      const guard = actionRef.current.inputGuard;
+      if (guard === undefined) return null;
+      for (const change of changes) {
+        const refused = guard({
+          type: 'cellCommitted',
+          composing: false,
+          sheet,
+          row: change.row,
+          col: change.col,
+          input: change.value,
+          computedValue: null,
+        });
+        if (refused !== null) return refused;
+      }
+      return null;
+    },
+    [],
+  );
+
   const editor = useCellEditing({
     getCellValue: workbook.getInput,
-    applyChanges: workbook.applyChanges,
+    applyChanges: (changes) =>
+      guardChanges(workbook.activeSheet, changes) ?? workbook.applyChanges(changes),
     currentSheet: () => workbook.activeSheet,
     getCellValueOf: workbook.getInputOf,
-    applyChangesTo: workbook.applyChangesTo,
+    applyChangesTo: (sheet, changes) =>
+      guardChanges(sheet, changes) ?? workbook.applyChangesTo(sheet, changes),
+    onCommitted: ({ sheet, row, col, value }) => {
+      const target = sheet ?? workbook.activeSheet;
+      emit({
+        type: 'cellCommitted',
+        sheet: target,
+        row,
+        col,
+        input: value,
+        computedValue: workbook.getResultOf(target, row, col).value,
+      });
+    },
   });
+  // 포인트 모드로 넣은 범위는 마우스를 놓거나(드래그 끝), 키·시트 탭으로 바꾼 즉시 알린다.
+  // 끌고 있는 중간 범위를 알리면 틀린 시도로 세어지기 때문이다.
+  const pendingPointRef = useRef<{ sheet: string; range: CellRange } | null>(null);
+  const pointDraggingRef = useRef(false);
+  const flushPoint = useCallback(() => {
+    const pending = pendingPointRef.current;
+    pendingPointRef.current = null;
+    if (pending !== null) emit({ type: 'pointModeEnded', ...pending });
+  }, [emit]);
+  const handlePointModeChange = useCallback(
+    (event: PointModeEvent) => {
+      onPointModeChange?.(event);
+      if (event.type === 'end') {
+        pendingPointRef.current = null;
+        return;
+      }
+      pendingPointRef.current = { sheet: event.sheet, range: event.range };
+      if (!pointDraggingRef.current) flushPoint();
+    },
+    [onPointModeChange, flushPoint],
+  );
   const pointMode = usePointMode({
     editor,
     viewedSheet: workbook.activeSheet,
     rowCount,
     colCount,
-    onChange: onPointModeChange,
+    onChange: handlePointModeChange,
   });
+  const gridPointMode = useMemo<PointModeController>(
+    () => ({
+      ...pointMode,
+      pointerDown: (position, extend) => {
+        pointDraggingRef.current = true;
+        const handled = pointMode.pointerDown(position, extend);
+        if (!handled) pointDraggingRef.current = false;
+        return handled;
+      },
+      pointerUp: () => {
+        pointDraggingRef.current = false;
+        pointMode.pointerUp();
+        flushPoint();
+      },
+    }),
+    [pointMode, flushPoint],
+  );
   const clipboard = useClipboard({ workbook, onNotice: setNotice });
 
   const { editing } = editor;
@@ -148,8 +253,53 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
   );
 
   const handleCellsChange = useCallback(
-    (changes: readonly CellChange[]) => setNotice(workbook.applyChanges(changes)),
-    [workbook],
+    (changes: readonly CellChange[]) =>
+      setNotice(guardChanges(workbook.activeSheet, changes) ?? workbook.applyChanges(changes)),
+    [workbook, guardChanges],
+  );
+
+  const handleSelectionChange = useCallback(
+    (range: CellRange) => emit({ type: 'selectionChanged', sheet: workbook.activeSheet, range }),
+    [emit, workbook.activeSheet],
+  );
+
+  const handleFill = useCallback(
+    (source: CellRange, direction: Parameters<typeof filledRange>[1], count: number) => {
+      const refused = workbook.fill(source, direction, count);
+      setNotice(refused);
+      if (refused === null) {
+        emit({
+          type: 'filled',
+          sheet: workbook.activeSheet,
+          range: filledRange(source, direction, count),
+        });
+      }
+    },
+    [workbook, emit],
+  );
+
+  /**
+   * 단축키를 가로채 알린다(그리드·입력줄·셀 편집기 공통). 한글 조합 중 키는 알리지도 막지도 않는다.
+   * inputGuard가 문장을 주면 키가 편집기·그리드에 닿기 전에 막는다.
+   */
+  const handleKeyDownCapture = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      const composing =
+        editor.isComposing() || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229;
+      if (composing) return;
+      const key = normalizeKey(event);
+      if (key === null) return;
+      const refused = actionRef.current.inputGuard?.({ type: 'keyPressed', composing: false, key });
+      if (refused !== null && refused !== undefined) {
+        event.preventDefault();
+        event.stopPropagation();
+        setNotice(refused);
+        emit({ type: 'keyPressed', key });
+        return;
+      }
+      emit({ type: 'keyPressed', key });
+    },
+    [editor, emit],
   );
 
   const getCellDisplay = useCallback(
@@ -240,7 +390,10 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
     (activeError === null ? null : `${activeError.code} — ${activeError.message}`);
 
   return (
-    <div className={['flex min-h-0 flex-col', className ?? ''].join(' ')}>
+    <div
+      className={['flex min-h-0 flex-col', className ?? ''].join(' ')}
+      onKeyDownCapture={handleKeyDownCapture}
+    >
       <FormulaBar
         ref={barRef}
         formulaInputRef={formulaInputRef}
@@ -269,17 +422,18 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
         getCellDisplay={getCellDisplay}
         onCellsChange={handleCellsChange}
         onActiveCellChange={handleActiveCellChange}
+        onSelectionChange={handleSelectionChange}
         editor={editor}
         onUndo={handleUndo}
         onRedo={handleRedo}
         layout={workbook.layout}
         structure={structure}
         clipboard={clipboard}
-        onFill={(source, direction, count) => setNotice(workbook.fill(source, direction, count))}
+        onFill={handleFill}
         onFillFromEdge={(selection, direction) =>
           setNotice(workbook.fillFromEdge(selection, direction))
         }
-        pointMode={pointMode}
+        pointMode={gridPointMode}
         referenceRanges={referenceRanges}
         editingElsewhere={editingElsewhere}
         onSheetNavigate={handleSheetNavigate}

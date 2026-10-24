@@ -61,6 +61,13 @@ export interface UseCellEditingOptions {
   getCellValueOf?: (sheet: string, row: number, col: number) => string;
   /** 지정한 시트에 반영. 편집 시트가 있으면 applyChanges 대신 쓴다. */
   applyChangesTo?: (sheet: string, changes: readonly CellChange[]) => string | null;
+  /** 편집한 내용이 실제로 반영된 직후 (튜토리얼 CARD-03B가 입력 완료를 알아챈다). 바뀐 것이 없으면 부르지 않는다. */
+  onCommitted?: (committed: {
+    sheet: string | undefined;
+    row: number;
+    col: number;
+    value: string;
+  }) => void;
 }
 
 export function useCellEditing(options: UseCellEditingOptions): CellEditingController {
@@ -127,6 +134,14 @@ export function useCellEditing(options: UseCellEditingOptions): CellEditingContr
     setEditing(null);
     // 편집이 끝나면 입력 상자 값이 바뀌며 조합도 끝난다(Chromium은 이때 compositionend를 보내지 않는다, useImeInput 참고).
     composingRef.current = false;
+    if (current.draft !== original) {
+      optionsRef.current.onCommitted?.({
+        sheet,
+        row: current.row,
+        col: current.col,
+        value: current.draft,
+      });
+    }
     return true;
   }, [setEditing]);
 

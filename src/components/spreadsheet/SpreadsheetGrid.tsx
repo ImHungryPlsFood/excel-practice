@@ -125,6 +125,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
       getCellDisplay,
       onCellsChange,
       onActiveCellChange,
+      onSelectionChange,
       editor: sharedEditor,
       onUndo,
       onRedo,
@@ -230,6 +231,22 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
     useEffect(() => {
       activeListenerRef.current?.({ row: active.row, col: active.col });
     }, [active.row, active.col]);
+
+    // 선택 범위가 바뀌면 알린다(처음 그려질 때는 제외: 사용자가 고른 것이 아니다).
+    const selectionListenerRef = useRef(onSelectionChange);
+    useLayoutEffect(() => {
+      selectionListenerRef.current = onSelectionChange;
+    });
+    // 같은 범위를 두 번 알리지 않는다(개발 모드 StrictMode의 효과 이중 실행 포함).
+    const lastRangeRef = useRef<string | null>(null);
+    const { startRow, startCol, endRow, endCol } = range;
+    useEffect(() => {
+      const key = `${startRow},${startCol},${endRow},${endCol}`;
+      const previous = lastRangeRef.current;
+      lastRangeRef.current = key;
+      if (previous === null || previous === key) return;
+      selectionListenerRef.current?.({ startRow, startCol, endRow, endCol });
+    }, [startRow, startCol, endRow, endCol]);
 
     useLayoutEffect(() => {
       const input = inputRef.current;

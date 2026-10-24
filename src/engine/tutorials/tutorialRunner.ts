@@ -83,6 +83,11 @@ const DEFAULT_FAILURE_MESSAGES: Record<FailureReason, string> = {
   WRONG_RESULT: '계산 결과가 다릅니다.',
 };
 
+/** 허용되지 않는 입력을 막을 때 보여 줄 문장 (단계의 NOT_ALLOWED 메시지, 없으면 기본 문장) */
+export function notAllowedMessage(step: TutorialStep): string {
+  return step.failure.messages.NOT_ALLOWED ?? DEFAULT_FAILURE_MESSAGES.NOT_ALLOWED;
+}
+
 /** 현재 단계 (활성 상태일 때만) */
 export function currentStep(
   definition: TutorialDefinition,
@@ -183,7 +188,7 @@ type Verdict = { ok: true } | { ok: false; reason: FailureReason };
 const FAIL = (reason: FailureReason): Verdict => ({ ok: false, reason });
 const PASS: Verdict = { ok: true };
 
-function violatesAllowedInput(step: TutorialStep, event: TutorialActionEvent): boolean {
+export function violatesAllowedInput(step: TutorialStep, event: TutorialActionEvent): boolean {
   const { cells, keys } = step.allowedInput;
   if (
     cells.length > 0 &&
@@ -227,8 +232,9 @@ function judgeFormula(
 /** 단계의 expectedAction과 실제 조작이 맞는지 판정한다. */
 export function judgeAction(step: TutorialStep, event: TutorialActionEvent): Verdict {
   const expected = step.expectedAction;
-  if (expected.type !== event.type) return FAIL('WRONG_ACTION');
+  // 허용 입력 밖이면 종류가 달라도 먼저 NOT_ALLOWED로 본다(R-07.06, 화면 차단과 같은 기준)
   if (violatesAllowedInput(step, event)) return FAIL('NOT_ALLOWED');
+  if (expected.type !== event.type) return FAIL('WRONG_ACTION');
 
   switch (expected.type) {
     case 'SELECT_CELL':
