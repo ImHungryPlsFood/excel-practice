@@ -83,6 +83,28 @@ describe('저장 → 복원 왕복', () => {
     expect(restored.getResult('계산', 0, 0).value).toBe(16);
   });
 
+  it('열 너비·행 높이도 저장했다가 그대로 복원하고, 크기 정보가 없는 파일(CARD-02D)도 열린다', async () => {
+    const sized: SandboxFile = {
+      ...FILE,
+      workbook: {
+        ...WORKBOOK,
+        sheets: WORKBOOK.sheets.map((sheet, index) =>
+          index === 0
+            ? { ...sheet, columnWidths: { A: 150, C: 40 }, rowHeights: { '2': 60 } }
+            : sheet,
+        ),
+      },
+    };
+    const restored = parseSandboxFile(serializeSandboxFile(sized));
+    expect(restored).toEqual({ ok: true, file: sized });
+    if (!restored.ok) return;
+    const model = await WorkbookModel.create(restored.file.workbook);
+    expect(model.getColumnWidth('입력', 0)).toBe(150);
+    expect(model.getRowHeight('입력', 1)).toBe(60);
+    model.destroy();
+    expect(parseSandboxFile(serializeSandboxFile(FILE)).ok).toBe(true);
+  });
+
   it('JSON에는 버전과 형식 필드가 있다', () => {
     const json = JSON.parse(serializeSandboxFile(FILE)) as Record<string, unknown>;
     expect(json.format).toBe('cellcraft-sandbox');
@@ -134,6 +156,37 @@ describe('손상되었거나 악의적인 파일은 거부한다 (신뢰할 수 
       '같은 이름',
     ],
     ['보던 시트가 문자열 아님', JSON.stringify({ ...valid(), activeSheet: 3 }), '보고 있던 시트'],
+    // CARD-02E 열 너비·행 높이
+    [
+      '열 너비가 배열',
+      withSheets([{ name: 'S', cells: {}, columnWidths: [100] }]),
+      '열 너비·행 높이',
+    ],
+    [
+      '열 너비 키가 열 문자 아님',
+      withSheets([{ name: 'S', cells: {}, columnWidths: { __proto__x: 100 } }]),
+      '열 너비·행 높이',
+    ],
+    [
+      '행 높이가 문자열',
+      withSheets([{ name: 'S', cells: {}, rowHeights: { '1': '30' } }]),
+      '열 너비·행 높이',
+    ],
+    [
+      '열 너비 범위 밖',
+      withSheets([{ name: 'S', cells: {}, columnWidths: { A: 5000 } }]),
+      '허용 범위',
+    ],
+    [
+      '열 너비 위치가 50열 밖',
+      withSheets([{ name: 'S', cells: {}, columnWidths: { AZ: 100 } }]),
+      '위치',
+    ],
+    [
+      '행 높이 소수',
+      withSheets([{ name: 'S', cells: {}, rowHeights: { '2': 20.5 } }]),
+      '허용 범위',
+    ],
   ])('%s', (_, text, reason) => {
     const result = parseSandboxFile(text);
     expect(result.ok).toBe(false);

@@ -67,3 +67,44 @@ describe('useCellEditing', () => {
     expect(applyChanges).not.toHaveBeenCalled();
   });
 });
+
+describe('useCellEditing 포인트 모드 지원 (CARD-02E)', () => {
+  it('조합 중에 확정·취소되면 조합 표시를 끈다(Chromium은 이때 compositionend를 보내지 않는다)', () => {
+    const { hook } = setup();
+    act(() => hook.result.current.begin({ row: 0, col: 1, draft: '=ㅎ', mode: 'enter' }));
+    act(() => hook.result.current.setComposing(true));
+    expect(hook.result.current.isComposing()).toBe(true);
+    act(() => {
+      hook.result.current.commit();
+    });
+    expect(hook.result.current.isComposing()).toBe(false);
+    act(() => hook.result.current.begin({ row: 0, col: 1, draft: '=', mode: 'enter' }));
+    act(() => hook.result.current.setComposing(true));
+    act(() => hook.result.current.cancel());
+    expect(hook.result.current.isComposing()).toBe(false);
+  });
+
+  it('편집 시트가 있으면 그 시트에 반영하고, 커서 위치 요청을 초안과 함께 둔다', () => {
+    const applyChangesTo = vi.fn(() => null);
+    const hook = renderHook(() =>
+      useCellEditing({
+        getCellValue: () => '',
+        applyChanges: () => '쓰면 안 됨',
+        currentSheet: () => 'Data',
+        getCellValueOf: () => '',
+        applyChangesTo,
+      }),
+    );
+    act(() => hook.result.current.begin({ row: 2, col: 0, draft: '=', mode: 'enter' }));
+    expect(hook.result.current.editing?.sheet).toBe('Data');
+    expect(hook.result.current.getCaret()).toBe(1);
+    act(() => hook.result.current.update('=A1', 3));
+    expect(hook.result.current.editing?.caret).toBe(3);
+    act(() => hook.result.current.update('=A1+'));
+    expect(hook.result.current.editing?.caret).toBeUndefined();
+    act(() => {
+      expect(hook.result.current.commit()).toBe(true);
+    });
+    expect(applyChangesTo).toHaveBeenCalledWith('Data', [{ row: 2, col: 0, value: '=A1+' }]);
+  });
+});

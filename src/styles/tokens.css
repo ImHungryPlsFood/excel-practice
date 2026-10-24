@@ -48,6 +48,11 @@
   --cc-state-target-bg: #fffaeb;
   --cc-state-success: #067647;
   --cc-state-success-bg: #ecfdf3;
+  /* 수식 참조 색 테두리 (CARD-02E 포인트 모드, Excel처럼 참조마다 다른 색. 흰 셀 위 대비 4.5:1 이상) */
+  --cc-state-reference-1: #2453b8;
+  --cc-state-reference-2: #b42318;
+  --cc-state-reference-3: #6941c6;
+  --cc-state-reference-4: #067647;
   --cc-state-warning: #b54708;
   --cc-state-warning-bg: #fffaeb;
 

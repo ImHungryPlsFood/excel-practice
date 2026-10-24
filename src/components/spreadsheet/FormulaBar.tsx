@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -7,6 +8,8 @@ import {
   type ChangeEvent,
   type FocusEvent,
   type KeyboardEvent,
+  type MutableRefObject,
+  type SyntheticEvent,
 } from 'react';
 
 import { KEEP_EDITING_ATTRIBUTE, movesFocusWithinEditors } from './editorFocus';
@@ -21,9 +24,13 @@ import type { CellPosition } from './types';
  * 셀 위 편집기와 같은 편집 컨트롤러(useCellEditing)를 쓴다. 여기서 치면 셀에도 같은 초안이 보이고,
  * 셀에서 치면 여기에도 보인다. 확정은 컨트롤러의 commit() 하나를 거치므로 어느 쪽에서 입력해도 결과가 같다.
  * 한글 조합 중 Enter·Tab·Esc·F4는 IME 몫이라 확정·이동으로 해석하지 않는다(useImeInput, Q-05).
+ * CARD-02E 포인트 모드: 커서 위치와 조합 중 여부를 편집 컨트롤러에 알리고, 셀 클릭으로 참조가 들어가면 커서를 참조 끝에 둔다.
+ * 포인트 모드로 다른 시트를 보는 동안에는 이 입력 상자에서 편집을 이어 간다(formulaInputRef로 포커스를 받는다).
  */
 
 interface FormulaBarProps {
+  /** 수식 입력 상자 요소 (포인트 모드로 시트를 옮길 때 포커스를 준다) */
+  formulaInputRef?: MutableRefObject<HTMLInputElement | null>;
   /** 활성 셀 */
   activeCell: CellPosition;
   /** 활성 셀 주소(A1 형식) */
@@ -49,6 +56,7 @@ function columnIndex(letters: string): number {
 
 export const FormulaBar = forwardRef<HTMLDivElement, FormulaBarProps>(function FormulaBar(
   {
+    formulaInputRef,
     activeCell,
     address,
     value,
@@ -64,18 +72,36 @@ export const FormulaBar = forwardRef<HTMLDivElement, FormulaBarProps>(function F
 ) {
   const { editing } = editor;
   const messageId = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const pendingCaretRef = useRef<number | null>(null);
   const [nameDraft, setNameDraft] = useState<string | null>(null);
-  const { handleCompositionStart, handleCompositionEnd, isImeKeyEvent } = useImeInput();
+  const ime = useImeInput();
+  const { isImeKeyEvent, resetComposition } = ime;
+  // 편집이 끝나면 조합 표시를 끈다(조합 중 클릭으로 확정되면 compositionend가 오지 않는다).
+  useEffect(() => {
+    if (editing === null) resetComposition();
+  }, [editing, resetComposition]);
+  const handleCompositionStart = () => {
+    editor.setComposing(true);
+    ime.handleCompositionStart();
+  };
+  const handleCompositionEnd = () => {
+    editor.setComposing(false);
+    ime.handleCompositionEnd();
+  };
 
   useLayoutEffect(() => {
+    const input = inputRef.current;
+    if (input === null) return;
     const caret = pendingCaretRef.current;
-    if (caret !== null && inputRef.current !== null) {
-      inputRef.current.setSelectionRange(caret, caret);
+    if (caret !== null) {
+      input.setSelectionRange(caret, caret);
       pendingCaretRef.current = null;
+    } else if (editing?.caret !== undefined && document.activeElement === input) {
+      // 포인트 모드로 참조를 넣은 뒤 커서를 참조 끝에 둔다.
+      input.setSelectionRange(editing.caret, editing.caret);
     }
-  }, [editing?.draft]);
+  }, [editing?.draft, editing?.caret]);
 
   const shown = editing?.draft ?? value;
 
@@ -83,6 +109,7 @@ export const FormulaBar = forwardRef<HTMLDivElement, FormulaBarProps>(function F
     editor.begin({ row: activeCell.row, col: activeCell.col, draft, mode: 'edit' });
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    editor.setCaret(event.target.selectionStart ?? event.target.value.length);
     if (editing === null) {
       startEditing(event.target.value);
     } else {
@@ -119,6 +146,12 @@ export const FormulaBar = forwardRef<HTMLDivElement, FormulaBarProps>(function F
     } else if (key === 'F1') {
       event.preventDefault();
     }
+  };
+
+  const handleSelect = (event: SyntheticEvent<HTMLInputElement>) => {
+    if (editing === null) return;
+    const input = event.currentTarget;
+    editor.setCaret(input.selectionStart ?? input.value.length);
   };
 
   const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
@@ -186,7 +219,10 @@ export const FormulaBar = forwardRef<HTMLDivElement, FormulaBarProps>(function F
           fx
         </button>
         <input
-          ref={inputRef}
+          ref={(element) => {
+            inputRef.current = element;
+            if (formulaInputRef !== undefined) formulaInputRef.current = element;
+          }}
           aria-label={`수식 입력줄 ${address}`}
           aria-describedby={messageId}
           data-editing={editing === null ? 'false' : 'true'}
@@ -200,6 +236,7 @@ export const FormulaBar = forwardRef<HTMLDivElement, FormulaBarProps>(function F
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
           onBlur={handleBlur}
+          onSelect={handleSelect}
         />
       </div>
       <p

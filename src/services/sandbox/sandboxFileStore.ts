@@ -13,6 +13,8 @@ import {
  *   검사를 통과하지 못하면 어떤 셀도 바꾸지 않고 이유를 돌려준다.
  * - 브라우저 저장소 키는 연습실 전용(cellcraft.sandbox.*)이다. 학습 모드 진도 저장(CARD-06B)과 섞이지 않는다.
  * 내구성 있는 IndexedDB 저장과 공통 직렬화 모듈은 CARD-06B(cellStateSerializer.ts)에서 통합한다.
+ * CARD-02E: 시트마다 기본값과 다른 열 너비(columnWidths, 키는 열 문자)·행 높이(rowHeights, 키는 행 번호)를
+ * 선택 필드로 저장한다. 없으면 기본 크기라 CARD-02D에서 만든 파일도 버전 1 그대로 열린다. 값 범위는 checkSnapshot이 검사한다.
  */
 
 export const SANDBOX_FILE_FORMAT = 'cellcraft-sandbox';
@@ -52,8 +54,25 @@ function toFileObject(file: SandboxFile) {
     name: file.name,
     savedAt: file.savedAt,
     activeSheet: file.workbook.activeSheet,
-    sheets: file.workbook.sheets.map((sheet) => ({ name: sheet.name, cells: sheet.cells })),
+    sheets: file.workbook.sheets.map((sheet) => ({
+      name: sheet.name,
+      cells: sheet.cells,
+      ...(sheet.columnWidths === undefined ? {} : { columnWidths: sheet.columnWidths }),
+      ...(sheet.rowHeights === undefined ? {} : { rowHeights: sheet.rowHeights }),
+    })),
   };
+}
+
+/** 크기 목록(아직 믿을 수 없는 값)을 새 객체로 옮긴다. 형식이 다르면 null. 키와 값 범위는 checkSnapshot이 본다. */
+function readSizes(value: unknown): Record<string, number> | null | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) return null;
+  const sizes: Record<string, number> = {};
+  for (const [key, size] of Object.entries(value)) {
+    if (typeof size !== 'number' || !/^([A-Z]{1,3}|[1-9]\d{0,6})$/.test(key)) return null;
+    sizes[key] = size;
+  }
+  return sizes;
 }
 
 export function serializeSandboxFile(file: SandboxFile): string {
@@ -102,7 +121,17 @@ export function validateSandboxFile(data: unknown): ParseResult {
       }
       if (raw !== '') cells[address] = raw;
     }
-    parsed.push({ name: sheet.name, cells });
+    const columnWidths = readSizes(sheet.columnWidths);
+    const rowHeights = readSizes(sheet.rowHeights);
+    if (columnWidths === null || rowHeights === null) {
+      return fail(`${sheet.name} 시트의 열 너비·행 높이 정보가 올바르지 않습니다.`);
+    }
+    parsed.push({
+      name: sheet.name,
+      cells,
+      ...(columnWidths === undefined ? {} : { columnWidths }),
+      ...(rowHeights === undefined ? {} : { rowHeights }),
+    });
   }
   const workbook: WorkbookSnapshot =
     activeSheet === undefined ? { sheets: parsed } : { sheets: parsed, activeSheet };

@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { CellResult } from '@/engine/spreadsheet/FormulaEngineAdapter';
+import type { FillDirection } from '@/engine/spreadsheet/operations/autoFill';
+import type { PasteSource } from '@/engine/spreadsheet/operations/clipboard';
+import type { CellMove, CellRect } from '@/engine/spreadsheet/operations/referenceShift';
 
-import type { CellChange } from '../types';
+import type { CellChange, GridLayout } from '../types';
 import {
   DEFAULT_SHEET,
   snapshotFromRows,
@@ -16,6 +19,8 @@ import {
  * - 결과: 수식 엔진(CARD-02B)이 계산한 CellResult. 셀 화면에 보인다.
  * CARD-02D: 여러 시트와 실행 취소·다시 실행. 상태와 명령은 WorkbookModel(workbookModel.ts)이 가지고,
  * 이 훅은 모델을 준비하고 변경마다 다시 그리게 한다. 셀 읽기·쓰기(getInput·getResult·applyChanges)는 보고 있는 시트 기준이다.
+ * CARD-02E: 행·열 삽입·삭제와 크기, 붙여넣기·잘라내기, 자동 채우기, 시트 순서. 모두 모델 명령이라 실행 취소된다.
+ * 포인트 모드로 다른 시트를 보는 동안에도 편집을 시작한 시트에 확정할 수 있도록 applyChangesTo·getInputOf를 둔다.
  */
 
 const EMPTY_RESULT: CellResult = { value: null, displayValue: '', error: null };
@@ -48,10 +53,14 @@ export interface Workbook {
   loadError: string | null;
   /** 보고 있는 시트의 셀 원문 (없으면 빈 문자열) */
   getInput: (row: number, col: number) => string;
+  /** 지정한 시트의 셀 원문 (포인트 모드로 다른 시트를 보는 동안 편집 중인 셀) */
+  getInputOf: (sheet: string, row: number, col: number) => string;
   /** 보고 있는 시트의 셀 계산 결과 */
   getResult: (row: number, col: number) => CellResult;
   /** 변경을 엔진에 반영한다(실행 취소 가능). 엔진이 받아들이지 않으면 반영을 멈추고 안내 문장을 돌려준다. */
   applyChanges: (changes: readonly CellChange[]) => string | null;
+  /** 지정한 시트에 변경을 반영한다. */
+  applyChangesTo: (sheet: string, changes: readonly CellChange[]) => string | null;
   /** 처음 데이터로 되돌린다(학습 화면의 "다시 시작"). 실행 취소로 직전 작업을 되찾을 수 있다. */
   reset: () => void;
 
@@ -65,6 +74,28 @@ export interface Workbook {
   addSheet: () => string | null;
   renameSheet: (oldName: string, newName: string) => string | null;
   deleteSheet: (name: string) => string | null;
+  /** 시트를 탭 순서의 toIndex 자리로 옮긴다. */
+  moveSheet: (name: string, toIndex: number) => string | null;
+
+  /** 보고 있는 시트의 행 높이·열 너비 */
+  layout: GridLayout;
+  /** 보고 있는 시트에 행·열을 삽입하거나 삭제한다. */
+  changeStructure: (
+    axis: 'row' | 'col',
+    kind: 'insert' | 'delete',
+    index: number,
+    count: number,
+  ) => string | null;
+  /** 보고 있는 시트의 열 너비·행 높이. size가 null이면 기본값. */
+  setSizes: (axis: 'row' | 'col', indexes: readonly number[], size: number | null) => string | null;
+  /** 보고 있는 시트에 붙여넣는다. */
+  paste: (source: PasteSource, target: CellRect) => { rect: CellRect } | { error: string };
+  /** 잘라낸 셀을 옮긴다. */
+  moveCells: (move: CellMove) => string | null;
+  /** 채우기 핸들 */
+  fill: (source: CellRect, direction: FillDirection, count: number) => string | null;
+  /** Ctrl+D·Ctrl+R */
+  fillFromEdge: (selection: CellRect, direction: 'down' | 'right') => string | null;
 
   undo: () => boolean;
   redo: () => boolean;
@@ -80,6 +111,26 @@ export interface Workbook {
   replaceWorkbook: (snapshot: WorkbookSnapshot, label: string) => string | null;
   /** 보고 있는 시트의 내용을 통째로 바꾼다(샘플 불러오기). 실행 취소 가능. */
   replaceActiveSheet: (cells: Readonly<Record<string, string>>, label: string) => string | null;
+}
+
+const DEFAULT_LAYOUT: GridLayout = {
+  key: '',
+  getColumnWidth: () => undefined,
+  getRowHeight: () => undefined,
+};
+
+function layoutOf(model: WorkbookModel | null, sheet: string): GridLayout {
+  if (model === null || !model.hasSheet(sheet)) return DEFAULT_LAYOUT;
+  const { columnWidths, rowHeights } = model.getSizes(sheet);
+  if (columnWidths.size === 0 && rowHeights.size === 0) return DEFAULT_LAYOUT;
+  // 크기는 모델 안에서 바뀌므로 지금 값을 복사해 둔다. key가 바뀌면 그리드가 위치를 다시 계산한다.
+  const widths = new Map(columnWidths);
+  const heights = new Map(rowHeights);
+  return {
+    key: JSON.stringify([[...widths], [...heights]]),
+    getColumnWidth: (col) => widths.get(col),
+    getRowHeight: (row) => heights.get(row),
+  };
 }
 
 /**
@@ -139,12 +190,17 @@ export function useWorkbook(source: WorkbookSource): Workbook {
       loadError !== null ? 'error' : model === null ? 'loading' : 'ready';
     const activeSheet = model?.activeSheet ?? DEFAULT_SHEET;
     const history = model?.history;
+    const applyChangesTo = (sheet: string, changes: readonly CellChange[]) =>
+      mutate((ready) => ready.setCells(sheet, changes));
     return {
       status,
       loadError,
       getInput: (row, col) => model?.getInput(activeSheet, row, col) ?? '',
+      getInputOf: (sheet, row, col) =>
+        model !== null && model.hasSheet(sheet) ? model.getInput(sheet, row, col) : '',
       getResult: (row, col) => model?.getResult(activeSheet, row, col) ?? EMPTY_RESULT,
-      applyChanges: (changes) => mutate((ready) => ready.setCells(activeSheet, changes)),
+      applyChanges: (changes) => applyChangesTo(activeSheet, changes),
+      applyChangesTo,
       reset: () => {
         mutate((ready) => ready.replaceWorkbook(toSnapshot(source), '다시 시작'));
       },
@@ -165,6 +221,26 @@ export function useWorkbook(source: WorkbookSource): Workbook {
         }),
       renameSheet: (oldName, newName) => mutate((ready) => ready.renameSheet(oldName, newName)),
       deleteSheet: (name) => mutate((ready) => ready.deleteSheet(name)),
+      moveSheet: (name, toIndex) => mutate((ready) => ready.moveSheet(name, toIndex)),
+
+      layout: layoutOf(model, activeSheet),
+      changeStructure: (axis, kind, index, count) =>
+        mutate((ready) => ready.changeStructure({ sheet: activeSheet, axis, kind, index, count })),
+      setSizes: (axis, indexes, size) =>
+        mutate((ready) => ready.setSizes(activeSheet, axis, indexes, size)),
+      paste: (pasteSource, target) => {
+        let result: { rect: CellRect } | { error: string } = { error: NOT_READY };
+        mutate((ready) => {
+          result = ready.paste(activeSheet, pasteSource, target);
+          return null;
+        });
+        return result;
+      },
+      moveCells: (move) => mutate((ready) => ready.moveCells(move)),
+      fill: (fillSource, direction, count) =>
+        mutate((ready) => ready.fill(activeSheet, fillSource, direction, count)),
+      fillFromEdge: (selection, direction) =>
+        mutate((ready) => ready.fillFromEdge(activeSheet, selection, direction)),
 
       undo: () => {
         if (model === null) return false;

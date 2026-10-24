@@ -1,10 +1,22 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
 
+import { KEEP_EDITING_ATTRIBUTE } from './editorFocus';
+
 /*
  * 시트 탭 (CARD-02D, R-04.49, R-08.12): 시트 전환, 추가, 이름 변경, 삭제.
  * 탭 상태(시트 목록·활성 시트)는 통합 문서(useWorkbook)가 가지고, 여기서는 동작만 알린다.
  * 시트 추가·이름 변경·삭제는 모두 실행 취소할 수 있다. 값이 있는 시트를 지울 때는 한 번 더 확인한다(MASTER_PROMPT §9.2).
+ *
+ * CARD-02E:
+ * - 탭 순서 바꾸기: 탭을 끌어 놓거나, 키보드로는 "◀ 이동"·"이동 ▶" 버튼(지금 시트). 실행 취소할 수 있다.
+ * - 수식 편집 중 탭을 누르면 포인트 모드로 그 시트 참조를 넣을 수 있도록, 탭 버튼으로 포커스가 옮겨 가도
+ *   편집을 확정하지 않는다(data-keep-cell-editing). 확정 여부는 onSelect를 받은 Spreadsheet가 정한다.
+ * - 시트 이동 단축키 안내(Q-06): Ctrl+PageUp/PageDown은 Chromium이 브라우저 탭 전환으로 먼저 쓰므로
+ *   Ctrl+Shift+PageUp/PageDown을 대체 단축키로 알린다.
  */
+
+export const SHEET_NAVIGATION_HINT =
+  '시트 이동: Ctrl+Shift+PageUp / PageDown (Ctrl+PageUp / PageDown은 브라우저가 탭 전환에 사용해 웹 페이지에서 쓸 수 없을 수 있습니다)';
 
 interface SheetTabsProps {
   sheets: readonly string[];
@@ -16,6 +28,8 @@ interface SheetTabsProps {
   onRename: (oldName: string, newName: string) => string | null;
   /** 거부되면 안내 문장 */
   onDelete: (name: string) => string | null;
+  /** 시트를 탭 순서 toIndex 자리로 옮긴다. 없으면 순서 바꾸기를 보이지 않는다. 거부되면 안내 문장 */
+  onMove?: (name: string, toIndex: number) => string | null;
   /** 시트에 값이 있는지(삭제 확인 여부) */
   hasData: (name: string) => boolean;
   /** 탭 작업이 끝나면 그리드로 포커스를 돌려준다. */
@@ -34,10 +48,15 @@ export function SheetTabs({
   onAdd,
   onRename,
   onDelete,
+  onMove,
   hasData,
   onDone,
 }: SheetTabsProps) {
   const messageId = useId();
+  const hintId = useId();
+  // 끌고 있는 탭 이름 (탭 순서 바꾸기)
+  const [dragging, setDragging] = useState<string | null>(null);
+  const activeIndex = sheets.indexOf(activeSheet);
   const [renaming, setRenamingState] = useState<{ name: string; draft: string } | null>(null);
   // Enter·Esc로 끝낸 뒤 그리드로 포커스가 옮겨 가며 생기는 blur가 지난 상태로 한 번 더 처리하지 않도록
   // 최신 편집 상태를 ref에도 둔다.
@@ -100,7 +119,13 @@ export function SheetTabs({
   return (
     <div className="flex flex-col border-t border-line bg-surface">
       <div className="flex min-h-8 items-stretch overflow-x-auto">
-        <div role="tablist" aria-label="시트" className="flex items-stretch">
+        <div
+          role="tablist"
+          aria-label="시트"
+          aria-describedby={hintId}
+          title={SHEET_NAVIGATION_HINT}
+          className="flex items-stretch"
+        >
           {sheets.map((name) =>
             renaming?.name === name ? (
               <input
@@ -127,7 +152,26 @@ export function SheetTabs({
                 type="button"
                 role="tab"
                 aria-selected={name === activeSheet}
-                title="두 번 클릭하면 이름을 바꿀 수 있습니다"
+                title="두 번 클릭하면 이름을 바꿀 수 있습니다. 끌어서 순서를 바꿀 수 있습니다."
+                {...{ [KEEP_EDITING_ATTRIBUTE]: '' }}
+                draggable={onMove !== undefined}
+                data-dragging={dragging === name ? 'true' : undefined}
+                onDragStart={(event) => {
+                  setDragging(name);
+                  event.dataTransfer.effectAllowed = 'move';
+                  event.dataTransfer.setData('text/plain', name);
+                }}
+                onDragEnd={() => setDragging(null)}
+                onDragOver={(event) => {
+                  if (dragging !== null) event.preventDefault();
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  const moving = dragging;
+                  setDragging(null);
+                  if (moving === null || moving === name || onMove === undefined) return;
+                  report(onMove(moving, sheets.indexOf(name)));
+                }}
                 onClick={() => {
                   setConfirmingDelete(null);
                   setMessage(null);
@@ -161,6 +205,28 @@ export function SheetTabs({
           +
         </button>
         <div className="ml-auto flex items-center gap-1 px-2">
+          {onMove !== undefined && (
+            <>
+              <button
+                type="button"
+                className={ACTION}
+                aria-label={`${activeSheet} 시트를 왼쪽으로 이동`}
+                disabled={activeIndex <= 0}
+                onClick={() => report(onMove(activeSheet, activeIndex - 1))}
+              >
+                ◀ 이동
+              </button>
+              <button
+                type="button"
+                className={ACTION}
+                aria-label={`${activeSheet} 시트를 오른쪽으로 이동`}
+                disabled={activeIndex >= sheets.length - 1}
+                onClick={() => report(onMove(activeSheet, activeIndex + 1))}
+              >
+                이동 ▶
+              </button>
+            </>
+          )}
           <button type="button" className={ACTION} onClick={() => startRename(activeSheet)}>
             이름 바꾸기
           </button>
@@ -208,6 +274,9 @@ export function SheetTabs({
           </button>
         </div>
       )}
+      <p id={hintId} className="sr-only">
+        {SHEET_NAVIGATION_HINT}
+      </p>
       {message !== null && (
         <p
           id={messageId}

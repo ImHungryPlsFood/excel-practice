@@ -161,6 +161,21 @@ export interface FormulaEngineAdapter {
 }
 ```
 
+### 3.1 범위 작업 (CARD-02E)
+
+행·열 삽입·삭제, 복사·붙여넣기, 자동 채우기는 어댑터 인터페이스를 넓히지 않는다. `src/engine/spreadsheet/operations/`의 순수 함수가 시트 원문(A1 주소 → 입력 글자)을 받아 바뀐 원문을 돌려주고, `WorkbookModel`이 그 결과를 historyManager 명령으로 적용한다(구조 변경·잘라내기는 스냅샷 명령 + `loadSheets`, 붙여넣기·채우기는 셀 입력 명령, 크기는 크기만 되돌리는 명령).
+
+| 모듈 | 역할 |
+|---|---|
+| `referenceShift.ts` | 수식 참조 토큰 읽기(`scanReferences`)와 세 가지 변환: 복사(`shiftFormulaForCopy`), 행·열 삽입·삭제(`adjustFormulaForStructure`), 잘라내기(`adjustFormulaForMove`). 바뀌는 토큰만 다시 쓰고 정규식 치환은 쓰지 않는다. F4·포인트 모드(`formulaReference.ts`)도 같은 토큰 읽기를 쓴다. |
+| `rowColumnOps.ts` | 삽입·삭제 시 셀 위치·모든 시트 수식·행 높이·열 너비 이동, 시트 끝 값 밀림 거부, 크기 범위 |
+| `clipboard.ts` | TSV 쓰기·읽기, 붙여넣기(반복 채우기 포함), 잘라낸 셀 옮기기 |
+| `autoFill.ts` | 채우기 핸들 시리즈(숫자·날짜·끝 숫자 글자·요일·월 목록)와 Ctrl+D/R |
+
+엔진 API(`addRows`, `copy`/`paste`)를 쓰지 않는 이유: 원문(사용자가 입력한 글자)과 엔진 상태를 늘 같게 두고(CARD-02D 설계), 엔진 쪽 복사 버그(EXCEL_DIFFERENCES D-18)를 피하기 위해서다. 같은 결과인지는 엔진 API와 맞대는 속성 테스트로 확인한다.
+
+시트 스냅샷(`SheetSnapshot`)에는 선택 필드 `columnWidths`(열 문자 → 픽셀)·`rowHeights`(행 번호 → 픽셀)가 있다. 연습실 파일(버전 1)도 같은 선택 필드를 저장한다.
+
 ---
 
 ## 4. 튜토리얼 단계 선언형 스키마 (Tutorial Step Schema)

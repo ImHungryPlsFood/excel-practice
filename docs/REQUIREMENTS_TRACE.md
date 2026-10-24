@@ -304,22 +304,22 @@
 | **R-07.30** | 결과 화면 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
 | **R-07.31** | 사용자의 작업을 방해하는 애니메이션은 사용하지 마라. | 금지규칙 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
 | **R-08.01** | 셀 선택 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (클릭 선택. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
-| **R-08.02** | 범위 선택 | 기능 | Phase 2 | CARD-02A, CARD-02E | 단위 / E2E | 부분 완료 (그리드 범위 선택은 CARD-02A에서 완료: 드래그·Shift+클릭·Shift+화살표·Ctrl+A. GridSelection.test.ts·SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts. 수식 편집 중 범위 선택(포인트 모드)은 CARD-02E, 2026-10-23 배정) |
+| **R-08.02** | 범위 선택 | 기능 | Phase 2 | CARD-02A, CARD-02E | 단위 / E2E | 완료됨 (그리드 범위 선택은 CARD-02A: 드래그·Shift+클릭·Shift+화살표·Ctrl+A, 02E에서 행·열 머리글 전체 선택 추가. 수식 편집 중 범위 선택(포인트 모드)은 CARD-02E: 클릭·드래그·Shift+클릭·enter 모드 화살표, 다른 시트 탭 참조, 색 테두리, 한글 조합 중 비활성, 외부 구독 이벤트. pointMode.test.ts·point-mode.spec.ts) |
 | **R-08.03** | 셀 편집 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (타이핑·F2·더블클릭 편집, Esc 취소, 한글 IME. CARD-02C에서 수식 입력줄과 편집 상태 공유. SpreadsheetGrid.test.tsx·FormulaBar.test.tsx·spreadsheet-grid.spec.ts·formula-bar.spec.ts) |
 | **R-08.04** | Enter 및 Tab 이동 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (Enter/Shift+Enter, Tab/Shift+Tab. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
 | **R-08.05** | 화살표 키 이동 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (화살표·Home·Ctrl+Home·PageUp/Down. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
-| **R-08.06** | 행과 열의 기본 조작 | 기능 | Phase 2 | CARD-02E | 단위 / E2E | 계획됨 (CARD-02E rowColumnOps에서 구현. CARD-02A에서 재배정 2026-10-23) |
-| **R-08.07** | 복사 및 붙여넣기 | 기능 | Phase 2 | CARD-02E | 단위 / E2E | 계획됨 (CARD-02E clipboard에서 구현. CARD-02A에서 재배정 2026-10-23) |
+| **R-08.06** | 행과 열의 기본 조작 | 기능 | Phase 2 | CARD-02E | 단위 / E2E | 완료됨 (행·열 삽입·삭제와 모든 시트 수식 참조 갱신·#REF!, 시트 끝 값 밀림 거부, 열 너비·행 높이 끌기·입력, 우클릭·Shift+F10 메뉴, 실행 취소. rowColumnOps.test.ts·referenceShift.test.ts(HyperFormula 교차 검증)·range-operations.spec.ts) |
+| **R-08.07** | 복사 및 붙여넣기 | 기능 | Phase 2 | CARD-02E | 단위 / E2E | 완료됨 (Ctrl+C/X/V·메뉴, 앱 안 복사는 상대 참조 이동, 밖에서 온 TSV, 반복 붙여넣기, 잘라내기 시 다른 수식 참조 이동, 복사 점선·Esc, 실행 취소. clipboard.test.ts·range-operations.spec.ts) |
 | **R-08.08** | 실행 취소 및 다시 실행 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (CARD-02D historyManager·workbookModel, Ctrl+Z/Y. historyManager.test.ts·SheetTabs.test.tsx·formula-bar.spec.ts) |
 | **R-08.09** | 셀 내용 삭제 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (Delete 범위 삭제, Backspace 비우고 편집. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
-| **R-08.10** | 자동 채우기 | 기능 | Phase 2 | CARD-02E | 단위 / E2E | 계획됨 (CARD-02E autoFill에서 구현. CARD-02A에서 재배정 2026-10-23) |
+| **R-08.10** | 자동 채우기 | 기능 | Phase 2 | CARD-02E | 단위 / E2E | 완료됨 (채우기 핸들 4방향: 숫자 추세·날짜·끝 숫자 글자·요일·월 목록·수식 참조 이동, Ctrl+D·Ctrl+R, 실행 취소. Excel 세부 규칙 일부는 EXCEL_DIFFERENCES 확인 목록 14번. autoFill.test.ts·range-operations.spec.ts) |
 | **R-08.11** | 수식 입력줄 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (CARD-02C FormulaBar: 이름 상자·fx 버튼·입력 상자·안내 줄, 셀 편집기와 편집 상태 공유. FormulaBar.test.tsx·formula-bar.spec.ts) |
 | **R-08.12** | 여러 워크시트 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (CARD-02D SheetTabs·workbookModel. SheetTabs.test.tsx·workbookModel.test.ts·sandbox.spec.ts) |
 | **R-08.13** | 저장 가능한 셀 상태 | 기능 | Phase 6 | CARD-06B | 단위 / E2E | 계획됨 (CARD-06B 셀 상태 직렬화와 offlineStorage 저장에서 구현. CARD-02A에서 재배정 2026-10-23) |
 | **R-08.14** | 수식은 직접 문자열을 비교하는 방식만으로 채점하지 마라. | 금지규칙 | Phase 2 | CARD-02B | 단위 테스트 | 부분 완료 (엔진이 수식을 실제 계산해 값 제공. 문자열 비교 없는 채점기는 Phase 3~4) |
 | **R-08.15** | 셀 간 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (formula-eval.test.ts, 골든 References) |
 | **R-08.16** | 범위 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (formula-eval.test.ts, 골든 CoreFunctions·References) |
-| **R-08.17** | 상대 참조와 절대 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 ($A$1·A$1·$A1, formula-eval.test.ts·골든 References. 복사 시 참조 이동은 CARD-02E) |
+| **R-08.17** | 상대 참조와 절대 참조 | 기능 | Phase 2 | CARD-02B, CARD-02E | 단위 테스트 | 완료됨 ($A$1·A$1·$A1 계산: formula-eval.test.ts·골든 References(02B). 복사·채우기 시 상대 참조만 이동, 행·열 삽입·삭제 시 절대 참조도 이동: referenceShift.test.ts·autoFill.test.ts(02E)) |
 | **R-08.18** | 여러 시트 간 참조 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (Data!B2, 따옴표 시트 이름, 시트 삭제 시 #REF!, 이름 변경 추적) |
 | **R-08.19** | 수식 오류 처리 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (오류 코드 10종, 전파·IFERROR, 골든 ErrorValues. #NULL!은 EXCEL_DIFFERENCES D-3) |
 | **R-08.20** | 의존 셀의 값 변경에 따른 재계산 | 기능 | Phase 2 | CARD-02B | 단위 테스트 | 완료됨 (자동 재계산·의존 셀 조회 getDependents, dependencyGraph.ts) |
@@ -536,13 +536,13 @@
 | **R-17.07** | 랜딩 페이지 | 기능 | Phase 1 | Phase 1 완료 게이트 | 빌드 / 테스트 | 계획됨 |
 | **R-17.08** | 대시보드 기본 구조 | 기능 | Phase 1 | Phase 1 완료 게이트 | 빌드 / 테스트 | 계획됨 |
 | **R-17.09** | 완료 조건: 프로젝트가 정상적으로 실행되고 빌드된다. | 완료조건 | Phase 1 | Phase 1 완료 게이트 | 빌드 / 테스트 | 계획됨 |
-| **R-17.10** | 셀 선택 및 편집 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 계획됨 |
-| **R-17.11** | 수식 입력 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 계획됨 |
-| **R-17.12** | 기본 수식 계산 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 계획됨 |
-| **R-17.13** | 여러 셀의 값 관리 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 계획됨 |
-| **R-17.14** | Undo 및 다시 실행 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 계획됨 |
-| **R-17.15** | 최소한의 워크시트 관리 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 계획됨 |
-| **R-17.16** | 완료 조건: 실제로 데이터를 입력하고 수식을 계산할 수 있다. | 완료조건 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 계획됨 |
+| **R-17.10** | 셀 선택 및 편집 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 완료됨 (2026-10-24 판정. 전체 `npm test` 3회 연속 1180/1180 통과, 전체 Playwright 39/39, build 통과. 근거: SpreadsheetGrid.test.tsx·GridSelection.test.ts·spreadsheet-grid.spec.ts(02A), 행·열 전체 선택 range-operations.spec.ts(02E)) |
+| **R-17.11** | 수식 입력 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 완료됨 (2026-10-24 판정. 전체 `npm test` 3회 연속 1180/1180 통과, 전체 Playwright 39/39, build 통과. 근거: FormulaBar.test.tsx·useCellEditing.test.ts·formula-bar.spec.ts(02C), 포인트 모드 pointMode.test.ts·point-mode.spec.ts(02E)) |
+| **R-17.12** | 기본 수식 계산 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 완료됨 (2026-10-24 판정. 전체 `npm test` 3회 연속 1180/1180 통과, 전체 Playwright 39/39, build 통과. 근거: formula-eval.test.ts·golden-excel.test.ts·golden-excel-2.test.ts(02B)) |
+| **R-17.13** | 여러 셀의 값 관리 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 완료됨 (2026-10-24 판정. 전체 `npm test` 3회 연속 1180/1180 통과, 전체 Playwright 39/39, build 통과. 근거: Delete 범위 지우기 SpreadsheetGrid.test.tsx(02A), 복사·붙여넣기·자동 채우기·행·열 조작 clipboard·autoFill·rowColumnOps·referenceShift.test.ts·range-operations.spec.ts(02E)) |
+| **R-17.14** | Undo 및 다시 실행 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 완료됨 (2026-10-24 판정. 전체 `npm test` 3회 연속 1180/1180 통과, 전체 Playwright 39/39, build 통과. 근거: historyManager.test.ts 50회 왕복(02D, 02E 동작 7종 추가)·workbookModel.test.ts·sandbox.spec.ts·range-operations.spec.ts) |
+| **R-17.15** | 최소한의 워크시트 관리 | 기능 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 완료됨 (2026-10-24 판정. 전체 `npm test` 3회 연속 1180/1180 통과, 전체 Playwright 39/39, build 통과. 근거: SheetTabs.test.tsx·workbookModel.test.ts·sandbox.spec.ts(02D), 시트 순서·시트 이동 range-operations.spec.ts(02E)) |
+| **R-17.16** | 완료 조건: 실제로 데이터를 입력하고 수식을 계산할 수 있다. | 완료조건 | Phase 2 | Phase 2 완료 게이트 | 빌드 / 테스트 | 완료됨 (2026-10-24 판정. 전체 `npm test` 3회 연속 1180/1180 통과, 전체 Playwright 39/39, build 통과. 근거: 연습실에서 값·수식 입력과 계산 sandbox.spec.ts·SandboxPage.test.tsx) |
 | **R-17.17** | Spotlight 오버레이 | 기능 | Phase 3 | Phase 3 완료 게이트 | 빌드 / 테스트 | 계획됨 |
 | **R-17.18** | 설명 말풍선 | 기능 | Phase 3 | Phase 3 완료 게이트 | 빌드 / 테스트 | 계획됨 |
 | **R-17.19** | 단계별 진행 | 기능 | Phase 3 | Phase 3 완료 게이트 | 빌드 / 테스트 | 계획됨 |
@@ -668,9 +668,9 @@
 | **Q-01** | Excel 대조 골든 테스트: tests/fixtures/golden-excel-calculations.xlsx 기준 통합 문서 대조 러너 및 차이 문서화(EXCEL_DIFFERENCES.md) | 비기능 | Phase 2 | CARD-02B | 골든 테스트 러너 | 완료됨 (golden-excel.test.ts: 수식 96개 중 95개 Excel 일치, 1개는 EXCEL_DIFFERENCES D-3 단일 예외로 양쪽 값 검증) |
 | **Q-02** | 데이터 교란 채점 (Perturbation-Based Scoring): 3종 변형 데이터셋 주입을 통한 하드코딩/범위오류/참조오류 판정표 | 기능 | Phase 4 | CARD-04B | 단위 테스트 | 계획됨 |
 | **Q-03** | 콘텐츠 자체 검증 파이프라인: Zod 스키마 검증, 기준 정답 통과 및 대표 오답 실패 CI 자동 검증(scripts/verify-content.ts) | 비기능 | Phase 4 | CARD-04E | npm run verify-content | 계획됨 |
-| **Q-04** | 속성 기반 테스트 (fast-check): Undo/Redo 50회 왕복 불변성, 자동채우기 수식 주소 오프셋, F4 참조 순환성 검증 | 비기능 | Phase 2 | CARD-02A | fast-check 러너 | 부분 완료 (F4 참조 순환성: formulaReference.test.ts. Undo/Redo 50회 왕복: 실제 엔진에서 셀 값·수식·시트 추가/삭제/이름 변경 무작위 50회 → 전부 취소=처음, 전부 다시 실행=마지막, 새 엔진 재계산과 일치(CARD-02D, historyManager.test.ts, 기본 25회 실행·300회 1회 확인). 자동 채우기 주소 오프셋은 CARD-02E) |
+| **Q-04** | 속성 기반 테스트 (fast-check): Undo/Redo 50회 왕복 불변성, 자동채우기 수식 주소 오프셋, F4 참조 순환성 검증 | 비기능 | Phase 2 | CARD-02A, CARD-02E | fast-check 러너 | 완료됨 (F4 참조 순환성: formulaReference.test.ts(02C). Undo/Redo 50회 왕복: historyManager.test.ts(02D), 02E에서 행·열 삽입·삭제·크기·붙여넣기·잘라내기·채우기·시트 순서를 무작위 동작에 추가. 자동 채우기 주소 오프셋: 아래·오른쪽으로 N칸 → 상대 참조 +N, $ 보존, 시트 밖 #REF!(autoFill.test.ts 300회, 02E)) |
 | **Q-05** | 한글 입력기(IME) 조합 처리: isComposing 감지 및 compositionstart/end 처리를 통한 조합 중 커밋 및 중복 입력 방지 | 기능 | Phase 2 | CARD-02A | Playwright E2E | 완료됨 (useImeInput + ImeInput.test.ts, Playwright CDP 조합 입력 "합계"·"홍길동" 검증) |
-| **Q-06** | 브라우저 단축키 충돌 방어 및 대체 안내: 가로채기 불가능한 단축키 투명 고지 및 F1/F4/Ctrl+Z 앱 인터셉터 | 기능 | Phase 2 | CARD-02A | 수동 / E2E | 부분 완료 (그리드·수식 입력줄에서 F1 기본 동작 차단, F4는 수식 편집 중 참조 고정 순환. Ctrl+Z, Ctrl+Y·Ctrl+Shift+Z는 편집 중이 아닐 때 앱 실행 취소로 가로챔(02D, 편집 중에는 입력 상자 글자 되돌리기). 가로챌 수 없는 단축키 안내 패널은 학습 화면 카드) |
+| **Q-06** | 브라우저 단축키 충돌 방어 및 대체 안내: 가로채기 불가능한 단축키 투명 고지 및 F1/F4/Ctrl+Z 앱 인터셉터 | 기능 | Phase 2 | CARD-02A | 수동 / E2E | 부분 완료 (그리드·수식 입력줄에서 F1 기본 동작 차단, F4는 수식 편집 중 참조 고정 순환. Ctrl+Z, Ctrl+Y·Ctrl+Shift+Z는 편집 중이 아닐 때 앱 실행 취소로 가로챔(02D, 편집 중에는 입력 상자 글자 되돌리기). 02E: Ctrl+C/X/V, Ctrl+D/R 가로챔, Ctrl+PageUp/PageDown은 Chromium 예약 단축키라 대체 Ctrl+Shift+PageUp/PageDown과 시트 탭 안내(TEST_STRATEGY Q-06, 실제 Chrome 수동 확인 남음). 가로챌 수 없는 단축키 안내 패널은 학습 화면 카드) |
 | **Q-07** | 날짜 일련번호 및 한국 로케일: 1900년 윤년 처리, 1900-01-01 기준 일련번호 호환성, 한국어 날짜/통화 서식 파싱 테스트 | 비기능 | Phase 2 | CARD-02B | 단위 테스트 | 부분 완료 (1900 윤년·일련번호 dateSerial.test.ts·골든 DateSerial. 한국어 날짜·통화 서식은 Phase 7 셀 서식 — 사용자 결정 2026-10-23) |
 | **Q-08** | CI 품질 게이트: typecheck, lint, format, test, rules, build 단일 파이프라인 병합 차단 자동화 | 비기능 | Phase 1 | CARD-01A | GitHub Actions CI | 부분 완료 (typecheck·lint·format·test·licenses·audit·build 단계 구성, rules는 CARD-06C·e2e는 CARD-03D에서 추가, 원격 미실행) |
 | **Q-09** | React 오류 경계(ErrorBoundary) 컴포넌트 격리 및 저장 실패 시 지수 백오프 자동 재시도/오프라인 캐시 | 기능 | Phase 1/6 | CARD-01C, CARD-06B | 단위 / E2E | 부분 완료 (ErrorBoundary 구현·테스트 완료. 지수 백오프 재시도·오프라인 캐시는 CARD-06B) |
@@ -686,7 +686,7 @@
 | **P-03** | 애니메이션 원칙: transform 및 opacity 전용 모션 토큰 적용, 레이아웃 흔들림 금지, prefers-reduced-motion 및 인앱 모션 끄기 | 비기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
 | **P-04** | Spotlight 위치 실시간 동기화: ResizeObserver, 가상 스크롤 추적, 말풍선 뷰포트 충돌 시 자동 반전(Flip) 로직 | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
 | **P-05** | 3계층 입력 반응성 분리: 동기식 UI 렌더링(0ms) -> 비동기 수식/채점 연산 -> 1초 디바운스 영속화 저장 | 비기능 | Phase 2 | CARD-02A | 프로파일링 | 부분 완료 (1계층: 편집 초안은 로컬 state, Enter/Tab/화살표/blur에서만 커밋. 2계층 CARD-02B, 3계층 CARD-06B) |
-| **P-06** | 대규모 데이터 가상 스크롤 성능 벤치마크: 10,000행 × 100열 60 FPS 유지 및 드롭 프레임 5% 미만 보장 | 비기능 | Phase 2 | CARD-02A | Playwright 성능테스트 | 완료됨 (tests/perf/virtual-scroll.perf.ts. 2026-10-23 전원 연결 상태에서 `npm run test:perf` 재실행, 휠·PageDown·연속 스크롤 3건 모두 통과. 배터리 구동 중에는 3건 모두 실패했으며 측정 조건은 전원 연결 필수. 기준값은 낮추지 않음) |
+| **P-06** | 대규모 데이터 가상 스크롤 성능 벤치마크: 10,000행 × 100열 60 FPS 유지 및 드롭 프레임 5% 미만 보장 | 비기능 | Phase 2 | CARD-02A | Playwright 성능테스트 | 부분 완료 (tests/perf/virtual-scroll.perf.ts. CARD-02A 코드는 2026-10-23 전원 연결 상태에서 3건 모두 통과. CARD-02E에서 그리드가 느려진 원인(커밋마다 도는 passive effect 등)을 찾아 고쳤고 메인 스레드 비용은 main과 같아졌다. 수정 뒤 PageDown·연속 스크롤은 main과 같이 통과하지만, 휠 스크롤은 2026-10-24 측정에서 main·브랜치 모두 49~57 FPS로 실패해(Defender 서명 갱신 중, 배터리 16%) 이 코드에서 휠 통과를 아직 확인하지 못했다. 기준값은 낮추지 않음. 정상 상태에서 `npm run test:perf` 재확인 필요) |
 
 ---
 
@@ -857,3 +857,36 @@
 - **기존 테스트의 기대 변경 (약화 아님):** `useWorkbook.test.ts`의 "reset 후 loading"은 다시 시작이 동기 명령이 되어 "처음 데이터로 돌아가고 실행 취소로 직전 작업이 돌아온다"로 바꿨다. `routes.test.tsx`·`routing.spec.ts`의 "샌드박스는 준비 중" 단언은 연습실이 동작하게 되어 링크·화면 단언으로 바꿨고 "학습" 준비 중 단언은 유지했다.
 - **알려진 한계:** 연습실 브라우저 저장은 이 브라우저에만 남는다(기기 간 동기화는 Phase 6). 시트 순서 바꾸기(탭 끌기)와 Ctrl+PageUp/PageDown 시트 이동은 없다. D-15·D-17의 Excel 동작은 골든 실측 전이다.
 
+
+### CARD-02E (2026-10-23)
+- **완료됨:** R-08.02(포인트 모드 잔여분), R-08.06, R-08.07, R-08.10, Q-04(세 불변식 모두)
+- **완료됨 유지·담당 추가:** R-08.17(담당에 CARD-02E 추가, 복사·채우기·삽입·삭제 참조 이동)
+- **부분 완료 유지 (범위 추가):** Q-06(Ctrl+C/X/V, Ctrl+D/R, 시트 이동 대체 단축키. 안내 패널과 실제 Chrome 수동 확인 남음)
+- **Phase 2 완료 게이트(R-17.10~R-17.16) → 완료됨 (2026-10-24):** 처음 보고 때는 전체 `npm test`가 기기 성능 저하로 시간 초과해 판정을 보류했다. 연습실 라우트 테스트 두 건의 시간 제한을 고친 뒤(아래 후속 작업) 전체 `npm test`가 3회 연속 1180/1180으로 통과했고, 전체 Playwright 39/39·build도 통과해 각 행의 근거와 함께 완료로 판정했다.
+- **요구사항 ID 대응:** 카드 본문 ID는 모두 현재 형식이라 바꿀 옛 ID가 없었다(MASTER_PROMPT §8.1·§8.2).
+- **카드 본문에 없던 02E 담당 항목 (본문에 추가):** Q-06 새 단축키, R-17.10~R-17.16 판정, 연습실 파일의 열 너비·행 높이(`sandboxFileStore.ts`), 참조 색 토큰(`tokens.css`).
+- **담당이 없던 항목 → 02E (사용자 승인 2026-10-23):** 시트 탭 순서 바꾸기(끌어 놓기 + 이동 버튼, 실행 취소), 시트 이동 단축키. Chromium 소스(`chrome/browser/ui/accelerator_table.cc` `kReservedCommandIds`)에서 Ctrl+PageUp/PageDown(`IDC_SELECT_*_TAB`)이 예약 단축키임을 확인해 대체 단축키 Ctrl+Shift+PageUp/PageDown(`IDC_MOVE_TAB_*`, 예약 아님)을 두고 시트 탭에 안내했다. Playwright는 CDP로 키를 페이지에 직접 넣으므로 E2E 통과는 브라우저가 키를 넘겨 준다는 증거가 아니다.
+- **설계 결정:**
+  1. 수식 참조 변환은 원문 토큰 변환(`operations/referenceShift.ts`)으로 하고 정규식 치환은 쓰지 않는다. F4·포인트 모드도 같은 토큰 읽기(`scanReferences`)를 쓰도록 `formulaReference.ts`를 바꿨다(기존 F4 테스트 14개 그대로 통과).
+  2. 엔진 API(addRows·copy/paste) 대신 원문을 바꾸고 엔진을 다시 만든다(02D 설계 유지). HyperFormula API와 무작위 수식으로 맞대는 속성 테스트를 두었고, 엔진 copy/paste 버그 D-18을 찾았다(앱 영향 없음). 사라진 다른 시트 참조는 `#REF!`로 쓴다(D-19).
+  3. 행·열 삽입·삭제와 잘라내기는 스냅샷 명령, 붙여넣기·채우기는 셀 입력 명령, 크기는 크기만 되돌리는 명령이다. 포인트 모드 이동은 실행 취소 대상이 아니다.
+  4. 포인트 모드로 다른 시트 탭을 누르면 확정하지 않고 그 시트를 보여 주며 수식 입력줄에서 편집을 이어 간다. 탭을 누르는 순간 그 시트의 지금 활성 셀 참조를 넣고, 셀을 누르면 바꾼다. 확정·취소하면 처음 시트로 돌아간다.
+  5. 조합 중 셀 클릭으로 편집이 확정되면 Chromium이 compositionend 없이 조합을 끝낸다는 것을 Playwright로 확인했다. 조합 표시가 켜진 채 남아 이후 Enter·화살표가 IME 몫으로 무시될 수 있는 문제(02A부터 잠재)를, 편집이 끝나면 조합 표시를 끄도록 고쳤다(`useImeInput.resetComposition`, `useCellEditing`).
+- **Excel 실측 필요 항목:** EXCEL_DIFFERENCES "다음 골든 라운드 확인 목록" 10~14번(사라진 참조 표기, 삽입·삭제 범위 경계, 거꾸로 된 범위 표시, 잘라내기 참조 규칙, 자동 채우기 세부).
+- **P-06 재측정:** 아래 후속 작업 참고. 원인을 고쳐 메인 스레드 비용은 main과 같아졌지만 휠 시나리오 통과는 아직 확인하지 못해 부분 완료로 바꿨다.
+- **알려진 한계:** 포인트 모드 화살표 이동 시 화면 밖 셀로 자동 스크롤하지 않는다. 열 머리글 클릭(A:A 참조 넣기)은 포인트 모드가 아니라 확정·열 선택이다. 채우기 핸들 끌기 중 그리드 가장자리 자동 스크롤 없음. 행·열 숨기기는 없다.
+
+### CARD-02E 후속 작업 (2026-10-24, 성능 저하·테스트 시간 초과)
+- **사용자 보고:** 같은 노트북·같은 시간대 `npm run test:perf` 휠 스크롤이 main 59.4 FPS·최악 33.4ms(통과), feat/CARD-02E 55.0 FPS·최악 133.4ms(실패).
+- **원인 조사:**
+  1. main과 브랜치를 번갈아 3회씩 측정(수정 전): 휠은 main 58.5/58.7/58.8, 브랜치 58.7/58.1/58.7 FPS로 차이가 없었고, **PageDown은 브랜치만 3회 모두 55.0~55.1 FPS(드롭 5.5~7.4%)로 실패**했다(main 58.9~60.0, 통과).
+  2. CDP `Performance.getMetrics`로 같은 스크롤 동안 메인 스레드 시간을 5회씩 쟀다(수정 전 중앙값): 휠 스크립트 main 204ms·브랜치 220ms, 연속 스크롤 스크립트 608ms·681ms, 레이아웃 273ms·299ms.
+  3. 압축하지 않은 perf 빌드의 CPU 프로파일: 크기 계산(`buildOffsets`)이나 가상화 측정(`measure`)은 프레임마다 돌지 않았다. tanstack은 `count`·`paddingStart` 등이 바뀔 때만 측정 목록을 다시 만들고, `measure()`는 크기 키가 바뀔 때만 불린다. 기본 크기 행·열의 크기 조회는 Float64Array 읽기 두 번이다. 늘어난 것은 React 렌더·커밋 내부 함수였다.
+- **고친 것 (원인):**
+  1. `useFillHandle`이 콜백 ref를 의존성 없는 `useEffect`로 맞춰, 그리드가 커밋할 때마다(스크롤 프레임마다) React가 passive effect 비우기 작업을 따로 예약했다. 그리드의 다른 ref 동기화처럼 `useLayoutEffect`로 바꿨다.
+  2. `GridOverlays`가 memo 없이 매 렌더 새 `geometry` 객체를 받아 스크롤마다 다시 그려졌다. memo와 고정 `geometry`, 선택이 바뀔 때만 바뀌는 `range`(`useCellSelection`)로 고쳤다.
+  3. 머리글 칸 자식이 `[글자, false]` 배열이 되어 새 행이 생길 때마다 글자 노드 fiber를 만들었다. 크기 조절을 쓰지 않으면 글자 하나만 자식으로 둔다.
+  4. 휠 스크롤 중 끄는 동작이 없으면 `mouseover`에서 DOM을 찾지 않고 바로 끝낸다. 크기 조절 ref 동기화를 기존 레이아웃 효과에 합쳤다.
+- **수정 후 메인 스레드 비용 (중앙값):** 휠 스크립트 main 207.6ms·브랜치 206.6ms, 연속 스크롤 599ms·611ms(5회 범위 591~622 / 600~618로 겹침), PageDown 262ms·269ms. 레이아웃은 같다.
+- **수정 후 FPS (번갈아 3회씩, 2026-10-24):** 처음 3회는 2회차부터 main까지 36~50 FPS로 떨어져(Windows Defender 서명 갱신 중) 비교할 수 없었다. 다시 잰 3회: 휠 main 48.9/51.7/57.0, 브랜치 49.4/54.5/52.7 FPS(둘 다 3회 실패, 최악 프레임 main 66.6/33.4/33.4ms·브랜치 49.9/33.4/33.4ms). PageDown main 60.0/60.0/60.0·브랜치 58.9/60.0/60.0(둘 다 통과), 연속 스크롤 main 59.7/60.0/60.0·브랜치 58.7/59.0/60.0(둘 다 통과). 수정 전 브랜치에만 있던 PageDown 실패는 사라졌다. 휠은 main도 실패하는 기기 상태라 이 코드에서 통과를 확인하지 못했다.
+- **연습실 라우트 테스트 시간 초과:** `routes.test.tsx`의 연습실 두 테스트는 lazy 청크가 실제 `SandboxPage`로 이어지는지 확인하므로 모듈을 가짜로 바꾸지 않았다. 기다리는 것은 엔진 계산이 아니라 HyperFormula를 포함한 모듈의 첫 import다. 기존 `findByRole` 15초 대기가 vitest 기본 5초에 잘렸으므로 이 두 테스트에만 이유를 적은 20초 제한을 두었다. 단언과 전역 testTimeout은 바꾸지 않았다. 이후 전체 `npm test` 3회 연속 1180/1180 통과.

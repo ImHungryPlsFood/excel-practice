@@ -175,3 +175,45 @@ describe('시트 탭 (R-04.49)', () => {
     expect(tabs().map((t) => t.textContent)).toEqual(['Sheet1']);
   });
 });
+
+describe('시트 순서 바꾸기와 시트 이동 단축키 (CARD-02E)', () => {
+  it('이동 버튼으로 탭 순서를 바꾸고 실행 취소로 되돌린다', async () => {
+    await setup();
+    fireEvent.click(screen.getByRole('button', { name: '시트 추가' }));
+    expect(tabs().map((t) => t.textContent)).toEqual(['Sheet1', 'Sheet2']);
+    fireEvent.click(screen.getByRole('button', { name: 'Sheet2 시트를 왼쪽으로 이동' }));
+    expect(tabs().map((t) => t.textContent)).toEqual(['Sheet2', 'Sheet1']);
+    expect(tab('Sheet2')).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button', { name: 'Sheet2 시트를 왼쪽으로 이동' })).toBeDisabled();
+    ctrl('z');
+    expect(tabs().map((t) => t.textContent)).toEqual(['Sheet1', 'Sheet2']);
+  });
+
+  it('탭을 끌어 다른 탭 위에 놓으면 그 자리로 옮긴다', async () => {
+    await setup();
+    fireEvent.click(screen.getByRole('button', { name: '시트 추가' }));
+    fireEvent.click(screen.getByRole('button', { name: '시트 추가' }));
+    const data = { setData: () => undefined, effectAllowed: 'move' };
+    fireEvent.dragStart(tab('Sheet3'), { dataTransfer: data });
+    fireEvent.dragOver(tab('Sheet1'), { dataTransfer: data });
+    fireEvent.drop(tab('Sheet1'), { dataTransfer: data });
+    expect(tabs().map((t) => t.textContent)).toEqual(['Sheet3', 'Sheet1', 'Sheet2']);
+  });
+
+  it('Ctrl+Shift+PageDown/PageUp(대체)과 Ctrl+PageDown/PageUp으로 시트를 옮겨 다니고 안내를 보여 준다', async () => {
+    await setup();
+    fireEvent.click(screen.getByRole('button', { name: '시트 추가' }));
+    fireEvent.click(tab('Sheet1'));
+    ctrl('PageDown', true);
+    expect(tab('Sheet2')).toHaveAttribute('aria-selected', 'true');
+    ctrl('PageUp', true);
+    expect(tab('Sheet1')).toHaveAttribute('aria-selected', 'true');
+    ctrl('PageDown');
+    expect(tab('Sheet2')).toHaveAttribute('aria-selected', 'true');
+    ctrl('PageDown');
+    expect(tab('Sheet2')).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tablist', { name: '시트' })).toHaveAccessibleDescription(
+      /Ctrl\+Shift\+PageUp/,
+    );
+  });
+});

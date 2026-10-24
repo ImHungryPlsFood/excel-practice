@@ -286,7 +286,7 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ---
 
 #### CARD-02E: 행·열 조작, 복사·붙여넣기 및 자동 채우기 (Range Operations)
-- **관련 요구사항 ID:** R-08.06, R-08.07, R-08.10, R-08.17, Q-04, R-08.02(수식 편집 중 범위 선택 = 포인트 모드, 2026-10-23 추가. 튜토리얼 R-07.05·R-07.06의 전제)
+- **관련 요구사항 ID:** R-08.06, R-08.07, R-08.10, R-08.17, Q-04, R-08.02(수식 편집 중 범위 선택 = 포인트 모드, 2026-10-23 추가. 튜토리얼 R-07.05·R-07.06의 전제). 구현 시 추가(2026-10-23): Q-06(Ctrl+C/X/V, Ctrl+D/R, 시트 이동 단축키), R-17.10~R-17.16(Phase 2 완료 게이트 판정)
 - **선행 카드:** CARD-02D
 - **생성·수정할 파일:**
   - `src/engine/spreadsheet/operations/referenceShift.ts` (수식 참조 이동 공통 로직, 상대/절대 참조 구분)
@@ -302,6 +302,8 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - `tests/e2e/range-operations.spec.ts`
   - (2026-10-23 추가, 포인트 모드) `src/components/spreadsheet/hooks/usePointMode.ts` (수식 편집 중 셀 클릭·드래그·Shift+클릭·화살표로 참조 삽입·교체), `src/components/spreadsheet/formulaReference.ts` (커서 위치 참조 삽입·교체 함수 추가), `src/components/spreadsheet/SpreadsheetGrid.tsx`, `src/components/spreadsheet/FormulaBar.tsx`, `src/components/spreadsheet/SheetTabs.tsx` (다른 시트 탭 클릭 시 시트 참조 삽입)
   - (2026-10-23 추가, 포인트 모드) `tests/unit/spreadsheet/pointMode.test.ts`, `tests/e2e/point-mode.spec.ts`
+  - (구현 시 추가, 2026-10-23) `src/components/spreadsheet/workbookModel.ts`(행·열·크기·붙여넣기·잘라내기·채우기·시트 순서 명령), `hooks/useWorkbook.ts`, `hooks/useCellEditing.ts`(편집 시트·커서·조합 상태), `hooks/useClipboard.ts`, `hooks/useCellSelection.ts`(행·열 전체 선택), `hooks/useVirtualGrid.ts`(행·열별 크기), `hooks/useImeInput.ts`(조합 표시 초기화), `GridOverlays.tsx`(참조 색 테두리·복사 점선·채우기 핸들), `ContextMenu.tsx`(우클릭·Shift+F10 메뉴, 크기 입력), `GridHeader.tsx`(전체 선택·크기 손잡이), `CellEditor.tsx`, `Spreadsheet.tsx`, `types.ts`, `src/services/sandbox/sandboxFileStore.ts`(열 너비·행 높이 선택 필드), `src/styles/tokens.css`·`src/index.css`(참조 색 토큰)
+  - (구현 시 추가, 2026-10-23) 테스트 `tests/unit/engine/referenceShift.test.ts`(HyperFormula 교차 검증 포함), 기존 `historyManager.test.ts`(50회 왕복에 새 동작 7종)·`SheetTabs.test.tsx`·`sandboxFileStore.test.ts`·`useCellEditing.test.ts` 보강
 - **구현 지침 및 금지 사항:**
   - 모든 변경은 CARD-02D의 historyManager 명령으로 실행해 Undo/Redo가 되어야 한다.
   - 참조 계산은 CARD-02B 엔진을 사용하고 수식 문자열을 정규식으로만 치환하는 방식 금지(`$A$1`, 시트 간 참조 포함).
@@ -312,9 +314,12 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - 셀 편집기와 수식 입력줄 어느 쪽에서 편집 중이어도 같은 동작이어야 한다(CARD-02C 공유 편집 컨트롤러 사용). 한글 조합 중에는 포인트 모드로 바꾸지 않는다(useImeInput).
   - 참조 삽입·교체는 `formulaReference.ts`의 토큰 단위 처리로 하고 정규식 치환을 쓰지 않는다. 포인트 모드 중 이동은 Undo 대상이 아니며, Enter로 확정한 수식만 historyManager 명령이 된다. 확정하면 편집을 시작한 셀로 돌아간다.
   - 튜토리얼(CARD-03B)이 "범위를 드래그해 SUM 인수 넣기" 같은 단계를 검증할 수 있도록, 포인트 모드 시작·참조 변경·종료를 그리드 외부에서 구독할 수 있는 이벤트로 알린다.
+  - (구현 시 추가, 2026-10-23, 사용자 승인) 시트 탭 순서 바꾸기(탭 끌어 놓기 + "◀ 이동"/"이동 ▶" 버튼, 실행 취소 가능)와 시트 이동 단축키를 이 카드에서 처리한다. Ctrl+PageUp/PageDown은 Chromium 예약 단축키(`IDC_SELECT_*_TAB`)라 일반 창의 웹 페이지가 받지 못하므로 대체 단축키 Ctrl+Shift+PageUp/PageDown을 두고 시트 탭에 안내한다(TEST_STRATEGY Q-06).
+  - (구현 시 추가) 수식 참조 변환은 엔진 API(addRows, copy/paste)가 아니라 원문 토큰 변환으로 하고, 같은 결과인지 HyperFormula API와 속성 테스트로 맞대어 본다(TECHNICAL_DESIGN §3.1, EXCEL_DIFFERENCES D-18·D-19). Excel 실측이 필요한 결과는 EXCEL_DIFFERENCES "다음 골든 라운드 확인 목록" 10~14번에 둔다.
 - **완료 조건:**
   - 행·열을 삽입·삭제하면 수식 참조가 갱신되고, 복사한 수식은 상대 참조가 이동한 채 붙여넣어지며, 채우기 핸들로 숫자·날짜·수식이 확장된다. 세 동작 모두 Undo로 복원된다.
   - `=SUM(`까지 입력한 상태에서 B3:B7을 드래그하면 `=SUM(B3:B7`이 들어가고, `)`와 Enter로 확정하면 결과가 보인다. 셀 편집기와 수식 입력줄에서 모두 된다. 다른 시트 탭을 눌러 `Sheet2!A1` 참조를 넣을 수 있다. 커서가 참조를 넣을 수 없는 자리면 셀 클릭은 확정·선택으로 동작한다. Chromium E2E(`point-mode.spec.ts`)로 확인한다.
+  - (구현 시 추가) 시트 탭 순서를 바꾸고 되돌릴 수 있으며, Ctrl+Shift+PageUp/PageDown으로 시트를 옮겨 다닌다. Phase 2 완료 게이트(R-17.10~R-17.16)를 근거 테스트와 함께 판정한다.
 - **실행할 검증 명령:**
   ```powershell
   npm test tests/unit/engine/
@@ -322,6 +327,12 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   npm run typecheck
   npm run lint
   npx playwright test tests/e2e/range-operations.spec.ts tests/e2e/point-mode.spec.ts
+  # 구현 시 추가: 전체 회귀
+  npm test
+  npm run format:check
+  npm run build
+  npx playwright test
+  npm run test:perf
   ```
 - **외부 사용자 조치:** 없음.
 
