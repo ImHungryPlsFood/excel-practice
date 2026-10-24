@@ -30,6 +30,7 @@
 - **Node.js:** Node LTS 24 (`.nvmrc`: `24`, `package.json` engines: `>=24.0.0`)
   - *결정 근거:* nodejs.org 공식 릴리스 일정에 따라 Node 20은 2026-04-30에 EOL(지원 종료)되었으며, 현행 활성 LTS는 Node 24임.
 - **패키지명:** `package.json`의 `name`은 반드시 **`excel-practice`**여야 합니다.
+- **의존성 버전:** 정확한 버전으로 고정하고 공개 2주 이상 지난 버전을 쓴다. 보안 취약점(npm audit high 이상) 수정 버전은 예외로, 수정된 가장 낮은 버전을 고정한다 (THREAT_MODEL S-10).
 
 ### 핵심 실행 명령
 ```powershell

@@ -1,3 +1,5 @@
+import { courseIdForLevel, learnPath } from '@/content/contentIds';
+
 import type { DashboardData } from './types';
 
 /**
@@ -11,7 +13,7 @@ export function createEmptyDashboardData(): DashboardData {
     nextAction: {
       title: 'Level 0 · 완전한 입문부터 시작하세요',
       description: '셀·행·열과 주소 체계를 익히는 첫 단원입니다.',
-      to: '/learn/level-0',
+      to: learnPath(courseIdForLevel(0)),
       label: '이어서 학습하기',
     },
     dailyGoal: { completed: 0, target: 1, unit: '단원' },

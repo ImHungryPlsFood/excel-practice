@@ -341,7 +341,7 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 ### [Phase 3: 튜토리얼 엔진]
 
 #### CARD-03A: 선언적 튜토리얼 스키마 및 상태 머신 러너 (Tutorial Schema & FSM Runner)
-- **관련 요구사항 ID:** R-07.1-01, R-07.1-02, R-07.1-03
+- **관련 요구사항 ID:** R-07.02~R-07.13 (옛 표기 R-07.1-01~03)
 - **선행 카드:** CARD-02E
 - **생성·수정할 파일:**
   - `src/types/tutorial.schema.ts` (Zod 기반 `TutorialStepSchema`)
