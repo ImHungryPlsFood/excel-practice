@@ -107,4 +107,40 @@ describe('useCellEditing 포인트 모드 지원 (CARD-02E)', () => {
     });
     expect(applyChangesTo).toHaveBeenCalledWith('Data', [{ row: 2, col: 0, value: '=A1+' }]);
   });
+
+  it('반영된 확정만 onCommitted로 알린다 (거부·변화 없음은 알리지 않는다)', () => {
+    const onCommitted = vi.fn();
+    const refuse = { current: false };
+    const hook = renderHook(() =>
+      useCellEditing({
+        getCellValue: () => '기존',
+        applyChanges: () => (refuse.current ? '거부' : null),
+        onCommitted,
+      }),
+    );
+    act(() => hook.result.current.begin({ row: 1, col: 2, draft: '기존', mode: 'edit' }));
+    act(() => {
+      hook.result.current.commit();
+    });
+    expect(onCommitted).not.toHaveBeenCalled();
+
+    refuse.current = true;
+    act(() => hook.result.current.begin({ row: 1, col: 2, draft: '=1+1', mode: 'edit' }));
+    act(() => {
+      hook.result.current.commit();
+    });
+    expect(onCommitted).not.toHaveBeenCalled();
+
+    refuse.current = false;
+    act(() => {
+      hook.result.current.commit();
+    });
+    expect(onCommitted).toHaveBeenCalledTimes(1);
+    expect(onCommitted).toHaveBeenCalledWith({
+      sheet: undefined,
+      row: 1,
+      col: 2,
+      value: '=1+1',
+    });
+  });
 });

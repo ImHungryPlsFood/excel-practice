@@ -369,6 +369,7 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - `src/engine/tutorials/actionDetector.ts` (셀 선택 이벤트, 입력 완료 이벤트, 단축키 감지)
   - `src/features/learning/components/TutorialStepGuards.tsx`
   - `tests/unit/tutorials/actionDetector.test.ts`
+  - (구현 시 추가, 2026-10-24) `src/components/spreadsheet/Spreadsheet.tsx`(onUserAction·inputGuard·단축키 감지), `SpreadsheetGrid.tsx`·`types.ts`(onSelectionChange), `hooks/useCellEditing.ts`(onCommitted), `hooks/useWorkbook.ts`(getResultOf), `src/engine/tutorials/tutorialRunner.ts`(허용 입력 판정 우선·export), `src/pages/dev/TutorialHarnessPage.tsx`(/dev/tutorial), `src/app/routes.tsx`, `tests/e2e/tutorial-actions.spec.ts`, `tests/unit/spreadsheet/useCellEditing.test.ts` 보강
 - **구현 지침 및 금지 사항:**
   - '다음' 버튼 클릭만으로 단계가 넘어가는 행위 절대 금지 (R-07.1-03).
   - 타깃 셀(예: B2)에 기대된 수식(예: `=SUM(B3:B7)`)이 입력되고 계산 결과가 일치해야 통과.

@@ -34,6 +34,14 @@ const WorkspaceHarnessPage = DEV_ROUTES_ENABLED
     )
   : null;
 
+const TutorialHarnessPage = DEV_ROUTES_ENABLED
+  ? lazy(() =>
+      import('@/pages/dev/TutorialHarnessPage').then((module) => ({
+        default: module.TutorialHarnessPage,
+      })),
+    )
+  : null;
+
 /** 앱 라우트 정의 (R-03.04). 라우터(BrowserRouter/MemoryRouter)는 호출하는 쪽에서 제공한다. */
 export function AppRoutes() {
   return (
@@ -75,6 +83,16 @@ export function AppRoutes() {
           element={
             <Suspense fallback={null}>
               <WorkspaceHarnessPage />
+            </Suspense>
+          }
+        />
+      )}
+      {TutorialHarnessPage !== null && (
+        <Route
+          path="/dev/tutorial"
+          element={
+            <Suspense fallback={null}>
+              <TutorialHarnessPage />
             </Suspense>
           }
         />
