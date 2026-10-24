@@ -27,9 +27,10 @@ async function typeAt(page: Page, row: number, col: number, text: string) {
   await page.keyboard.press('Enter');
 }
 
-async function rawOf(page: Page, row: number, col: number) {
+// 셀을 고른 뒤 입력줄이 갱신되기까지 한 박자 걸리므로, 값을 즉시 읽지 않고 같은 값이 될 때까지 기다린다.
+async function expectRaw(page: Page, row: number, col: number, expected: string) {
   await cell(page, row, col).click();
-  return formulaBar(page).inputValue();
+  await expect(formulaBar(page)).toHaveValue(expected);
 }
 
 async function center(locator: Locator) {
@@ -61,21 +62,21 @@ test('행 삽입은 SUM 범위를 늘리고, 열 삭제는 사라진 참조를 #
   // 2행 머리글 오른쪽 클릭 → 위에 행 삽입
   await page.getByRole('rowheader', { name: '2', exact: true }).click({ button: 'right' });
   await page.getByRole('menuitem', { name: '위에 행 삽입' }).click();
-  expect(await rawOf(page, 4, 0)).toBe('=SUM(A1:A4)');
-  expect(await rawOf(page, 0, 1)).toBe('=$A$4*10');
+  await expectRaw(page, 4, 0, '=SUM(A1:A4)');
+  await expectRaw(page, 0, 1, '=$A$4*10');
   await typeAt(page, 1, 0, '100');
   await expect(cell(page, 4, 0)).toHaveText('106');
 
   await page.keyboard.press('Control+z');
   await page.keyboard.press('Control+z');
   await expect(cell(page, 3, 0)).toHaveText('6');
-  expect(await rawOf(page, 3, 0)).toBe('=SUM(A1:A3)');
+  await expectRaw(page, 3, 0, '=SUM(A1:A3)');
 
   // A열 삭제 → B1의 $A$3 참조가 사라져 #REF!
   await page.getByRole('columnheader', { name: 'A', exact: true }).click({ button: 'right' });
   await page.getByRole('menuitem', { name: '열 삭제' }).click();
   await expect(cell(page, 0, 0)).toHaveText('#REF!');
-  expect(await rawOf(page, 0, 0)).toBe('=#REF!*10');
+  await expectRaw(page, 0, 0, '=#REF!*10');
   await page.keyboard.press('Control+z');
   await expect(cell(page, 0, 1)).toHaveText('30');
   expect(errors).toEqual([]);
@@ -117,7 +118,7 @@ test('복사한 수식은 상대 참조가 옮겨진 채 붙여넣어지고, 잘
   await cell(page, 1, 1).click();
   await page.keyboard.press('Control+v');
   await expect(cell(page, 1, 1)).toHaveText('21');
-  expect(await rawOf(page, 1, 1)).toBe('=A2*10+$A$1');
+  await expectRaw(page, 1, 1, '=A2*10+$A$1');
   await page.keyboard.press('Escape');
   await expect(page.locator('[data-copy-marquee]')).toHaveCount(0);
   await page.keyboard.press('Control+z');
@@ -130,7 +131,7 @@ test('복사한 수식은 상대 참조가 옮겨진 채 붙여넣어지고, 잘
   await page.keyboard.press('Control+v');
   await expect(cell(page, 5, 1)).toHaveText('나');
   await expect(cell(page, 6, 1)).toHaveText('2');
-  expect(await rawOf(page, 6, 1)).toBe('=A1+1');
+  await expectRaw(page, 6, 1, '=A1+1');
 
   // 잘라내기: A1을 D4로 옮기면 B1 수식이 D4를 가리킨다
   await cell(page, 0, 0).click();
@@ -139,11 +140,11 @@ test('복사한 수식은 상대 참조가 옮겨진 채 붙여넣어지고, 잘
   await page.keyboard.press('Control+v');
   await expect(cell(page, 0, 0)).toHaveText('');
   await expect(cell(page, 3, 3)).toHaveText('1');
-  expect(await rawOf(page, 0, 1)).toBe('=D4*10+$D$4');
+  await expectRaw(page, 0, 1, '=D4*10+$D$4');
   await expect(cell(page, 0, 1)).toHaveText('11');
   await page.keyboard.press('Control+z');
   await expect(cell(page, 0, 0)).toHaveText('1');
-  expect(await rawOf(page, 0, 1)).toBe('=A1*10+$A$1');
+  await expectRaw(page, 0, 1, '=A1*10+$A$1');
 });
 
 test('채우기 핸들로 숫자·날짜·수식을 늘리고, Ctrl+D·Ctrl+R로 채우며, 모두 되돌린다', async ({
@@ -158,6 +159,8 @@ test('채우기 핸들로 숫자·날짜·수식을 늘리고, Ctrl+D·Ctrl+R로
   // A1:A2 선택 후 핸들을 A5까지 → 5, 7, 9
   await cell(page, 0, 0).click();
   await cell(page, 1, 0).click({ modifiers: ['Shift'] });
+  // 채우기 핸들 위치는 선택이 화면에 반영된 뒤에야 맞다. 부하가 크면 이전 위치를 읽을 수 있어 선택 반영을 기다린다.
+  await expect(cell(page, 1, 0)).toHaveAttribute('aria-selected', 'true');
   await drag(
     page,
     await center(page.locator('[data-fill-handle]')),
@@ -168,21 +171,26 @@ test('채우기 핸들로 숫자·날짜·수식을 늘리고, Ctrl+D·Ctrl+R로
 
   // 날짜 한 칸 → 하루씩
   await cell(page, 0, 1).click();
+  await expect(cell(page, 0, 1)).toHaveAttribute('aria-selected', 'true');
+  await expect(cell(page, 4, 0)).toHaveAttribute('aria-selected', 'false');
   await drag(
     page,
     await center(page.locator('[data-fill-handle]')),
     await center(cell(page, 2, 1)),
   );
-  expect(await rawOf(page, 2, 1)).toBe('2024-02-01');
+  await expect(cell(page, 2, 1)).not.toHaveText('');
+  await expectRaw(page, 2, 1, '2024-02-01');
 
   // 수식 → 상대 참조 이동
   await cell(page, 0, 2).click();
+  await expect(cell(page, 0, 2)).toHaveAttribute('aria-selected', 'true');
+  await expect(cell(page, 2, 1)).toHaveAttribute('aria-selected', 'false');
   await drag(
     page,
     await center(page.locator('[data-fill-handle]')),
     await center(cell(page, 4, 2)),
   );
-  expect(await rawOf(page, 4, 2)).toBe('=A5*2');
+  await expectRaw(page, 4, 2, '=A5*2');
   await expect(cell(page, 4, 2)).toHaveText('18');
 
   await page.keyboard.press('Control+z');
@@ -194,7 +202,7 @@ test('채우기 핸들로 숫자·날짜·수식을 늘리고, Ctrl+D·Ctrl+R로
   await cell(page, 0, 3).click();
   await cell(page, 2, 3).click({ modifiers: ['Shift'] });
   await page.keyboard.press('Control+d');
-  expect(await rawOf(page, 2, 3)).toBe('=A3+100');
+  await expectRaw(page, 2, 3, '=A3+100');
   await expect(cell(page, 2, 3)).toHaveText('105');
   // Ctrl+R: A1을 A1:C1 → B1·C1이 1로
   await cell(page, 5, 0).click();
