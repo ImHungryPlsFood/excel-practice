@@ -1,17 +1,17 @@
 import type { ProblemDefinitionInput } from '@/types/problem.schema';
 
 /*
- * Level 1 문제 2개 (CARD-04D). 시트에 셀 서식(표시형식·테두리) 상태가 아직 없어,
- * "값과 보이는 모양을 구분한다"는 개념을 수식(ROUND, &)으로 연습한다. 실제 서식 조작은 다루지 않는다.
+ * Level 3 함수 문제 2개 (CARD-04D): ROUND(값 자체를 반올림)와 &(글자 이어 붙이기).
+ * 둘 다 "값을 만드는 수식"이며 셀 서식(표시 형식)과는 다른 개념이다. 서식 문제는 서식 기능이 생긴 뒤 Level 1에 둔다.
  */
 export const problems: ProblemDefinitionInput[] = [
   {
-    id: 'PRB-L01-ROUND-01',
-    courseId: 'level-1',
-    moduleId: 'MOD-L01-01',
+    id: 'PRB-L03-ROUND-01',
+    courseId: 'level-3',
+    moduleId: 'MOD-L03-08',
     difficulty: 'beginner',
-    title: '소수점 둘째 자리까지 정리하기',
-    goal: '첫 번째 상품의 재고 회전율(월 판매량 ÷ 평균 재고)을 소수 둘째 자리까지 반올림해 D2에 구하세요.',
+    title: '소수점 둘째 자리까지 반올림하기',
+    goal: '첫 번째 상품의 재고 회전율(월 판매량 ÷ 평균 재고)을 소수 셋째 자리에서 반올림한 값으로 D2에 구하세요. 반올림한 값 자체가 D2에 들어가야 합니다.',
     conditions: [
       '나누는 값도 숫자를 직접 쓰지 않고 표의 칸을 가리킵니다.',
       '표의 원본 칸(A1:C5)은 고칠 수 없습니다.',
@@ -71,10 +71,10 @@ export const problems: ProblemDefinitionInput[] = [
       '나눗셈 결과는 소수점 아래가 길게 나옵니다. 값을 원하는 자릿수로 반올림하는 함수가 있습니다.',
       'ROUND는 반올림할 값과 남길 소수 자릿수, 두 가지를 받습니다.',
       '=ROUND(계산식, 자릿수) 모양입니다. 계산식은 판매량 칸 ÷ 평균 재고 칸입니다.',
-      '=ROUND(B2/C2,2) 를 입력합니다. 보이는 모양만 바꾸는 것이 아니라 값 자체를 소수 둘째 자리로 맞추는 방법입니다.',
+      '=ROUND(B2/C2,2) 를 입력합니다. ROUND는 칸에 보이는 모양이 아니라 값 자체를 소수 둘째 자리로 바꿉니다.',
     ],
     explanation:
-      'ROUND는 값 자체를 지정한 자릿수로 반올림합니다. 소수점 아래가 긴 숫자를 보고서에 알맞은 자릿수로 정리할 때 쓰고, 나누는 값은 반드시 칸의 주소로 써서 원본이 바뀌어도 따라오게 합니다.',
+      'ROUND는 값 자체를 지정한 자릿수로 반올림하는 함수입니다. 이 값을 다른 계산에 쓰면 반올림된 값이 쓰이므로, 계산 결과의 자릿수를 정해야 할 때 사용합니다. 나누는 값은 반드시 칸의 주소로 써서 원본이 바뀌어도 따라오게 합니다.',
     recommendedSolution: {
       steps: ['D2 칸을 선택한다', '=ROUND(B2/C2,2) 를 입력한다'],
       formula: '=ROUND(B2/C2,2)',
@@ -82,12 +82,12 @@ export const problems: ProblemDefinitionInput[] = [
     completionCriteria: 'D2가 B2÷C2를 소수 둘째 자리로 ROUND한다.',
   },
   {
-    id: 'PRB-L01-UNIT-01',
-    courseId: 'level-1',
-    moduleId: 'MOD-L01-01',
+    id: 'PRB-L03-CONCAT-01',
+    courseId: 'level-3',
+    moduleId: 'MOD-L03-12',
     difficulty: 'beginner',
-    title: '금액 뒤에 단위 붙여 보여 주기',
-    goal: '교통비 금액(B2) 뒤에 "원"을 붙인 글자를 C2에 만드세요. 예: 12500원',
+    title: '금액 뒤에 단위를 붙인 글자 만들기',
+    goal: '교통비 금액(B2) 뒤에 "원"을 이어 붙인 글자를 C2에 만드세요. 예: 12500원',
     conditions: [
       '원래 금액 칸(B열)은 숫자로 그대로 둡니다.',
       '글자와 숫자는 & 로 이어 붙입니다(함수 이름을 몰라도 됩니다).',
@@ -99,7 +99,7 @@ export const problems: ProblemDefinitionInput[] = [
           rowCount: 20,
           colCount: 10,
           initialData: [
-            ['항목', '금액', '보고서용 표시'],
+            ['항목', '금액', '단위 포함 글자'],
             ['교통비', 12500],
             ['식비', 34000],
             ['문구류', 8700],
@@ -126,7 +126,7 @@ export const problems: ProblemDefinitionInput[] = [
         diagnosis: 'HARDCODED_VALUE',
         input: '12500원',
         feedback:
-          '완성된 글자를 직접 입력하셨습니다. 금액이 바뀌면 표시도 바뀌어야 하니 금액 칸을 가리키는 수식으로 만드세요.',
+          '완성된 글자를 직접 입력하셨습니다. 금액이 바뀌면 글자도 바뀌어야 하니 금액 칸을 가리키는 수식으로 만드세요.',
       },
       {
         diagnosis: 'INCOMPLETE_RANGE',

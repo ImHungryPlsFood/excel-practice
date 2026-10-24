@@ -36,10 +36,10 @@ const grade = (problem: ProblemDefinition, input: string) =>
   gradeSubmission(problem, { sheets: submissionWith(problem, input) });
 
 describe('기초 문제 콘텐츠 구성', () => {
-  it('Level 0~3에 10문항(3/2/3/2)이 있다', () => {
+  it('Level 0~3에 10문항(3/0/3/4)이 있고 서식 코스(Level 1)에는 아직 문제가 없다', () => {
     const count = (courseId: string) => problems.filter((p) => p.courseId === courseId).length;
     expect(problems).toHaveLength(10);
-    expect([0, 1, 2, 3].map((level) => count(`level-${level}`))).toEqual([3, 2, 3, 2]);
+    expect([0, 1, 2, 3].map((level) => count(`level-${level}`))).toEqual([3, 0, 3, 4]);
   });
 
   it('문제 ID와 제목이 겹치지 않는다', () => {

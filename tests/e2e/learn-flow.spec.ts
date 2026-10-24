@@ -86,15 +86,24 @@ test('개념을 읽고 풀고 틀리면 고치고 다음 문제로 넘어가 코
   ).toBeVisible();
 });
 
-test('Level 1~3 코스도 열리고 없는 코스는 404 화면이다', async ({ page }) => {
+test('Level 2~3 코스는 열리고, Level 1은 준비 중이며, 없는 코스는 404 화면이다', async ({
+  page,
+}) => {
   for (const [level, title] of [
-    [1, '소수점 둘째 자리까지 정리하기'],
     [2, '쿠폰을 적용한 결제 금액'],
     [3, '정산이 덜 끝난 행사 지출 합계'],
   ] as const) {
     await page.goto(`/learn/level-${level}`);
     await expect(page.getByRole('complementary', { name: '문제와 힌트' })).toContainText(title);
   }
+
+  await page.goto('/learn/level-1');
+  await expect(page.getByRole('status')).toContainText('준비 중인 코스입니다');
+  await expect(page.getByRole('grid')).toHaveCount(0);
+  const switcher = page.getByRole('navigation', { name: '코스 선택' });
+  await expect(switcher.getByText('Level 1 준비 중')).toHaveAttribute('aria-disabled', 'true');
+  await expect(switcher.getByRole('link', { name: 'Level 1' })).toHaveCount(0);
+
   await page.goto('/learn/level-99');
   await expect(
     page.getByRole('heading', { level: 1, name: '페이지를 찾을 수 없습니다' }),

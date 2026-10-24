@@ -530,9 +530,16 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - `scripts/verify-content.ts` (모든 문제의 스키마, 기준정답 통과, 대표오답 실패 자동 검증 스크립트)
   - `src/content/datasets/sampleData.ts` (가상 실무 데이터셋)
   - `package.json` (`"verify-content": "tsx scripts/verify-content.ts"`)
+  - `src/components/spreadsheet/workbookModel.ts`, `src/components/spreadsheet/hooks/useWorkbook.ts` (문제의 `allowedActions` 강제)
+  - `src/features/learning/components/ProblemWorkspace.tsx` (문제의 `allowedActions`를 워크북에 전달, 거부 안내 표시)
+  - `tests/unit/spreadsheet/allowedActions.test.ts`, `tests/e2e/allowed-actions.spec.ts`
 - **구현 지침 및 금지 사항:**
   - 단 1개의 문제라도 기준 정답이 채점을 통과하지 못하면 CI 빌드 차단.
+  - **`allowedActions` 강제 (CARD-04D에서 이월):** 스키마(`ALLOWED_ACTIONS`)에만 있고 어디에서도 강제하지 않는다. `WorkbookModel`에서 작업 종류를 판별해 문제가 허용하지 않은 작업을 거부한다(거부는 `readOnlyRanges`처럼 변경 전체 거부 + 한국어 안내 문장). 대응: `ENTER_VALUE`=수식이 아닌 `setCells`, `ENTER_FORMULA`='='로 시작하는 `setCells`, `COPY_PASTE`=`paste`·`moveCells`(잘라내기), `AUTOFILL`=`fill`·`fillFromEdge`, `INSERT_DELETE_ROW_COLUMN`=`changeStructure`, `FORMAT_CELLS`=서식 기능이 생길 때 연결(그 전에는 강제 대상 없음을 주석으로 명시). 실행 취소·다시 시작은 항상 허용. 연습실·튜토리얼 등 문제가 없는 화면은 제한하지 않는다.
+  - 기존 10문항의 `allowedActions`를 감사해 고친다. 예: 채우기 문제(`PRB-L00-FILL-01`)는 학생이 수식을 직접 입력해 보는 시도도 있으므로 `ENTER_FORMULA`가 필요한지 정하고, 목록과 실제 풀이 경로가 맞는지 E2E로 확인한다. 강제를 켠 뒤에도 10문항 모두 정답 풀이가 막히지 않아야 한다.
+  - `verify-content`가 문제의 정답 풀이 방식(`recommendedSolution`)에 필요한 작업이 `allowedActions`에 빠져 있으면 실패시킨다.
 - **완료 조건:**
+  - 허용하지 않은 작업(값 입력·수식 입력·붙여넣기·잘라내기·자동 채우기·행/열 삽입·삭제)이 단위 테스트와 E2E에서 거부되고, 허용한 작업은 그대로 동작한다.
   - Phase 4 완료 조건 충족: 최소 10개의 검증된 기초 문제를 실제로 풀 수 있고, 자체 검증 스크립트가 100% 통과한다.
 - **실행할 검증 명령:**
   ```powershell

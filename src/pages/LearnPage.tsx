@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
-import { courseIdForLevel, learnPath, MAX_LEVEL } from '@/content/contentIds';
+import { learnPath, levelOfCourseId } from '@/content/contentIds';
 import { ProblemWorkspace } from '@/features/learning/components/ProblemWorkspace';
 import { getContentLoader } from '@/engine/grading/problemLoader';
 import type { CourseMeta, ModuleMeta, ProblemDefinition } from '@/types/problem.schema';
@@ -20,6 +20,10 @@ interface Step {
   problem: ProblemDefinition;
   /** 이 단원의 첫 문제인지 (개념 설명을 펼쳐서 보여 준다) */
   firstInModule: boolean;
+}
+
+function hasProblems(course: CourseMeta): boolean {
+  return course.modules.some((module) => module.problemIds.length > 0);
 }
 
 function stepsOf(course: CourseMeta): Step[] {
@@ -79,29 +83,40 @@ function ConceptGuide({ module, open }: { module: ModuleMeta; open: boolean }) {
 }
 
 function CourseSwitcher({ current }: { current: string }) {
-  const ids = Array.from({ length: MAX_LEVEL + 1 }, (_, level) => courseIdForLevel(level));
-  const available = getContentLoader()
-    .listCourses()
-    .filter((course) => course.modules.some((module) => module.problemIds.length > 0))
-    .map((course) => course.id);
+  const courses = [...getContentLoader().listCourses()].sort(
+    (x, y) => levelOfCourseId(x.id) - levelOfCourseId(y.id),
+  );
   return (
     <nav aria-label="코스 선택" className="flex gap-1 text-xs">
-      {ids
-        .filter((id) => available.includes(id))
-        .map((id) => (
+      {courses.map((course) => {
+        const label = course.id.replace('level-', 'Level ');
+        if (!hasProblems(course)) {
+          return (
+            <span
+              key={course.id}
+              aria-disabled="true"
+              title="준비 중인 코스입니다"
+              className="cursor-not-allowed rounded-md px-2 py-1 text-fg-muted"
+            >
+              {label} 준비 중
+            </span>
+          );
+        }
+        return (
           <Link
-            key={id}
-            to={learnPath(id)}
-            aria-current={id === current ? 'page' : undefined}
+            key={course.id}
+            to={learnPath(course.id)}
+            aria-current={course.id === current ? 'page' : undefined}
             className={`rounded-md px-2 py-1 ${
-              id === current
+              course.id === current
                 ? 'bg-brand-subtle font-semibold text-brand'
                 : 'text-fg-secondary hover:bg-subtle'
             }`}
           >
-            {id.replace('level-', 'Level ')}
+            {label}
           </Link>
-        ))}
+        );
+      })}
     </nav>
   );
 }
@@ -141,7 +156,10 @@ function CoursePlayer({ course }: { course: CourseMeta }) {
     return (
       <main className="mx-auto flex max-w-xl flex-col items-start gap-4 px-6 py-16">
         <h1 className="text-2xl font-semibold">{course.title}</h1>
-        <p className="text-fg-secondary">이 코스의 문제는 아직 준비되지 않았습니다.</p>
+        <p role="status" className="text-fg-secondary">
+          준비 중인 코스입니다. {course.description}
+        </p>
+        <CourseSwitcher current={course.id} />
         <Link to="/dashboard" className="text-sm text-brand hover:underline">
           대시보드로
         </Link>
