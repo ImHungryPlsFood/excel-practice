@@ -273,27 +273,27 @@
 | **R-06.18** | 모듈은 코드에 직접 하드코딩하지 말고, 별도의 타입 안전한 데이터 구조로 관리하라. | 금지규칙 | Phase 4 | CARD-04A | 스키마 검증 | 계획됨 |
 | **R-06.19** | 문제 콘텐츠와 학습 엔진을 분리해야 새로운 문제를 추가할 때 핵심 UI를 수정할 필요가 없어야 한다. | 금지규칙 | Phase 4 | CARD-04A | 스키마 검증 | 계획됨 |
 | **R-07.01** | 단순히 화면 위에 텍스트 상자를 띄우는 기능으로 끝내지 마라. | 금지규칙 | Phase 3 | CARD-03B | E2E 테스트 | 완료됨 (실제 셀 조작이 러너 판정을 통과해야만 단계가 넘어감. tutorial-actions.spec.ts, actionDetector.test.ts) |
-| **R-07.02** | 설명 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `description`, 단계 설명 필드·테스트. 화면 표시는 CARD-03C) |
-| **R-07.03** | 강조할 UI 요소 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `highlight`. 실제 강조 표시는 CARD-03C) |
-| **R-07.04** | 강조할 셀 또는 범위 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `highlight`. 실제 강조 표시는 CARD-03C) |
+| **R-07.02** | 설명 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `description`(03A). 03C: 말풍선 본문에 텍스트로만 표시, tutorial-spotlight.spec.ts) |
+| **R-07.03** | 강조할 UI 요소 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `highlight`(03A). 03C: UI_ELEMENT는 data-testid 요소, FORMULA_BAR는 getFormulaBarRect로 강조. E2E에서 실행 취소 버튼 테두리 위치 확인) |
+| **R-07.04** | 강조할 셀 또는 범위 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `highlight`(03A). 03C: CELL/RANGE를 셀 좌표 API로 강조, 가상 스크롤 밖 셀(L60) 자동 스크롤 후 위치 일치 E2E) |
 | **R-07.05** | 사용자가 해야 할 행동 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `expectedAction` 8종, 러너 `judgeAction`, 그리드 조작 감지 `actionDetector.ts`·포인트 모드 범위 감지. 남은 범위: 이미 선택된 셀 클릭 감지·도구 모음 실행 취소 감지는 CARD-03D, 서식 변경(CHANGE_FORMAT)은 서식 UI가 생기는 카드에서 연결) |
 | **R-07.06** | 허용되는 입력 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `allowedInput`, 러너 NOT_ALLOWED 판정, 입력 확정·단축키 화면 차단 `TutorialStepGuards`·`Spreadsheet inputGuard`, E2E 확인. 남은 범위: 붙여넣기·자동 채우기 차단은 CARD-03D) |
 | **R-07.07** | 완료 조건 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `expectedAction`, 러너 ACTION 일치 시에만 전이) |
 | **R-07.08** | 실패 조건 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `failure`, 러너 실패 사유 8종·시도 횟수) |
-| **R-07.09** | 힌트 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `hints`(최대 4), 러너 HINT·자동 공개. 화면 표시는 CARD-03C) |
+| **R-07.09** | 힌트 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `hints`·러너 HINT(03A). 03C: 말풍선 "힌트 보기" 버튼으로 한 개씩 공개, 키보드 E2E) |
 | **R-07.10** | 다음 단계로 이동하는 조건 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `next.mode`(auto/confirm), 러너 전이) |
 | **R-07.11** | 이전 단계로 돌아가는 방법 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `back`, 러너 BACK) |
 | **R-07.12** | 건너뛰기 가능 여부 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `canSkip`, 러너 SKIP(완료가 아닌 건너뜀으로 기록)) |
-| **R-07.13** | 설명 창의 '다음' 버튼을 눌렀다는 이유만으로 작업이 완료되었다고 처리하지 마라. | 금지규칙 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (러너가 NEXT를 행동 완료 전에는 무시(tutorialRunner.test.ts), 화면에서 다음 버튼 비활성·단계 유지 E2E 확인. 후속: '다음' 뒤 포커스를 그리드로 되돌리는 것은 말풍선·다음 버튼을 만드는 CARD-03C) |
-| **R-07.14** | 배경을 부드럽게 어둡게 만든다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
-| **R-07.15** | 강조 대상은 원래의 가시성을 유지한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
-| **R-07.16** | 강조 대상 주변에 명확한 시각적 경계를 표시한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
-| **R-07.17** | 설명 말풍선은 대상과 연결한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
-| **R-07.18** | 화면 가장자리에서 말풍선이 잘리지 않도록 한다. | 금지규칙 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
-| **R-07.19** | 스크롤 또는 화면 크기 변경 시 위치를 다시 계산한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
-| **R-07.20** | 키보드와 마우스로 모두 사용할 수 있게 한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
-| **R-07.21** | 현재 단계와 전체 진행 상황을 표시한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
-| **R-07.22** | Esc 키의 동작은 단계 설정에 따라 명확하게 정의한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
+| **R-07.13** | 설명 창의 '다음' 버튼을 눌렀다는 이유만으로 작업이 완료되었다고 처리하지 마라. | 금지규칙 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (러너가 NEXT를 행동 완료 전에는 무시(tutorialRunner.test.ts), 화면에서 다음 버튼 비활성·단계 유지 E2E 확인. 03C: '다음'·이전·건너뛰기로 단계가 실제로 바뀐 뒤에만 그리드로 포커스 복귀, 클릭·Enter 모두 셀 재클릭 없이 Ctrl+Z가 동작함을 E2E 확인) |
+| **R-07.14** | 배경을 부드럽게 어둡게 만든다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (SpotlightOverlay: SVG 반투명 배경 + mask. SpotlightOverlay.test.tsx, E2E) |
+| **R-07.15** | 강조 대상은 원래의 가시성을 유지한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (대상 자리는 mask 구멍이라 덮개 없음. 구멍 안 점이 실제 셀에 닿는지 elementFromPoint E2E) |
+| **R-07.16** | 강조 대상 주변에 명확한 시각적 경계를 표시한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (흰 바깥 링 + 브랜드색 2px 테두리. 셀·범위·UI 경계와 1px 안 일치 E2E) |
+| **R-07.17** | 설명 말풍선은 대상과 연결한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (CalloutTooltip: 대상 쪽 화살표가 대상 중심을 가리킴. CalloutTooltip.test.tsx) |
+| **R-07.18** | 화면 가장자리에서 말풍선이 잘리지 않도록 한다. | 금지규칙 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (calloutPlacement Flip 4방향 + 화면 안 고정 단위 테스트, 1280×720·1000×640·420×640 E2E) |
+| **R-07.19** | 스크롤 또는 화면 크기 변경 시 위치를 다시 계산한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (useSpotlightPosition: capture scroll·resize·ResizeObserver·포인터/키 입력 후 rAF 재계산. 그리드 가로·세로 스크롤과 창 크기 변경 E2E) |
+| **R-07.20** | 키보드와 마우스로 모두 사용할 수 있게 한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (마우스: 그리드 조작·말풍선 버튼. 키보드: 화살표로 단계 진행, F6 그리드↔말풍선, Tab·Enter로 버튼, Esc로 복귀. E2E) |
+| **R-07.21** | 현재 단계와 전체 진행 상황을 표시한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (말풍선 "단계 n/N"·진행 막대, 왼쪽 패널 단계 목록(완료·건너뜀·진행 중·대기), 하단 진행 표시) |
+| **R-07.22** | Esc 키의 동작은 단계 설정에 따라 명확하게 정의한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (고정 규칙, 사용자 결정 2026-10-24: Esc는 어떤 단계에서도 단계를 넘기거나 건너뛰지 않는다. 말풍선 안 Esc는 그리드로 포커스만 이동, 그리드 안 Esc는 그리드 동작(편집 취소·복사 표시 해제). 스키마에 Esc 필드를 두지 않음. E2E) |
 | **R-07.23** | 단계 시작 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
 | **R-07.24** | 강조 대상 변경 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
 | **R-07.25** | 말풍선 위치 변경 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
@@ -684,7 +684,7 @@
 | **P-01** | Core Web Vitals 성능 예산: LCP <= 2.5s, INP <= 200ms, CLS <= 0.1 공식 목표 준수 및 Lighthouse CI 감시 | 비기능 | Phase 8 | CARD-08B | Lighthouse CI | 계획됨 |
 | **P-02** | 지연 로딩 및 코드 분할: 수식엔진, XLSX 파서, 차트, Level 7~10 고급/자격증 모듈의 dynamic import() 청크 분리 | 비기능 | Phase 8 | CARD-08A | 번들 분석기 | 계획됨 |
 | **P-03** | 애니메이션 원칙: transform 및 opacity 전용 모션 토큰 적용, 레이아웃 흔들림 금지, prefers-reduced-motion 및 인앱 모션 끄기 | 비기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
-| **P-04** | Spotlight 위치 실시간 동기화: ResizeObserver, 가상 스크롤 추적, 말풍선 뷰포트 충돌 시 자동 반전(Flip) 로직 | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
+| **P-04** | Spotlight 위치 실시간 동기화: ResizeObserver, 가상 스크롤 추적, 말풍선 뷰포트 충돌 시 자동 반전(Flip) 로직 | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (ResizeObserver·capture 스크롤 추적·Flip. 단위 + E2E) |
 | **P-05** | 3계층 입력 반응성 분리: 동기식 UI 렌더링(0ms) -> 비동기 수식/채점 연산 -> 1초 디바운스 영속화 저장 | 비기능 | Phase 2 | CARD-02A | 프로파일링 | 부분 완료 (1계층: 편집 초안은 로컬 state, Enter/Tab/화살표/blur에서만 커밋. 2계층 CARD-02B, 3계층 CARD-06B) |
 | **P-06** | 대규모 데이터 가상 스크롤 성능 벤치마크: 10,000행 × 100열 60 FPS 유지 및 드롭 프레임 5% 미만 보장 | 비기능 | Phase 2 | CARD-02A | Playwright 성능테스트 | 부분 완료 (tests/perf/virtual-scroll.perf.ts. CARD-02A 코드는 2026-10-23 전원 연결 상태에서 3건 모두 통과. CARD-02E에서 그리드가 느려진 원인(커밋마다 도는 passive effect 등)을 찾아 고쳤고 메인 스레드 비용은 main과 같아졌다. 수정 뒤 PageDown·연속 스크롤은 main과 같이 통과하지만, 휠 스크롤은 2026-10-24 측정에서 main·브랜치 모두 49~57 FPS로 실패해(Defender 서명 갱신 중, 배터리 16%) 이 코드에서 휠 통과를 아직 확인하지 못했다. 기준값은 낮추지 않음. 정상 상태에서 `npm run test:perf` 재확인 필요) |
 
@@ -900,3 +900,12 @@
 - **CURRICULUM 1.3 강제:** `src/content/contentLint.ts`가 문자열만으로 판정 가능한 5개 규칙(엔진 미지원 함수, INDEX 0, DATEDIF "YD", 지원 밖 TEXT 서식, `&`+나눗셈·소수 리터럴)을 검사하고 튜토리얼 정답 수식(`canonicalFormula`)에 적용한다. **강제하지 못하는 것:** 데이터 때문에 소수가 되는 값(AVERAGE 결과 등을 `&`로 잇는 경우), FILTER 빈 결과(D-12), UNIQUE 빈 셀(D-13)은 셀 데이터 계산이 필요해 CARD-04E의 엔진 실행 검증으로 넘긴다. `&` 규칙은 휴리스틱이다.
 - **카드 원문과의 차이:** 추가 파일 `src/types/examVersion.ts`, `src/content/contentIds.ts`, `src/content/contentLint.ts`, `src/features/learning/context/useTutorial.ts`(hook/context 분리: react-refresh 규칙), 테스트 5개. XState는 쓰지 않고 순수 reducer로 구현(R-15.10). `zod` 4.6.5 고정(공개 2주 이상 지난 버전; 최신 4.6.7은 12일 전).
 - **알려진 한계:** 그리드·입력줄에서 실제 조작을 감지해 `dispatch`하는 부분(03B), Spotlight·말풍선(03C), 효과(03D), 실제 튜토리얼 콘텐츠(04)는 없다. `/learn/:courseId`는 여전히 자리 화면이다.
+
+### CARD-03C (2026-10-24)
+- **완료됨:** R-07.14~R-07.22, P-04. CARD-03A 배정 부분 완료 행 R-07.02, R-07.03, R-07.04, R-07.09는 화면 표시까지 끝나 완료됨으로 바꿨다. R-07.13의 포커스 복귀 후속도 끝냈다.
+- **요구사항 ID 대응:** 카드 본문 `R-01.0-03`→R-01.03(전체 공통 행이라 상태 유지), `R-07.2-01`~`05`→R-07.14~R-07.18 (MASTER_PROMPT §7.2). 추적표 배정이지만 본문에 없던 R-07.19(02A 기록의 `R-07.2-06`)~R-07.22도 다뤘다.
+- **입력 설계 (§7.2 "오버레이가 실제 입력을 막아서는 안 된다"):** 오버레이 전체가 `pointer-events: none`·`aria-hidden`이다. 구멍 밖 클릭도 막지 않는다. 범위 끌기처럼 대상 밖 셀을 써야 하는 단계가 있고, 허용하지 않는 입력은 03B의 `inputGuard`가 실제 조작 단위로 막기 때문이다. 말풍선만 포인터를 받는다.
+- **Esc 규칙 (사용자 결정 2026-10-24):** 스키마에 Esc 필드를 추가하지 않고 고정 규칙으로 정했다(R-07.22 행 참조).
+- **모션 감소 (사용자 결정 2026-10-24):** `useMotionPreference`가 `prefers-reduced-motion`과 `<html data-motion="reduce">`를 함께 본다. `tokens.css`도 같은 속성에서 시간 토큰을 0으로 만든다. 설정 화면·저장, 전환 애니메이션 전반(R-07.23~31, P-03)은 계속 CARD-03D 담당이다.
+- **카드 원문과의 차이:** 추가 파일 `src/components/tutorial/calloutPlacement.ts`(순수 위치 함수), `TutorialSpotlight.tsx`(단계→위치 연결·F6·자동 스크롤), `hooks/useMotionPreference.ts`, `tests/unit/components/SpotlightOverlay.test.tsx`, `tests/e2e/tutorial-spotlight.spec.ts`. 그리드 핸들에 `getCellAreaRect()`를 추가했다(`types.ts`·`useVirtualGrid.ts`·`SpreadsheetGrid.tsx`·`Spreadsheet.tsx`, 테스트 1건). 강조 사각형을 머리글 아래 셀 영역으로 자르는 데 쓴다. `/dev/tutorial`에 화면 밖 셀(L60) 단계를 더하고 왼쪽 패널을 단계 목록으로 바꿨다. 그래서 `tutorial-actions.spec.ts`의 단계 수 표기(1/4→1/5)와 마지막 진행이 바뀌었다. 같은 파일에서 '다음' 뒤 셀을 다시 클릭하던 우회를 없애고 포커스 확인을 넣었다.
+- **알려진 한계:** 말풍선(최대 폭 22rem)은 대상 가까운 셀 몇 칸을 가릴 수 있다. 포인터는 말풍선이 받으므로 그 칸을 누르려면 그리드를 스크롤해야 한다. F6은 Chromium에서 예약 단축키가 아니라 페이지가 먼저 받지만, 다른 브라우저는 확인하지 않았다. 다른 시트 대상은 말풍선 안내만 하고 시트를 자동으로 바꾸지 않는다(E2E 없음, 개발 화면은 시트 1개).
