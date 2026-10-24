@@ -6,3 +6,28 @@
 export function formatGeneralNumber(value: number): string {
   return String(Number(value.toPrecision(15))).toUpperCase();
 }
+
+/**
+ * 소수 자릿수. 유효 숫자 15자리로 정리한 값 기준이라 0.1+0.2는 1자리다.
+ * 지수 표기로 나오는 아주 크거나 작은 수는 판단할 수 없어 Infinity를 돌려준다.
+ */
+export function decimalPlaces(value: number): number {
+  const text = formatGeneralNumber(value);
+  if (text.includes('E')) return Number.POSITIVE_INFINITY;
+  return text.split('.')[1]?.length ?? 0;
+}
+
+/**
+ * 채점에서 두 계산 결과가 같은지 본다 (docs/TEST_STRATEGY.md Q-02 "숫자 비교 기준").
+ * 둘 다 숫자면 Excel이 보여 주는 유효 숫자 15자리로 정리한 값이 같을 때 같다고 본다.
+ * 그 밖의 값(텍스트·논리값·빈 값)은 형식까지 정확히 같아야 한다.
+ */
+export function resultsMatch(
+  actual: string | number | boolean | null,
+  expected: string | number | boolean | null,
+): boolean {
+  if (typeof actual === 'number' && typeof expected === 'number') {
+    return Number(actual.toPrecision(15)) === Number(expected.toPrecision(15));
+  }
+  return actual === expected;
+}

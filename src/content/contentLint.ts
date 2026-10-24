@@ -155,18 +155,12 @@ function isRiskyOperand(masked: string): boolean {
   return surface.includes('/') || /\d\.\d/.test(surface);
 }
 
-function lintAmpersands(masked: string, original: string, issues: LintIssue[]): void {
+/** & 로 이어진 피연산자 묶음을 모든 중첩 깊이에서 찾아 피연산자마다 visit을 부른다. */
+function visitAmpersandOperands(masked: string, visit: (from: number, to: number) => void): void {
   const walk = (start: number, end: number): void => {
     const parts = splitTopLevel(masked, start, end, '&');
     if (parts.length > 1) {
-      for (const [from, to] of parts) {
-        if (isRiskyOperand(masked.slice(from, to))) {
-          issues.push({
-            rule: 'AMPERSAND_DECIMAL',
-            message: `& 로 잇는 '${original.slice(from, to).trim()}'은 소수가 될 수 있습니다. ROUND 등으로 먼저 감싸세요. (Excel과 엔진의 소수 표시가 다릅니다, D-9)`,
-          });
-        }
-      }
+      for (const [from, to] of parts) visit(from, to);
     }
     for (const [from, to] of parts) {
       let i = from;
@@ -184,6 +178,61 @@ function lintAmpersands(masked: string, original: string, issues: LintIssue[]): 
     }
   };
   walk(0, masked.length);
+}
+
+function lintAmpersands(masked: string, original: string, issues: LintIssue[]): void {
+  visitAmpersandOperands(masked, (from, to) => {
+    if (isRiskyOperand(masked.slice(from, to))) {
+      issues.push({
+        rule: 'AMPERSAND_DECIMAL',
+        message: `& 로 잇는 '${original.slice(from, to).trim()}'은 소수가 될 수 있습니다. ROUND 등으로 먼저 감싸세요. (Excel과 엔진의 소수 표시가 다릅니다, D-9)`,
+      });
+    }
+  });
+}
+
+/** 숫자를 글자로 바꿔 돌려주는 함수와, 바꿀 값이 들어가는 인수 위치를 고르는 규칙. */
+const NUMBER_TO_TEXT_FUNCTIONS: Readonly<Record<string, (index: number) => boolean>> = {
+  CONCAT: () => true,
+  CONCATENATE: () => true,
+  TEXTJOIN: (index) => index >= 2, // 구분자·빈 값 무시 여부는 글자로 바꿀 값이 아니다
+  TEXT: (index) => index === 0,
+  FIXED: (index) => index === 0,
+  DOLLAR: (index) => index === 0,
+};
+
+/** 따옴표 문자열 전체, 숫자 상수, ROUND 등으로 감싼 값은 글자로 바뀌어도 결과가 안정적이다. */
+function isStableTextOperand(masked: string): boolean {
+  const trimmed = masked.trim();
+  return (
+    trimmed === '' ||
+    /^"_*"$/.test(trimmed) ||
+    /^\d+(?:\.\d+)?$/.test(trimmed) ||
+    isSafeOperand(trimmed)
+  );
+}
+
+/**
+ * 수식이 셀 값(숫자일 수 있는)을 글자로 바꿔 쓰는지. &, CONCAT, CONCATENATE, TEXTJOIN, TEXT, FIXED, DOLLAR의
+ * 인수가 ROUND 등으로 감싸지 않은 참조·계산식이면 true. 이런 문제는 소수 데이터로 교란하면
+ * 엔진과 Excel의 글자 변환 차이(D-6, D-9)가 드러나 채점이 어긋날 수 있다.
+ */
+export function convertsNumbersToText(formula: string): boolean {
+  const masked = maskStrings(formula).replace(/^\s*=/, '');
+  let found = false;
+  visitAmpersandOperands(masked, (from, to) => {
+    if (!isStableTextOperand(masked.slice(from, to))) found = true;
+  });
+  if (found) return true;
+  for (const call of findFunctionCalls(masked)) {
+    const takesText = NUMBER_TO_TEXT_FUNCTIONS[call.name];
+    if (takesText === undefined) continue;
+    const unstable = call.args.some(
+      ([from, to], index) => takesText(index) && !isStableTextOperand(masked.slice(from, to)),
+    );
+    if (unstable) return true;
+  }
+  return false;
 }
 
 /** 수식 하나가 콘텐츠 작성 지침을 어기는 곳을 모두 찾는다. 문제가 없으면 빈 배열. */

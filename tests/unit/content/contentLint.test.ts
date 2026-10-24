@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { lintFormula } from '@/content/contentLint';
+import { convertsNumbersToText, lintFormula } from '@/content/contentLint';
 import type { LintRule } from '@/content/contentLint';
 
 function rules(formula: string): LintRule[] {
@@ -88,5 +88,33 @@ describe('contentLint — CURRICULUM 1.3', () => {
 
   it('여러 위반을 한꺼번에 보고한다', () => {
     expect(rules('=RANK(A1,B1:B5)&A1/3')).toEqual(['UNSUPPORTED_FUNCTION', 'AMPERSAND_DECIMAL']);
+  });
+});
+
+describe('convertsNumbersToText — 소수 교란 판정', () => {
+  it.each([
+    '="평균 "&AVERAGE(B2:B6)',
+    '=A1&"원"',
+    '=CONCAT("a",B2)',
+    '=CONCATENATE(B2,"원")',
+    '=TEXTJOIN("-",TRUE,B2:B6)',
+    '=TEXT(B2,"0.00")',
+    '=FIXED(B2,1)',
+    '=IF(B2>0,"값 "&B2,"없음")',
+  ])('값을 글자로 바꾸는 수식: %s', (formula) => {
+    expect(convertsNumbersToText(formula)).toBe(true);
+  });
+
+  it.each([
+    '=SUM(B2:B6)',
+    '=ROUND(AVERAGE(B2:B6),2)',
+    '=IF(B2>0,"양수","음수")',
+    '="합계: "&ROUND(SUM(B2:B6),1)',
+    '=CONCAT("a","&","b")',
+    '=TEXTJOIN("-",TRUE,"a","b")',
+    '=TEXT(ROUND(B2,1),"0.0")',
+    '="a&b"',
+  ])('글자로 바뀌어도 안정적이거나 바꾸지 않는 수식: %s', (formula) => {
+    expect(convertsNumbersToText(formula)).toBe(false);
   });
 });
