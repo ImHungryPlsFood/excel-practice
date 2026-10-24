@@ -413,7 +413,8 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
 - **관련 요구사항 ID:** R-07.3-01, R-07.3-02, R-07.3-03, R-07.3-04, R-07.3-05, R-17.3-01, P-03
 - **선행 카드:** CARD-03C
 - **생성·수정할 파일:**
-  - `src/styles/motion.ts` (Motion for React 토큰)
+  - `src/styles/motion.css` (CSS keyframes, `--motion-*` 토큰만 사용. Motion 라이브러리는 설치하지 않음 — 2026-10-24 결정)
+  - (구현 시 추가, 2026-10-24) `src/features/settings/motionSetting.ts`, `src/pages/SettingsPage.tsx`(`/settings`), `tests/unit/styles/motion.test.ts`, `tests/unit/features/motionSetting.test.ts`, `tests/unit/spreadsheet/CellPress.test.tsx`, `tests/e2e/settings-motion.spec.ts`
   - `src/components/tutorial/MotionWrapper.tsx`
   - `src/features/settings/hooks/useReducedMotion.ts` (`prefers-reduced-motion` 및 인앱 설정)
   - `tests/e2e/tutorial-flow.spec.ts` (Playwright E2E)

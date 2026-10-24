@@ -179,3 +179,36 @@ describe('useWorkbook: 여러 시트와 실행 취소 (CARD-02D)', () => {
     expect(hook.result.current.getResult(0, 0).value).toBe(16);
   });
 });
+
+describe('useWorkbook.onUndone: 실행 취소가 실제로 실행될 때만 알린다 (CARD-03D)', () => {
+  it('되돌릴 것이 없으면 알리지 않고, 되돌리면 한 번 알리며, 구독 해제 뒤에는 알리지 않는다', async () => {
+    const hook = await setup();
+    const calls: number[] = [];
+    let unsubscribe: () => void = () => undefined;
+    act(() => {
+      unsubscribe = hook.result.current.onUndone(() => calls.push(1));
+    });
+
+    act(() => {
+      expect(hook.result.current.undo()).toBe(false);
+    });
+    expect(calls).toHaveLength(0);
+
+    act(() => {
+      hook.result.current.applyChanges([{ row: 0, col: 0, value: '9' }]);
+    });
+    act(() => {
+      expect(hook.result.current.undo()).toBe(true);
+    });
+    expect(calls).toHaveLength(1);
+
+    act(() => {
+      hook.result.current.applyChanges([{ row: 0, col: 0, value: '8' }]);
+      unsubscribe();
+    });
+    act(() => {
+      hook.result.current.undo();
+    });
+    expect(calls).toHaveLength(1);
+  });
+});

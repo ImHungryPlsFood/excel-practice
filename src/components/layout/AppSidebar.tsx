@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom';
 const SIDEBAR_LINKS = [
   { to: '/dashboard', label: '대시보드' },
   { to: '/sandbox', label: '연습실' },
+  { to: '/settings', label: '설정' },
 ] as const;
 
 // 아직 구현되지 않은 화면은 링크로 노출하지 않는다 (R-15.11, R-15.12).

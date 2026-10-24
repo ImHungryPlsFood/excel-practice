@@ -91,7 +91,7 @@ describe('AppRoutes', () => {
       within(nav)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['대시보드', '연습실']);
+    ).toEqual(['대시보드', '연습실', '설정']);
     expect(within(nav).getByRole('link', { name: '대시보드' })).toHaveAttribute(
       'aria-current',
       'page',

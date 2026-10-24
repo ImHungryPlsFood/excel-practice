@@ -6,6 +6,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { LandingPage } from '@/pages/LandingPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { NotImplementedPage } from '@/pages/NotImplementedPage';
+import { SettingsPage } from '@/pages/SettingsPage';
 
 /*
  * 연습실은 수식 엔진(HyperFormula)을 포함해 크므로 따로 내려받는다. 랜딩·대시보드 첫 화면 번들에 넣지 않는다.
@@ -58,6 +59,7 @@ export function AppRoutes() {
             />
           }
         />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route
           path="/sandbox"
           element={

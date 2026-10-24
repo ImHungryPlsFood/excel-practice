@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './styles/tokens.css';
+@import './styles/motion.css';
 
 /*
  * 디자인 토큰 → Tailwind 유틸리티 매핑.

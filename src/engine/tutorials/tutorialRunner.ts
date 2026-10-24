@@ -1,4 +1,4 @@
-import { columnNumber } from '@/engine/spreadsheet/operations/referenceShift';
+import { columnLetters, columnNumber } from '@/engine/spreadsheet/operations/referenceShift';
 import type {
   ExpectedAction,
   FailureReason,
@@ -33,6 +33,8 @@ export type TutorialActionEvent =
   | { type: 'PRESS_KEY'; key: string }
   | { type: 'CLICK_UI'; element: string }
   | { type: 'AUTOFILL_RANGE'; sheetName: string; range: string }
+  /** 붙여넣기·채우기가 허용 셀 밖에 쓰려다 막힌 시도. 단계의 정답이 될 수 없고 틀린 시도로만 기록된다. */
+  | { type: 'WRITE_RANGE'; sheetName: string; range: string }
   | { type: 'CHANGE_FORMAT'; sheetName: string; range: string; format: string };
 
 export type TutorialEvent =
@@ -188,15 +190,35 @@ type Verdict = { ok: true } | { ok: false; reason: FailureReason };
 const FAIL = (reason: FailureReason): Verdict => ({ ok: false, reason });
 const PASS: Verdict = { ok: true };
 
+/** 셀이 허용 셀 목록 안에 있는가. 목록이 비어 있으면 제한 없음. 셀 입력과 범위 쓰기가 같은 기준을 쓴다. */
+function cellAllowed(allowed: readonly string[], cell: string): boolean {
+  return allowed.length === 0 || allowed.some((range) => cellInRange(cell, range));
+}
+
+/** 범위의 모든 셀이 허용 셀 안에 있는가 (붙여넣기·채우기 대상 범위 검사) */
+function rangeAllowed(allowed: readonly string[], range: string): boolean {
+  if (allowed.length === 0) return true;
+  const box = parseRange(range);
+  if (box === null) return false;
+  for (let row = box.from.row; row <= box.to.row; row += 1) {
+    for (let col = box.from.col; col <= box.to.col; col += 1) {
+      if (!allowed.some((candidate) => cellInRange(`${columnLetters(col - 1)}${row}`, candidate))) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 export function violatesAllowedInput(step: TutorialStep, event: TutorialActionEvent): boolean {
   const { cells, keys } = step.allowedInput;
   if (
-    cells.length > 0 &&
     (event.type === 'ENTER_VALUE' || event.type === 'ENTER_FORMULA') &&
-    !cells.some((range) => cellInRange(event.cell, range))
+    !cellAllowed(cells, event.cell)
   ) {
     return true;
   }
+  if (event.type === 'WRITE_RANGE' && !rangeAllowed(cells, event.range)) return true;
   return keys.length > 0 && event.type === 'PRESS_KEY' && !keys.some((k) => sameKey(k, event.key));
 }
 

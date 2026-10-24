@@ -49,6 +49,10 @@ export type GridUserAction = ActionBase &
     | { type: 'filled'; sheet: string; range: GridRangeRef }
     | { type: 'pointModeEnded'; sheet: string; range: GridRangeRef }
     | { type: 'uiClicked'; element: string }
+    /** 실행 취소가 실제로 실행됐다(키·도구 모음 버튼 어느 쪽이든). Ctrl+Z 키 입력으로 환산한다. */
+    | { type: 'undone' }
+    /** 붙여넣기·채우기가 이 범위에 쓰려 한다(반영 전). 허용 입력 검사 전용이며 러너로 보내지 않는다. */
+    | { type: 'rangeWrite'; sheet: string; range: GridRangeRef }
   );
 
 export const cellRef = ({ row, col }: GridPos): string => `${columnLetters(col)}${row + 1}`;
@@ -75,6 +79,53 @@ export function filledRange(
     case 'left':
       return { ...source, startCol: Math.max(0, source.startCol - count) };
   }
+}
+
+/** 실행 취소를 단계 데이터의 PRESS_KEY로 환산할 때의 표기 */
+export const UNDO_KEY = 'Ctrl+Z';
+
+/** 채우기 핸들로 새로 값이 쓰이는 범위(원본은 제외) */
+export function fillTarget(
+  source: GridRangeRef,
+  direction: FillDirection,
+  count: number,
+): GridRangeRef {
+  switch (direction) {
+    case 'down':
+      return { ...source, startRow: source.endRow + 1, endRow: source.endRow + count };
+    case 'up':
+      return {
+        ...source,
+        startRow: Math.max(0, source.startRow - count),
+        endRow: source.startRow - 1,
+      };
+    case 'right':
+      return { ...source, startCol: source.endCol + 1, endCol: source.endCol + count };
+    case 'left':
+      return {
+        ...source,
+        startCol: Math.max(0, source.startCol - count),
+        endCol: source.startCol - 1,
+      };
+  }
+}
+
+/**
+ * Ctrl+D·Ctrl+R이 값을 쓰는 범위. 선택의 첫 행(열)이 원본이고 나머지에 쓴다.
+ * 선택이 한 행(열)이면 바로 위(왼쪽) 셀이 원본이고 선택 자체에 쓴다. 쓸 것이 없으면 null.
+ */
+export function edgeFillArea(
+  selection: GridRangeRef,
+  direction: 'down' | 'right',
+): GridRangeRef | null {
+  if (direction === 'down') {
+    const single = selection.startRow === selection.endRow;
+    if (single) return selection.startRow === 0 ? null : selection;
+    return { ...selection, startRow: selection.startRow + 1 };
+  }
+  const single = selection.startCol === selection.endCol;
+  if (single) return selection.startCol === 0 ? null : selection;
+  return { ...selection, startCol: selection.startCol + 1 };
 }
 
 const MODIFIER_KEYS = new Set(['Control', 'Shift', 'Alt', 'Meta', 'AltGraph', 'CapsLock']);
@@ -151,6 +202,10 @@ export function detectTutorialAction(action: GridUserAction): TutorialActionEven
       return { type: 'AUTOFILL_RANGE', sheetName: action.sheet, range: rangeRef(action.range) };
     case 'uiClicked':
       return { type: 'CLICK_UI', element: action.element };
+    case 'undone':
+      return { type: 'PRESS_KEY', key: UNDO_KEY };
+    case 'rangeWrite':
+      return null;
   }
 }
 
@@ -171,7 +226,22 @@ export function shouldForwardToRunner(step: TutorialStep, event: TutorialActionE
  * 판정 기준은 러너의 violatesAllowedInput과 같다.
  */
 export function guardMessage(step: TutorialStep, action: GridUserAction): string | null {
+  if (action.type === 'rangeWrite')
+    return blockedWriteEvent(step, action) === null ? null : notAllowedMessage(step);
   const event = detectTutorialAction({ ...action, composing: false });
   if (event === null) return null;
   return violatesAllowedInput(step, event) ? notAllowedMessage(step) : null;
+}
+
+/** 허용 셀 밖에 쓰려는 붙여넣기·채우기면, 틀린 시도로 기록할 러너 이벤트. 허용 범위 안이면 null. */
+export function blockedWriteEvent(
+  step: TutorialStep,
+  action: Extract<GridUserAction, { type: 'rangeWrite' }>,
+): TutorialActionEvent | null {
+  const event: TutorialActionEvent = {
+    type: 'WRITE_RANGE',
+    sheetName: action.sheet,
+    range: rangeRef(action.range),
+  };
+  return violatesAllowedInput(step, event) ? event : null;
 }

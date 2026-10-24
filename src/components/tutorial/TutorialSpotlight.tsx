@@ -178,7 +178,7 @@ export function TutorialSpotlight({ sheetRef, activeSheet }: TutorialSpotlightPr
 
   return createPortal(
     <>
-      <SpotlightOverlay target={geometry.target} />
+      <SpotlightOverlay target={geometry.target} targetKey={key} />
       <CalloutTooltip
         ref={calloutRef}
         target={geometry.target}

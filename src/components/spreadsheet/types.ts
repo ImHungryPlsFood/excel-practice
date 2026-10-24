@@ -122,6 +122,11 @@ export interface SpreadsheetGridProps {
   onActiveCellChange?: (position: CellPosition) => void;
   /** 선택 범위(활성 셀 하나도 한 칸 범위)가 바뀔 때 호출된다. 처음 그려질 때는 부르지 않는다. */
   onSelectionChange?: (range: CellRange) => void;
+  /**
+   * 이미 선택돼 있는 단일 셀을 다시 눌렀을 때(선택 범위는 그대로라 onSelectionChange가 오지 않는 경우)만 호출된다.
+   * 편집 중·포인트 모드가 처리한 클릭·Shift 클릭은 부르지 않는다 (CARD-03D, R-07.05).
+   */
+  onCellPress?: (range: CellRange) => void;
   /** 수식 입력줄과 함께 쓰는 편집 컨트롤러(CARD-02C). 없으면 그리드가 직접 만든다. */
   editor?: CellEditingController;
   /** 편집 중이 아닐 때 Ctrl+Z (CARD-02D). 없으면 브라우저 기본 동작을 막기만 한다. */

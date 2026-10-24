@@ -126,6 +126,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
       onCellsChange,
       onActiveCellChange,
       onSelectionChange,
+      onCellPress,
       editor: sharedEditor,
       onUndo,
       onRedo,
@@ -628,7 +629,15 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
       if (editing !== null && pointMode?.pointerDown(position, event.shiftKey)) return;
       // 확정이 거부되면(수식 길이 상한 등) 편집 중인 셀에 머문다.
       if (!commitEditing()) return;
+      const pressedSame =
+        !event.shiftKey &&
+        range.startRow === position.row &&
+        range.endRow === position.row &&
+        range.startCol === position.col &&
+        range.endCol === position.col;
       dispatch(event.shiftKey ? { type: 'extendTo', position } : { type: 'select', position });
+      // 선택이 안 바뀌면 onSelectionChange가 오지 않으므로, 눌렀다는 사실을 따로 알린다(이미 선택된 셀 재클릭).
+      if (pressedSame) onCellPress?.(range);
       draggingRef.current = true;
       inputRef.current?.focus();
     };
