@@ -79,6 +79,8 @@ export interface CellDisplay {
   text: string;
   /** 값 종류. 숫자·날짜는 오른쪽, 문자는 왼쪽, 논리값·오류는 가운데 정렬된다. */
   kind: CellValueKind;
+  /** 수정할 수 없는 칸(문제의 원본 데이터)이면 true */
+  readOnly?: boolean;
 }
 
 /** 행 높이·열 너비 (CARD-02E). 기본 크기면 undefined를 돌려준다. */

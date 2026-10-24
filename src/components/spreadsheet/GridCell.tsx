@@ -26,6 +26,7 @@ interface GridCellProps {
   width: number;
   value: string;
   kind: CellValueKind;
+  readOnly?: boolean;
   inRange: boolean;
   isActive: boolean;
 }
@@ -38,6 +39,7 @@ export const GridCell = memo(function GridCell({
   width,
   value,
   kind,
+  readOnly = false,
   inRange,
   isActive,
 }: GridCellProps) {
@@ -52,11 +54,12 @@ export const GridCell = memo(function GridCell({
       data-row={row}
       data-col={col}
       data-kind={kind}
+      data-readonly={readOnly ? 'true' : undefined}
       className={[
         'absolute top-0 h-full cursor-cell truncate border-r border-b border-grid-line px-1 text-sm leading-6 select-none',
         ALIGNMENT[kind],
         isError ? 'font-medium text-error' : 'text-fg',
-        inRange && !isActive ? 'bg-selected-bg' : 'bg-cell',
+        inRange && !isActive ? 'bg-selected-bg' : readOnly ? 'bg-subtle' : 'bg-cell',
       ].join(' ')}
       style={{ left, width }}
     >

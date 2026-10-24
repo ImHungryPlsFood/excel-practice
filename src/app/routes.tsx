@@ -5,12 +5,14 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { LandingPage } from '@/pages/LandingPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
-import { NotImplementedPage } from '@/pages/NotImplementedPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 
 /*
  * 연습실은 수식 엔진(HyperFormula)을 포함해 크므로 따로 내려받는다. 랜딩·대시보드 첫 화면 번들에 넣지 않는다.
  */
+const LearnPage = lazy(() =>
+  import('@/pages/LearnPage').then((module) => ({ default: module.LearnPage })),
+);
 const SandboxPage = lazy(() =>
   import('@/pages/SandboxPage').then((module) => ({ default: module.SandboxPage })),
 );
@@ -58,15 +60,6 @@ export function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route
-          path="/learn/:courseId"
-          element={
-            <NotImplementedPage
-              title="학습 화면"
-              description="단원별 개념 설명과 실습, 채점이 이 화면에서 진행될 예정입니다."
-            />
-          }
-        />
         <Route path="/settings" element={<SettingsPage />} />
         <Route
           path="/sandbox"
@@ -77,6 +70,16 @@ export function AppRoutes() {
           }
         />
       </Route>
+      <Route
+        path="/learn/:courseId"
+        element={
+          <Suspense
+            fallback={<p className="p-6 text-sm text-fg-secondary">학습 화면을 여는 중…</p>}
+          >
+            <LearnPage />
+          </Suspense>
+        }
+      />
       {GridHarnessPage !== null && (
         <Route
           path="/dev/grid"

@@ -7,15 +7,14 @@ test('랜딩에서 학습을 시작해 대시보드와 학습 화면으로 이�
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole('heading', { level: 1, name: '대시보드' })).toBeVisible();
 
+  const nav = page.getByRole('navigation', { name: '주 메뉴' });
+  await expect(nav.getByRole('link', { name: '학습' })).toHaveAttribute('href', '/learn/level-0');
+  await expect(nav).not.toContainText('준비 중');
+
   await page.getByRole('link', { name: '이어서 학습하기' }).click();
   await expect(page).toHaveURL(/\/learn\/level-0$/);
-  await expect(page.getByText('이 화면은 아직 구현되지 않았습니다.')).toBeVisible();
-
-  const nav = page.getByRole('navigation', { name: '주 메뉴' });
-  await expect(nav.getByRole('link', { name: '학습' })).toHaveCount(0);
-  await expect(
-    nav.getByText('학습').locator('xpath=ancestor-or-self::*[@aria-disabled]'),
-  ).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.getByRole('heading', { level: 1, name: '스프레드시트 첫걸음' })).toBeVisible();
+  await page.goBack();
 
   // 연습실은 CARD-02D에서 동작하게 되어 사이드바 링크로 들어간다.
   await nav.getByRole('link', { name: '연습실' }).click();

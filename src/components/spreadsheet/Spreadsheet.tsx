@@ -336,7 +336,11 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
   const getCellDisplay = useCallback(
     (row: number, col: number): CellDisplay => {
       const result = workbook.getResult(row, col);
-      return { text: result.displayValue, kind: cellValueKind(result) };
+      return {
+        text: result.displayValue,
+        kind: cellValueKind(result),
+        readOnly: workbook.isReadOnly(row, col),
+      };
     },
     [workbook],
   );

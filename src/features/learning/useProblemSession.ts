@@ -21,6 +21,19 @@ import { earnedPoints, revealedHints } from './hints';
  * 힌트 단계와 제출 횟수는 재시작해도 유지한다(학습 기록, 처벌 없음, R-09.32).
  */
 
+/**
+ * 셀 원문을 채점기 값으로. 수식이 아닌 숫자 원문은 숫자로 넘긴다.
+ * 문자열로 넘기면 교란(더하기·곱하기)이 숫자 칸을 건너뛰어 데이터 의존 오답이 통과한다.
+ */
+function scalarOf(raw: string): CellScalar {
+  const text = raw.trim();
+  if (text === '' || raw.startsWith('=')) return raw;
+  const number = Number(text);
+  return Number.isFinite(number) && /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(text)
+    ? number
+    : raw;
+}
+
 /** 시트 스냅샷(A1 키 → 원문)을 채점기가 받는 격자로 바꾼다. */
 export function sheetContentsOf(snapshot: WorkbookSnapshot): SheetContents {
   const sheets: Record<string, CellScalar[][]> = {};
@@ -32,7 +45,7 @@ export function sheetContentsOf(snapshot: WorkbookSnapshot): SheetContents {
       while (grid.length <= position.row) grid.push([]);
       const line = grid[position.row] ?? [];
       while (line.length <= position.col) line.push(null);
-      line[position.col] = raw;
+      line[position.col] = scalarOf(raw);
       grid[position.row] = line;
     }
     sheets[sheet.name] = grid;

@@ -38,12 +38,35 @@ describe('AppRoutes', () => {
     expect(screen.getByRole('navigation', { name: '주 메뉴' })).toBeInTheDocument();
   });
 
-  it('/learn/:courseId 는 미구현임을 명시한 화면을 보여 준다', () => {
-    renderAt('/learn/level-0');
+  it(
+    '/learn/:courseId 는 코스의 첫 문제와 개념 설명을 보여 준다 (CARD-04D, 따로 내려받는 화면)',
+    async () => {
+      renderAt('/learn/level-0');
 
-    expect(screen.getByRole('heading', { level: 1, name: '학습 화면' })).toBeInTheDocument();
-    expect(screen.getByText('이 화면은 아직 구현되지 않았습니다.')).toBeInTheDocument();
-  });
+      expect(
+        await screen.findByRole('heading', { level: 1, name: '스프레드시트 첫걸음' }, LAZY_PAGE),
+      ).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: '개념 설명' })).toBeInTheDocument();
+      expect(screen.getByText('표에서 칸 하나 가져오기')).toBeInTheDocument();
+    },
+    LAZY_TEST_TIMEOUT,
+  );
+
+  it(
+    '없는 코스 주소는 404 화면을 보여 준다',
+    async () => {
+      renderAt('/learn/level-99');
+
+      expect(
+        await screen.findByRole(
+          'heading',
+          { level: 1, name: '페이지를 찾을 수 없습니다' },
+          LAZY_PAGE,
+        ),
+      ).toBeInTheDocument();
+    },
+    LAZY_TEST_TIMEOUT,
+  );
 
   it(
     '/sandbox 는 연습실 화면을 보여 준다 (CARD-02D, 따로 내려받는 화면)',
@@ -75,15 +98,21 @@ describe('AppRoutes', () => {
     expect(screen.getByRole('heading', { level: 1, name: '대시보드' })).toBeInTheDocument();
   });
 
-  it('대시보드의 이어서 학습하기를 눌러 학습 화면으로 전환된다', () => {
-    renderAt('/dashboard');
+  it(
+    '대시보드의 이어서 학습하기를 눌러 학습 화면으로 전환된다',
+    async () => {
+      renderAt('/dashboard');
 
-    fireEvent.click(screen.getByRole('link', { name: '이어서 학습하기' }));
+      fireEvent.click(screen.getByRole('link', { name: '이어서 학습하기' }));
 
-    expect(screen.getByRole('heading', { level: 1, name: '학습 화면' })).toBeInTheDocument();
-  });
+      expect(
+        await screen.findByRole('heading', { level: 1, name: '스프레드시트 첫걸음' }, LAZY_PAGE),
+      ).toBeInTheDocument();
+    },
+    LAZY_TEST_TIMEOUT,
+  );
 
-  it('사이드바에서 구현된 대시보드·연습실만 링크이고 현재 위치를 표시한다', () => {
+  it('사이드바의 모든 항목이 링크이고 현재 위치를 표시한다', () => {
     renderAt('/dashboard');
     const nav = screen.getByRole('navigation', { name: '주 메뉴' });
 
@@ -91,7 +120,7 @@ describe('AppRoutes', () => {
       within(nav)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['대시보드', '연습실', '설정']);
+    ).toEqual(['대시보드', '학습', '연습실', '설정']);
     expect(within(nav).getByRole('link', { name: '대시보드' })).toHaveAttribute(
       'aria-current',
       'page',
@@ -117,14 +146,14 @@ describe('AppRoutes', () => {
     LAZY_TEST_TIMEOUT,
   );
 
-  it.each(['학습'])('사이드바의 %s 항목은 링크가 아니라 aria-disabled 준비 중 표시다', (label) => {
+  it('사이드바의 학습 항목은 /learn/level-0 으로 가는 링크다 (준비 중 표시 없음)', () => {
     renderAt('/dashboard');
     const nav = screen.getByRole('navigation', { name: '주 메뉴' });
 
-    expect(within(nav).queryByRole('link', { name: new RegExp(label) })).toBeNull();
-    const item = within(nav).getByText(label).closest('[aria-disabled]');
-    expect(item).toHaveAttribute('aria-disabled', 'true');
-    expect(item).not.toHaveAttribute('href');
-    expect(item).toHaveTextContent('준비 중');
+    expect(within(nav).getByRole('link', { name: '학습' })).toHaveAttribute(
+      'href',
+      '/learn/level-0',
+    );
+    expect(nav).not.toHaveTextContent('준비 중');
   });
 });
