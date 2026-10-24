@@ -391,11 +391,14 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - `src/components/tutorial/CalloutTooltip.tsx` (가장자리 Flip 충돌 방어)
   - `src/components/tutorial/hooks/useSpotlightPosition.ts` (`ResizeObserver` 및 스크롤 연동)
   - `tests/unit/components/CalloutTooltip.test.tsx`
+  - (CARD-03B 후속, 2026-10-24) `src/features/learning/components/TutorialStepGuards.tsx`(말풍선 안 '다음' 버튼 연결), `tests/e2e/tutorial-actions.spec.ts`(포커스 확인 추가), `src/components/spreadsheet/Spreadsheet.tsx`(포커스 복귀용 핸들 노출이 필요하면)
 - **구현 지침 및 금지 사항:**
+  - (CARD-03B 후속, R-07.13) 말풍선의 '다음' 버튼을 눌러 단계가 넘어간 뒤 키보드 포커스를 그리드(`SpreadsheetHandle.focus()`)로 되돌린다. 03B의 개발 확인 화면에서는 '다음'을 누르면 포커스가 버튼에 남아 이어지는 `Ctrl+Z` 등 단축키가 그리드에 닿지 않는다. 단계가 안 넘어가는 경우(비활성)에는 포커스를 옮기지 않는다. 말풍선·'다음' 버튼은 `TutorialStepGuards`의 규칙(행동이 맞은 confirm 단계에서만 활성)을 그대로 따른다.
   - 오버레이가 사용자의 마우스/키보드 입력을 차단하지 않도록 `pointer-events` 제어.
   - 가상 스크롤 상태에서 대상 셀이 화면 밖일 경우 자동 스크롤 후 하이라이트.
 - **완료 조건:**
   - 대상 셀 위치에 정확히 하이라이트 경계선이 그려지고 말풍선이 화면 밖으로 잘리지 않는다.
+  - (CARD-03B 후속) '다음'을 누른 직후 포커스가 그리드에 있어 Ctrl+Z 같은 단축키 단계가 셀을 다시 클릭하지 않고도 동작함을 E2E로 확인한다.
 - **실행할 검증 명령:**
   ```powershell
   npm test tests/unit/components/CalloutTooltip.test.tsx
@@ -413,11 +416,16 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - `src/components/tutorial/MotionWrapper.tsx`
   - `src/features/settings/hooks/useReducedMotion.ts` (`prefers-reduced-motion` 및 인앱 설정)
   - `tests/e2e/tutorial-flow.spec.ts` (Playwright E2E)
+  - (CARD-03B 후속, 2026-10-24) `src/components/spreadsheet/Spreadsheet.tsx`·`SpreadsheetGrid.tsx`(같은 셀 클릭 이벤트, 붙여넣기·채우기 차단, 실행 취소 알림), `src/engine/tutorials/actionDetector.ts`, `src/features/learning/components/TutorialStepGuards.tsx`, `tests/unit/tutorials/actionDetector.test.ts`, `tests/unit/spreadsheet/SpreadsheetGrid.test.tsx`
 - **구현 지침 및 금지 사항:**
+  - (CARD-03B 후속, R-07.05) **이미 선택된 셀 클릭:** 03B는 선택이 바뀔 때만 `SELECT_CELL`을 보내서, 목표 셀이 이미 선택돼 있으면 "셀 선택" 단계를 끝낼 수 없다(첫 튜토리얼에서 학생이 갇힐 수 있다). 그리드가 셀을 누르는 순간(편집 중이 아니고 포인트 모드가 처리하지 않은 클릭)에도 선택 변경 여부와 관계없이 `selectionChanged`를 보내도록 고친다. **단계가 시작될 때 이미 목표가 선택돼 있다고 자동 완료하는 방식은 쓰지 않는다**("사용자가 직접 조작해야 한다" 원칙, R-01.06). 처음 그려질 때·프로그램이 선택을 옮길 때(`selectCell` 핸들, 편집 확정 뒤 이동)는 보내지 않는다. 같은 클릭이 두 번 알려지지 않게 한다.
+  - (CARD-03B 후속, R-07.06) **붙여넣기·채우기 차단:** `allowedInput.cells` 차단이 `applyChanges` 경로(입력 확정·Delete)에만 걸려 있다. 붙여넣기(`workbook.paste`·`moveCells`), 채우기 핸들·`Ctrl+D/R`(`fill`·`fillFromEdge`)도 영향받는 대상 범위가 허용 셀 밖이면 반영 전에 같은 기준(`violatesAllowedInput`)으로 막고 안내 문장을 보여 준다. 막은 시도도 틀린 시도로 기록한다. 붙여넣기는 `ENTER_VALUE`로 위장하지 말고 판정 기준을 한곳(허용 셀 범위 검사)에 모은다.
+  - (CARD-03B 후속, R-07.05) **실행 취소 감지:** 실행 취소를 `Ctrl+Z` 키로만 감지하므로 도구 모음 버튼으로 한 실행 취소는 러너가 모른다. 키·버튼 어느 쪽이든 `workbook.undo()`가 실제로 실행된 때 한 곳에서 알리도록 한다(예: 그리드의 `handleUndo`와 도구 모음 버튼이 같은 알림 경로를 쓴다). 스키마 `PRESS_KEY: Ctrl+Z`와의 관계는 사용자 결정 사항이다: 기존 단계 데이터를 깨지 않도록 (a) 실행 취소 실행을 `Ctrl+Z` 키 이벤트로도 환산해 보내거나 (b) `UNDO` 기대 조작 타입을 스키마에 추가한다. 선택은 계획 승인 때 받는다. 둘 다 실제로 실행 취소가 일어났을 때만 알리고(되돌릴 것이 없으면 알리지 않는다), 키와 버튼이 겹쳐 두 번 알려지지 않게 한다.
   - `transform`, `opacity` 속성만 움직이고 과도한 바운스/파티클 효과 배제.
   - 모션 감소 활성화 시 모든 전환 시간 즉시 0으로 축소.
 - **완료 조건:**
   - Phase 3 완료 조건 충족: 사용자가 실제 셀을 조작해야만 다음 단계로 진행되는 튜토리얼이 매끄럽게 완성된다.
+  - (CARD-03B 후속) 목표 셀이 이미 선택된 상태에서 그 셀을 클릭해 "셀 선택" 단계를 끝낼 수 있고, 허용 셀 밖 붙여넣기·채우기는 막히며, 도구 모음 버튼과 Ctrl+Z 어느 쪽의 실행 취소든 인식된다. 각각 `tutorial-flow.spec.ts`(또는 `tutorial-actions.spec.ts`)와 단위 테스트로 확인한다.
 - **실행할 검증 명령:**
   ```powershell
   npx playwright test tests/e2e/tutorial-flow.spec.ts

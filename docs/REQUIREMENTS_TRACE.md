@@ -276,15 +276,15 @@
 | **R-07.02** | 설명 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `description`, 단계 설명 필드·테스트. 화면 표시는 CARD-03C) |
 | **R-07.03** | 강조할 UI 요소 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `highlight`. 실제 강조 표시는 CARD-03C) |
 | **R-07.04** | 강조할 셀 또는 범위 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `highlight`. 실제 강조 표시는 CARD-03C) |
-| **R-07.05** | 사용자가 해야 할 행동 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `expectedAction` 8종, 러너 `judgeAction`, 그리드 조작 감지 `actionDetector.ts`·포인트 모드 범위 감지. 서식 변경(CHANGE_FORMAT)은 서식 UI가 생기는 카드에서 연결) |
-| **R-07.06** | 허용되는 입력 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `allowedInput`, 러너 NOT_ALLOWED 판정, 화면 차단 `TutorialStepGuards`·`Spreadsheet inputGuard`, E2E 확인) |
+| **R-07.05** | 사용자가 해야 할 행동 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `expectedAction` 8종, 러너 `judgeAction`, 그리드 조작 감지 `actionDetector.ts`·포인트 모드 범위 감지. 남은 범위: 이미 선택된 셀 클릭 감지·도구 모음 실행 취소 감지는 CARD-03D, 서식 변경(CHANGE_FORMAT)은 서식 UI가 생기는 카드에서 연결) |
+| **R-07.06** | 허용되는 입력 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `allowedInput`, 러너 NOT_ALLOWED 판정, 입력 확정·단축키 화면 차단 `TutorialStepGuards`·`Spreadsheet inputGuard`, E2E 확인. 남은 범위: 붙여넣기·자동 채우기 차단은 CARD-03D) |
 | **R-07.07** | 완료 조건 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `expectedAction`, 러너 ACTION 일치 시에만 전이) |
 | **R-07.08** | 실패 조건 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `failure`, 러너 실패 사유 8종·시도 횟수) |
 | **R-07.09** | 힌트 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `hints`(최대 4), 러너 HINT·자동 공개. 화면 표시는 CARD-03C) |
 | **R-07.10** | 다음 단계로 이동하는 조건 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `next.mode`(auto/confirm), 러너 전이) |
 | **R-07.11** | 이전 단계로 돌아가는 방법 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `back`, 러너 BACK) |
 | **R-07.12** | 건너뛰기 가능 여부 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `canSkip`, 러너 SKIP(완료가 아닌 건너뜀으로 기록)) |
-| **R-07.13** | 설명 창의 '다음' 버튼을 눌렀다는 이유만으로 작업이 완료되었다고 처리하지 마라. | 금지규칙 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (러너가 NEXT를 행동 완료 전에는 무시(tutorialRunner.test.ts), 화면에서 다음 버튼 비활성·단계 유지 E2E 확인) |
+| **R-07.13** | 설명 창의 '다음' 버튼을 눌렀다는 이유만으로 작업이 완료되었다고 처리하지 마라. | 금지규칙 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (러너가 NEXT를 행동 완료 전에는 무시(tutorialRunner.test.ts), 화면에서 다음 버튼 비활성·단계 유지 E2E 확인. 후속: '다음' 뒤 포커스를 그리드로 되돌리는 것은 말풍선·다음 버튼을 만드는 CARD-03C) |
 | **R-07.14** | 배경을 부드럽게 어둡게 만든다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
 | **R-07.15** | 강조 대상은 원래의 가시성을 유지한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
 | **R-07.16** | 강조 대상 주변에 명확한 시각적 경계를 표시한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 계획됨 |
@@ -893,7 +893,7 @@
 
 ### CARD-03A (2026-10-24)
 - **완료됨:** R-07.07, R-07.08, R-07.10, R-07.11, R-07.12
-- **부분 완료 (각 행 상태 칸에 남은 범위 명시):** R-07.02, R-07.03, R-07.04, R-07.09 (스키마·러너까지 완료, 화면 표시는 CARD-03C). R-07.01, R-07.05, R-07.06, R-07.13은 CARD-03B에서 완료
+- **부분 완료 (각 행 상태 칸에 남은 범위 명시):** R-07.02, R-07.03, R-07.04, R-07.09 (스키마·러너까지 완료, 화면 표시는 CARD-03C). R-07.01, R-07.13은 CARD-03B에서 완료(R-07.13의 포커스 복귀는 03C 후속). R-07.05, R-07.06도 03B에서 감지·차단의 주 경로를 구현했으나 남은 범위(같은 셀 클릭, 실행 취소 버튼, 붙여넣기·채우기 차단)가 CARD-03D에 있어 부분 완료
 - **요구사항 ID 대응:** 카드 본문 `R-07.1-01`→R-07.02~04, `R-07.1-02`→R-07.05~08, `R-07.1-03`→R-07.09~12 (MASTER_PROMPT §7.1). 추적표 배정이지만 본문에 없던 R-07.13도 다뤘다. R-07.01은 CARD-03B에서 완료.
 - **콘텐츠 ID 체계:** courseId `level-{0..10}`, moduleId `MOD-L{00..10}-…`(CURRICULUM 형식). 대시보드 "이어서 학습하기" 경로를 `learnPath(courseIdForLevel(0))`로 바꿨다(경로 값은 `/learn/level-0`으로 동일).
 - **출제기준 버전:** `src/types/examVersion.ts`의 `ExamVersionSchema`(`standard`/`2024-2026`/`2027-2029`)를 튜토리얼 정의에 넣었다. 문제 스키마(CARD-04A)도 같은 enum을 쓴다.
