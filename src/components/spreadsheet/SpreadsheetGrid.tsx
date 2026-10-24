@@ -852,6 +852,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
                       width={colItem.size}
                       value={display?.text ?? getCellValue(row, col)}
                       kind={display?.kind ?? 'text'}
+                      readOnly={display?.readOnly === true}
                       inRange={isInRange(range, row, col)}
                       isActive={row === active.row && col === active.col}
                     />

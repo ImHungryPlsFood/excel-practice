@@ -261,27 +261,54 @@ function denseRows(inputs: ReadonlyMap<string, string>): CellScalar[][] {
   return Array.from(rows, (cells) => Array.from(cells ?? [], (cell) => cell ?? null));
 }
 
+/** 수정할 수 없는 영역 (문제의 readOnlyRanges, CARD-04D). 키는 시트 이름, 값은 "A1:D1" 같은 범위 */
+export type ReadOnlyRanges = Readonly<Record<string, readonly string[]>>;
+
+const READ_ONLY_MESSAGE = '문제의 원본 데이터 칸이라 수정할 수 없습니다.';
+const READ_ONLY_SHEET_MESSAGE = '원본 데이터가 있는 시트라 이름을 바꾸거나 삭제할 수 없습니다.';
+
+/** 범위("A1:D1" 또는 "B3")를 0부터 시작하는 칸 영역으로. 형식이 다르면 null. */
+function rectOfRange(range: string): CellRect | null {
+  const [first = '', second = first] = range.split(':');
+  const a = parseA1(first);
+  const b = parseA1(second);
+  if (a === null || b === null) return null;
+  return {
+    startRow: Math.min(a.row, b.row),
+    startCol: Math.min(a.col, b.col),
+    endRow: Math.max(a.row, b.row),
+    endCol: Math.max(a.col, b.col),
+  };
+}
+
 export class WorkbookModel {
   readonly history = new HistoryManager<WorkbookCommand>();
   private sheets: SheetState[];
   private active: string;
+  private readonly readOnly = new Map<string, CellRect[]>();
 
   private constructor(
     private readonly engine: FormulaEngineAdapter,
     snapshot: WorkbookSnapshot,
+    readOnlyRanges: ReadOnlyRanges = {},
   ) {
     this.sheets = snapshot.sheets.map(sheetStateFrom);
     this.active = this.pickActive(snapshot.activeSheet);
+    for (const [sheet, ranges] of Object.entries(readOnlyRanges)) {
+      const rects = ranges.flatMap((range) => rectOfRange(range) ?? []);
+      if (rects.length > 0) this.readOnly.set(sheet, rects);
+    }
   }
 
   /** 스냅샷으로 엔진을 준비한다. 스냅샷이 엔진 제한을 넘으면 FormulaEngineInputError. */
   static async create(
     snapshot: WorkbookSnapshot,
     createEngine: () => FormulaEngineAdapter = () => new HyperFormulaAdapter(),
+    readOnlyRanges: ReadOnlyRanges = {},
   ): Promise<WorkbookModel> {
     const problem = checkSnapshot(snapshot);
     if (problem !== null) throw new FormulaEngineInputError(problem);
-    const model = new WorkbookModel(createEngine(), snapshot);
+    const model = new WorkbookModel(createEngine(), snapshot, readOnlyRanges);
     try {
       await model.engine.initWorkbook(
         Object.fromEntries(model.sheets.map((sheet) => [sheet.name, denseRows(sheet.inputs)])),
@@ -370,14 +397,38 @@ export class WorkbookModel {
     this.active = name;
   }
 
+  /** 수정할 수 없는 칸인지 */
+  isReadOnly(sheet: string, row: number, col: number): boolean {
+    return (this.readOnly.get(sheet) ?? []).some(
+      (rect) =>
+        row >= rect.startRow && row <= rect.endRow && col >= rect.startCol && col <= rect.endCol,
+    );
+  }
+
+  private rectTouchesReadOnly(sheet: string, rect: CellRect): boolean {
+    return (this.readOnly.get(sheet) ?? []).some(
+      (r) =>
+        rect.startRow <= r.endRow &&
+        r.startRow <= rect.endRow &&
+        rect.startCol <= r.endCol &&
+        r.startCol <= rect.endCol,
+    );
+  }
+
   // ---- 변경 (모두 실행 취소 가능) ----
 
   /**
-   * 셀 원문을 바꾼다. 엔진이 받아들이지 않는 변경(수식 길이 상한 등)에서 멈추고 안내 문장을 돌려준다.
+   * 셀 원문을 바꾼다. 값이 달라지는 칸 중 수정 금지 칸이 하나라도 있으면 아무것도 바꾸지 않고 거부한다.
+   * 엔진이 받아들이지 않는 변경(수식 길이 상한 등)에서 멈추고 안내 문장을 돌려준다.
    * 그 앞의 변경은 반영되고 하나의 실행 취소 단위로 기록된다.
    */
   setCells(sheetName: string, changes: readonly CellChange[], label?: string): string | null {
     const sheet = this.sheet(sheetName);
+    const blocked = changes.some(
+      ({ row, col, value }) =>
+        this.isReadOnly(sheetName, row, col) && (sheet.inputs.get(keyOf(row, col)) ?? '') !== value,
+    );
+    if (blocked) return READ_ONLY_MESSAGE;
     const applied: { row: number; col: number; before: string; after: string }[] = [];
     let refusal: string | null = null;
     for (const { row, col, value } of changes) {
@@ -445,6 +496,7 @@ export class WorkbookModel {
   renameSheet(oldName: string, newName: string): string | null {
     const sheet = this.sheet(oldName);
     if (oldName === newName) return null;
+    if (this.readOnly.has(oldName)) return READ_ONLY_SHEET_MESSAGE;
     const problem = validateSheetName(newName, this.sheetNames, oldName);
     if (problem !== null) return problem;
     this.runStructural('시트 이름 변경', () => {
@@ -470,6 +522,7 @@ export class WorkbookModel {
   /** 시트를 삭제한다. 마지막 시트는 지울 수 없다. 실행 취소하면 위치와 내용이 돌아온다. */
   deleteSheet(name: string): string | null {
     this.sheet(name);
+    if (this.readOnly.has(name)) return READ_ONLY_SHEET_MESSAGE;
     if (this.sheets.length === 1) return '마지막 시트는 삭제할 수 없습니다.';
     this.runStructural('시트 삭제', () => {
       const index = this.sheets.findIndex((sheet) => sheet.name === name);
@@ -529,6 +582,11 @@ export class WorkbookModel {
 
   /** 행·열을 삽입하거나 삭제한다. 모든 시트의 수식 참조가 같이 움직인다. 거부되면 안내 문장. */
   changeStructure(change: StructuralChange): string | null {
+    // 수정 금지 영역이 지워지거나 밀리지 않도록, 그 영역의 끝 행·열 이하에 영향을 주는 변경은 거부한다.
+    const affectsReadOnly = (this.readOnly.get(change.sheet) ?? []).some(
+      (rect) => change.index <= (change.axis === 'row' ? rect.endRow : rect.endCol),
+    );
+    if (affectsReadOnly) return READ_ONLY_MESSAGE;
     const result = applyStructuralChange(this.snapshot().sheets, change);
     if ('error' in result) return result.error;
     const problem = checkSnapshot({ sheets: result.sheets });
@@ -601,6 +659,18 @@ export class WorkbookModel {
   moveCells(move: CellMove): string | null {
     this.sheet(move.fromSheet);
     this.sheet(move.toSheet);
+    const destination: CellRect = {
+      startRow: move.rect.startRow + move.dRow,
+      startCol: move.rect.startCol + move.dCol,
+      endRow: move.rect.endRow + move.dRow,
+      endCol: move.rect.endCol + move.dCol,
+    };
+    if (
+      this.rectTouchesReadOnly(move.fromSheet, move.rect) ||
+      this.rectTouchesReadOnly(move.toSheet, destination)
+    ) {
+      return READ_ONLY_MESSAGE;
+    }
     const result = moveSheetCells(this.snapshot().sheets, move);
     if ('error' in result) return result.error;
     const problem = checkSnapshot({ sheets: result.sheets });

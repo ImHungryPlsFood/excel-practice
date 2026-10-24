@@ -10,6 +10,7 @@ import {
   DEFAULT_SHEET,
   snapshotFromRows,
   WorkbookModel,
+  type ReadOnlyRanges,
   type WorkbookSnapshot,
 } from '../workbookModel';
 
@@ -112,6 +113,9 @@ export interface Workbook {
   undoLabel: string | null;
   redoLabel: string | null;
 
+  /** 수정할 수 없는 칸인지 (보고 있는 시트 기준, 화면 표시용) */
+  isReadOnly: (row: number, col: number) => boolean;
+
   /** 지금 통합 문서 원문 전체. 준비 전이면 null. */
   snapshot: () => WorkbookSnapshot | null;
   /** 통합 문서 전체를 바꾼다(빈 스프레드시트·파일 불러오기). 실행 취소 가능. */
@@ -142,8 +146,9 @@ function layoutOf(model: WorkbookModel | null, sheet: string): GridLayout {
 
 /**
  * @param source 행 우선 원문 배열(단일 시트) 또는 여러 시트 스냅샷. 같은 참조가 유지되어야 한다(바뀌면 통합 문서를 새로 만든다).
+ * @param readOnlyRanges 수정할 수 없는 영역(문제의 readOnlyRanges). source처럼 같은 참조를 유지해야 한다.
  */
-export function useWorkbook(source: WorkbookSource): Workbook {
+export function useWorkbook(source: WorkbookSource, readOnlyRanges?: ReadOnlyRanges): Workbook {
   const [book, setBook] = useState<LoadedBook | null>(null);
   const [failure, setFailure] = useState<LoadFailure | null>(null);
   const undoneListeners = useRef(new Set<() => void>());
@@ -151,7 +156,7 @@ export function useWorkbook(source: WorkbookSource): Workbook {
   useEffect(() => {
     let active = true;
     let created: WorkbookModel | null = null;
-    WorkbookModel.create(toSnapshot(source))
+    WorkbookModel.create(toSnapshot(source), undefined, readOnlyRanges)
       .then((model) => {
         if (active) {
           created = model;
@@ -170,7 +175,7 @@ export function useWorkbook(source: WorkbookSource): Workbook {
       active = false;
       created?.destroy();
     };
-  }, [source]);
+  }, [source, readOnlyRanges]);
 
   const current = book !== null && book.source === source ? book : null;
   const loadError = failure !== null && failure.source === source ? failure.message : null;
@@ -276,6 +281,7 @@ export function useWorkbook(source: WorkbookSource): Workbook {
       undoLabel: history?.undoLabel ?? null,
       redoLabel: history?.redoLabel ?? null,
 
+      isReadOnly: (row, col) => model?.isReadOnly(activeSheet, row, col) ?? false,
       snapshot: () => model?.snapshot() ?? null,
       replaceWorkbook: (snapshot, label) =>
         mutate((ready) => ready.replaceWorkbook(snapshot, label)),
