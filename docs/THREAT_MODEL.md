@@ -135,6 +135,7 @@
 ### [S-10] 공급망 보안 및 GPLv3 호환성 감사
 - `package-lock.json`을 Git에 필수 커밋한다.
 - 모든 의존성은 `package.json`에서 정확한 버전(Exact Version)으로 고정한다.
+- 새 의존성은 공개 2주 이상 지난 버전을 쓴다. 단, 고위험 보안 취약점을 고치는 버전은 이 규칙의 예외이며 수정된 가장 낮은 버전을 고정한다 (예: zod 4.6.6, GHSA-mrhx-c7xc-m3w5, 2026-10-24).
 - CI 파이프라인에서 `npm audit --audit-level=high`를 실행하여 고위험 취약점 발견 시 빌드를 실패 처리한다.
 - HyperFormula의 GPLv3 라이선스 채택에 따라, 모든 의존성 패키지의 라이선스가 GPLv3와 법적으로 호환되는지 점검하는 `npm run audit:licenses` 단계를 포함한다.
 
