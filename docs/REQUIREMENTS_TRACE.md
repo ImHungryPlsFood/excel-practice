@@ -61,7 +61,7 @@
 | **R-02.32** | 대규모 문제 데이터와 학습 진도를 어떻게 관리할지 | 기능 | Phase 0 | RESEARCH_NOTES / ADR | 문서 검수 | 계획됨 |
 | **R-03.01** | Frontend: React + TypeScript + Vite | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 |
 | **R-03.02** | Styling: Tailwind CSS 또는 일관된 CSS 디자인 시스템 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 |
-| **R-03.03** | Animation: Motion for React 또는 적합한 경량 애니메이션 도구 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
+| **R-03.03** | Animation: Motion for React 또는 적합한 경량 애니메이션 도구 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 완료됨 (CARD-03D: 라이브러리 없이 CSS keyframes·transition으로 충족 — `src/styles/motion.css`. Motion 미설치로 새 의존성·라이선스 감사 대상 없음) |
 | **R-03.04** | Routing: React Router | 기능 | Phase 1 | CARD-01A, CARD-01C | 빌드 검증 / 단위 / E2E | 완료됨 (routes.tsx: /, /dashboard, /learn/:courseId, /sandbox, 404. routes.test.tsx·routing.spec.ts) |
 | **R-03.05** | Server state: TanStack Query 또는 필요한 경우 Firebase SDK 중심의 간단한 구조 | 기능 | Phase 1 | CARD-01A | 빌드 검증 | 계획됨 |
 | **R-03.06** | Spreadsheet engine: HyperFormula 또는 요구사항을 충족하는 대안 | 기능 | Phase 1 | CARD-02B | 빌드 검증 | 완료됨 (HyperFormula 3.5.0 GPLv3, FormulaEngineAdapter 뒤에서만 사용. formula-eval.test.ts·golden-excel.test.ts) |
@@ -276,8 +276,8 @@
 | **R-07.02** | 설명 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `description`(03A). 03C: 말풍선 본문에 텍스트로만 표시, tutorial-spotlight.spec.ts) |
 | **R-07.03** | 강조할 UI 요소 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `highlight`(03A). 03C: UI_ELEMENT는 data-testid 요소, FORMULA_BAR는 getFormulaBarRect로 강조. E2E에서 실행 취소 버튼 테두리 위치 확인) |
 | **R-07.04** | 강조할 셀 또는 범위 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `highlight`(03A). 03C: CELL/RANGE를 셀 좌표 API로 강조, 가상 스크롤 밖 셀(L60) 자동 스크롤 후 위치 일치 E2E) |
-| **R-07.05** | 사용자가 해야 할 행동 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `expectedAction` 8종, 러너 `judgeAction`, 그리드 조작 감지 `actionDetector.ts`·포인트 모드 범위 감지. 남은 범위: 이미 선택된 셀 클릭 감지·도구 모음 실행 취소 감지는 CARD-03D, 서식 변경(CHANGE_FORMAT)은 서식 UI가 생기는 카드에서 연결) |
-| **R-07.06** | 허용되는 입력 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `allowedInput`, 러너 NOT_ALLOWED 판정, 입력 확정·단축키 화면 차단 `TutorialStepGuards`·`Spreadsheet inputGuard`, E2E 확인. 남은 범위: 붙여넣기·자동 채우기 차단은 CARD-03D) |
+| **R-07.05** | 사용자가 해야 할 행동 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 부분 완료 (스키마 `expectedAction` 8종, 러너 `judgeAction`, 그리드 조작 감지 `actionDetector.ts`·포인트 모드 범위 감지. CARD-03D: 이미 선택된 셀 재클릭 감지(`onCellPress`), 도구 모음·키 어느 쪽이든 실행 취소를 `workbook.onUndone`→`PRESS_KEY Ctrl+Z`로 한 번만 감지, E2E `tutorial-flow.spec.ts`. 남은 범위: 서식 변경(CHANGE_FORMAT)은 서식 UI가 생기는 카드에서 연결) |
+| **R-07.06** | 허용되는 입력 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `allowedInput`, 러너 NOT_ALLOWED 판정, 입력 확정·단축키 차단, CARD-03D: 붙여넣기·잘라내기 이동·채우기 핸들·Ctrl+D/R을 반영 전에 같은 기준(`rangeAllowed`)으로 막고 `WRITE_RANGE` 틀린 시도로 기록. 근거: actionDetector.test.ts, tutorial-flow.spec.ts) |
 | **R-07.07** | 완료 조건 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `expectedAction`, 러너 ACTION 일치 시에만 전이) |
 | **R-07.08** | 실패 조건 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `failure`, 러너 실패 사유 8종·시도 횟수) |
 | **R-07.09** | 힌트 | 기능 | Phase 3 | CARD-03A | 스키마 / FSM | 완료됨 (스키마 `hints`·러너 HINT(03A). 03C: 말풍선 "힌트 보기" 버튼으로 한 개씩 공개, 키보드 E2E) |
@@ -294,15 +294,15 @@
 | **R-07.20** | 키보드와 마우스로 모두 사용할 수 있게 한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (마우스: 그리드 조작·말풍선 버튼. 키보드: 화살표로 단계 진행, F6 그리드↔말풍선, Tab·Enter로 버튼, Esc로 복귀. E2E) |
 | **R-07.21** | 현재 단계와 전체 진행 상황을 표시한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (말풍선 "단계 n/N"·진행 막대, 왼쪽 패널 단계 목록(완료·건너뜀·진행 중·대기), 하단 진행 표시) |
 | **R-07.22** | Esc 키의 동작은 단계 설정에 따라 명확하게 정의한다. | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (고정 규칙, 사용자 결정 2026-10-24: Esc는 어떤 단계에서도 단계를 넘기거나 건너뛰지 않는다. 말풍선 안 Esc는 그리드로 포커스만 이동, 그리드 안 Esc는 그리드 동작(편집 취소·복사 표시 해제). 스키마에 Esc 필드를 두지 않음. E2E) |
-| **R-07.23** | 단계 시작 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
-| **R-07.24** | 강조 대상 변경 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
-| **R-07.25** | 말풍선 위치 변경 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
-| **R-07.26** | 성공 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
-| **R-07.27** | 오류 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
-| **R-07.28** | 힌트 공개 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
-| **R-07.29** | 다음 문제 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
-| **R-07.30** | 결과 화면 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
-| **R-07.31** | 사용자의 작업을 방해하는 애니메이션은 사용하지 마라. | 금지규칙 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
+| **R-07.23** | 단계 시작 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 완료됨 (CARD-03D: 단계 시작 시 말풍선 내용 `.cc-enter`(opacity+translateY), 어두운 막 `.cc-fade-in`. 근거: tutorial-flow.spec.ts 계산된 스타일, motion.test.ts) |
+| **R-07.24** | 강조 대상 변경 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 부분 완료 (CARD-03D: 테두리 링이 대상이 바뀔 때 새로 `.cc-fade-in`. 구멍 좌표는 레이아웃성이라 애니메이션하지 않음. 자동 검증은 motion.test.ts의 규칙 검사뿐이고 개별 시각 확인은 하지 않았다) |
+| **R-07.25** | 말풍선 위치 변경 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 완료됨 (CARD-03C의 말풍선 transform·opacity transition을 유지하고 `--motion-duration-fast` 토큰 사용. 근거: CalloutTooltip.test.tsx) |
+| **R-07.26** | 성공 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 부분 완료 (CARD-03D: 성공 문구 `.cc-fade-in` 적용. 개별 자동 검증·시각 확인은 하지 않았다) |
+| **R-07.27** | 오류 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 부분 완료 (CARD-03D: 오류 문구 시도마다 `.cc-fade-in`, 흔들기 없음. 개별 자동 검증·시각 확인은 하지 않았다) |
+| **R-07.28** | 힌트 공개 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 부분 완료 (CARD-03D: 새 힌트 항목 `.cc-fade-in`. 개별 자동 검증·시각 확인은 하지 않았다) |
+| **R-07.29** | 다음 문제 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 부분 완료 (CARD-03D: 공용 `MotionWrapper` 제공. 다음 문제 화면은 Phase 4에서 생기므로 그때 적용) |
+| **R-07.30** | 결과 화면 | 기능 | Phase 3 | CARD-03D | 수동 / 단위 | 부분 완료 (CARD-03D: 공용 `MotionWrapper` 제공. 결과 화면은 Phase 4에서 생기므로 그때 적용) |
+| **R-07.31** | 사용자의 작업을 방해하는 애니메이션은 사용하지 마라. | 금지규칙 | Phase 3 | CARD-03D | 수동 / 단위 | 완료됨 (CARD-03D: motion.css는 transform·opacity만 움직이고 바운스·무한 반복 없음, 입력을 막지 않는 짧은 페이드. 근거: tests/unit/styles/motion.test.ts) |
 | **R-08.01** | 셀 선택 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (클릭 선택. SpreadsheetGrid.test.tsx·spreadsheet-grid.spec.ts) |
 | **R-08.02** | 범위 선택 | 기능 | Phase 2 | CARD-02A, CARD-02E | 단위 / E2E | 완료됨 (그리드 범위 선택은 CARD-02A: 드래그·Shift+클릭·Shift+화살표·Ctrl+A, 02E에서 행·열 머리글 전체 선택 추가. 수식 편집 중 범위 선택(포인트 모드)은 CARD-02E: 클릭·드래그·Shift+클릭·enter 모드 화살표, 다른 시트 탭 참조, 색 테두리, 한글 조합 중 비활성, 외부 구독 이벤트. pointMode.test.ts·point-mode.spec.ts) |
 | **R-08.03** | 셀 편집 | 기능 | Phase 2 | CARD-02A | 단위 / E2E | 완료됨 (타이핑·F2·더블클릭 편집, Esc 취소, 한글 IME. CARD-02C에서 수식 입력줄과 편집 상태 공유. SpreadsheetGrid.test.tsx·FormulaBar.test.tsx·spreadsheet-grid.spec.ts·formula-bar.spec.ts) |
@@ -683,7 +683,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **P-01** | Core Web Vitals 성능 예산: LCP <= 2.5s, INP <= 200ms, CLS <= 0.1 공식 목표 준수 및 Lighthouse CI 감시 | 비기능 | Phase 8 | CARD-08B | Lighthouse CI | 계획됨 |
 | **P-02** | 지연 로딩 및 코드 분할: 수식엔진, XLSX 파서, 차트, Level 7~10 고급/자격증 모듈의 dynamic import() 청크 분리 | 비기능 | Phase 8 | CARD-08A | 번들 분석기 | 계획됨 |
-| **P-03** | 애니메이션 원칙: transform 및 opacity 전용 모션 토큰 적용, 레이아웃 흔들림 금지, prefers-reduced-motion 및 인앱 모션 끄기 | 비기능 | Phase 3 | CARD-03D | 수동 / 단위 | 계획됨 |
+| **P-03** | 애니메이션 원칙: transform 및 opacity 전용 모션 토큰 적용, 레이아웃 흔들림 금지, prefers-reduced-motion 및 인앱 모션 끄기 | 비기능 | Phase 3 | CARD-03D | 수동 / 단위 | 완료됨 (CARD-03D: transform·opacity 전용, `--motion-duration-*` 토큰만 사용, prefers-reduced-motion 및 설정 화면 `/settings`의 '항상 줄이기'(localStorage 저장, `<html data-motion>`). 근거: motion.test.ts·motionSetting.test.ts·settings-motion.spec.ts) |
 | **P-04** | Spotlight 위치 실시간 동기화: ResizeObserver, 가상 스크롤 추적, 말풍선 뷰포트 충돌 시 자동 반전(Flip) 로직 | 기능 | Phase 3 | CARD-03C | 단위 / E2E | 완료됨 (ResizeObserver·capture 스크롤 추적·Flip. 단위 + E2E) |
 | **P-05** | 3계층 입력 반응성 분리: 동기식 UI 렌더링(0ms) -> 비동기 수식/채점 연산 -> 1초 디바운스 영속화 저장 | 비기능 | Phase 2 | CARD-02A | 프로파일링 | 부분 완료 (1계층: 편집 초안은 로컬 state, Enter/Tab/화살표/blur에서만 커밋. 2계층 CARD-02B, 3계층 CARD-06B) |
 | **P-06** | 대규모 데이터 가상 스크롤 성능 벤치마크: 10,000행 × 100열 60 FPS 유지 및 드롭 프레임 5% 미만 보장 | 비기능 | Phase 2 | CARD-02A | Playwright 성능테스트 | 부분 완료 (tests/perf/virtual-scroll.perf.ts. CARD-02A 코드는 2026-10-23 전원 연결 상태에서 3건 모두 통과. CARD-02E에서 그리드가 느려진 원인(커밋마다 도는 passive effect 등)을 찾아 고쳤고 메인 스레드 비용은 main과 같아졌다. 수정 뒤 PageDown·연속 스크롤은 main과 같이 통과하지만, 휠 스크롤은 2026-10-24 측정에서 main·브랜치 모두 49~57 FPS로 실패해(Defender 서명 갱신 중, 배터리 16%) 이 코드에서 휠 통과를 아직 확인하지 못했다. 기준값은 낮추지 않음. 정상 상태에서 `npm run test:perf` 재확인 필요) |
@@ -909,3 +909,11 @@
 - **모션 감소 (사용자 결정 2026-10-24):** `useMotionPreference`가 `prefers-reduced-motion`과 `<html data-motion="reduce">`를 함께 본다. `tokens.css`도 같은 속성에서 시간 토큰을 0으로 만든다. 설정 화면·저장, 전환 애니메이션 전반(R-07.23~31, P-03)은 계속 CARD-03D 담당이다.
 - **카드 원문과의 차이:** 추가 파일 `src/components/tutorial/calloutPlacement.ts`(순수 위치 함수), `TutorialSpotlight.tsx`(단계→위치 연결·F6·자동 스크롤), `hooks/useMotionPreference.ts`, `tests/unit/components/SpotlightOverlay.test.tsx`, `tests/e2e/tutorial-spotlight.spec.ts`. 그리드 핸들에 `getCellAreaRect()`를 추가했다(`types.ts`·`useVirtualGrid.ts`·`SpreadsheetGrid.tsx`·`Spreadsheet.tsx`, 테스트 1건). 강조 사각형을 머리글 아래 셀 영역으로 자르는 데 쓴다. `/dev/tutorial`에 화면 밖 셀(L60) 단계를 더하고 왼쪽 패널을 단계 목록으로 바꿨다. 그래서 `tutorial-actions.spec.ts`의 단계 수 표기(1/4→1/5)와 마지막 진행이 바뀌었다. 같은 파일에서 '다음' 뒤 셀을 다시 클릭하던 우회를 없애고 포커스 확인을 넣었다.
 - **알려진 한계:** 말풍선(최대 폭 22rem)은 대상 가까운 셀 몇 칸을 가릴 수 있다. 포인터는 말풍선이 받으므로 그 칸을 누르려면 그리드를 스크롤해야 한다. F6은 Chromium에서 예약 단축키가 아니라 페이지가 먼저 받지만, 다른 브라우저는 확인하지 않았다. 다른 시트 대상은 말풍선 안내만 하고 시트를 자동으로 바꾸지 않는다(E2E 없음, 개발 화면은 시트 1개).
+
+### CARD-03D (2026-10-24)
+- **완료됨:** R-03.03, R-07.06, R-07.23, R-07.25, R-07.31, P-03. **부분 완료:** R-07.05(서식 변경 남음), R-07.24·26·27·28(구현했으나 개별 자동 검증·시각 확인 없음), R-07.29·30(화면이 Phase 4에 생김). R-17.22는 Phase 3 완료 게이트 행이라 건드리지 않았다.
+- **요구사항 ID 대응:** 카드 본문 `R-07.3-01~05`→R-07.23~R-07.31(전환 8종 + 방해 금지), `R-17.3-01`→R-17.22(게이트 행). 추적표 배정이지만 본문에 없던 R-03.03도 다뤘다.
+- **실행 취소 (사용자 승인 필요 항목 → (a) 채택):** 스키마 변경 없이 `workbook.onUndone`이 실제 실행 취소 때 한 번 알리고 감지기가 `PRESS_KEY Ctrl+Z`로 환산한다. 키 입력 쪽 `keyPressed` 통지는 Ctrl+Z에서 뺐다(이중 통지 방지). `PRESS_KEY` 단계는 도구 모음 버튼으로 해도 통과한다.
+- **Motion 라이브러리 미설치:** CSS keyframes와 기존 transition으로 충분해 설치하지 않았다. 카드의 `src/styles/motion.ts`는 `src/styles/motion.css`로 대체했다.
+- **카드 원문과의 차이:** 추가 파일 `useReducedMotion.ts`와 함께 `motionSetting.ts`, `SettingsPage.tsx`(`/settings`, 사이드바 링크), `MotionWrapper.tsx`, 테스트 `CellPress.test.tsx`·`motionSetting.test.ts`·`motion.test.ts`·`settings-motion.spec.ts`. 개발 확인 화면에 `?scenario=03d` 시나리오를 더했고, 확인 화면의 실행 취소 버튼이 따로 보내던 `uiClicked`는 뺐다.
+- **알려진 한계:** 테두리 구멍 좌표는 애니메이션하지 않고 새 위치에서 페이드인한다. 앱 설정은 '시스템 따르기/항상 줄이기' 두 가지뿐이라 OS가 줄이기를 켠 상태에서 앱에서 다시 켜는 선택은 없다.

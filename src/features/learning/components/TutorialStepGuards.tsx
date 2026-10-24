@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import {
+  blockedWriteEvent,
   detectTutorialAction,
   guardMessage,
   shouldForwardToRunner,
 } from '@/engine/tutorials/actionDetector';
 import type { GridUserAction } from '@/engine/tutorials/actionDetector';
+
+import { MotionWrapper } from '@/components/tutorial/MotionWrapper';
 
 import { useTutorial } from '../context/useTutorial';
 
@@ -40,6 +43,11 @@ export function useTutorialGuards(): TutorialGuards {
     (action: GridUserAction): string | null => {
       if (step === null || action.composing) return null;
       const refused = guardMessage(step, action);
+      if (refused !== null && action.type === 'rangeWrite') {
+        // 허용 셀 밖 붙여넣기·채우기도 틀린 시도로 기록한다.
+        const event = blockedWriteEvent(step, action);
+        if (event !== null) dispatch({ type: 'ACTION', action: event });
+      }
       if (refused !== null && action.type === 'cellCommitted') {
         // 막은 입력도 틀린 시도로 기록한다(반영되지 않으므로 onUserAction이 불리지 않는다).
         const event = detectTutorialAction(action);
@@ -92,7 +100,11 @@ export function TutorialStepGuards({
   const shownHints = step.hints.slice(0, state.hintLevel);
   const hintsLeft = state.hintLevel < step.hints.length;
   return (
-    <div className="flex flex-col gap-2" data-testid="tutorial-step-guards">
+    <MotionWrapper
+      key={state.stepIndex}
+      className="flex flex-col gap-2"
+      data-testid="tutorial-step-guards"
+    >
       <div className="flex items-center gap-2 text-xs text-fg-muted">
         <span data-testid="tutorial-callout-progress">
           단계 {state.stepIndex + 1}/{total}
@@ -109,19 +121,26 @@ export function TutorialStepGuards({
       </p>
       <p className="text-sm text-fg-secondary">{step.description}</p>
       {state.lastFailure !== null && (
-        <p role="alert" className="text-sm text-error" data-testid="tutorial-failure">
+        <p
+          key={state.attempts}
+          role="alert"
+          className="cc-fade-in text-sm text-error"
+          data-testid="tutorial-failure"
+        >
           {state.lastFailure.message}
         </p>
       )}
       {waitingForNext && (
-        <p role="status" className="text-sm text-success">
+        <p role="status" className="cc-fade-in text-sm text-success">
           {step.successMessage}
         </p>
       )}
       {shownHints.length > 0 && (
         <ul className="list-disc pl-5 text-sm text-fg-secondary" data-testid="tutorial-hints">
           {shownHints.map((hint, index) => (
-            <li key={index}>{hint}</li>
+            <li key={index} className="cc-fade-in">
+              {hint}
+            </li>
           ))}
         </ul>
       )}
@@ -160,7 +179,7 @@ export function TutorialStepGuards({
           </button>
         )}
       </div>
-    </div>
+    </MotionWrapper>
   );
 }
 

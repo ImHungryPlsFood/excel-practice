@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { CellResult } from '@/engine/spreadsheet/FormulaEngineAdapter';
 import type { FillDirection } from '@/engine/spreadsheet/operations/autoFill';
@@ -100,6 +100,11 @@ export interface Workbook {
   fillFromEdge: (selection: CellRect, direction: 'down' | 'right') => string | null;
 
   undo: () => boolean;
+  /**
+   * 실행 취소가 실제로 실행될 때마다 알린다(Ctrl+Z·도구 모음 버튼 어느 쪽이든). 되돌릴 것이 없으면 알리지 않는다.
+   * 튜토리얼이 실행 취소 조작을 한 곳에서 감지하는 길이다(CARD-03D). 돌려주는 함수로 구독을 해제한다.
+   */
+  onUndone: (listener: () => void) => () => void;
   redo: () => boolean;
   canUndo: boolean;
   canRedo: boolean;
@@ -141,6 +146,7 @@ function layoutOf(model: WorkbookModel | null, sheet: string): GridLayout {
 export function useWorkbook(source: WorkbookSource): Workbook {
   const [book, setBook] = useState<LoadedBook | null>(null);
   const [failure, setFailure] = useState<LoadFailure | null>(null);
+  const undoneListeners = useRef(new Set<() => void>());
 
   useEffect(() => {
     let active = true;
@@ -250,7 +256,14 @@ export function useWorkbook(source: WorkbookSource): Workbook {
         if (model === null) return false;
         const undone = model.undo() !== null;
         bump();
+        if (undone) for (const listener of [...undoneListeners.current]) listener();
         return undone;
+      },
+      onUndone: (listener) => {
+        undoneListeners.current.add(listener);
+        return () => {
+          undoneListeners.current.delete(listener);
+        };
       },
       redo: () => {
         if (model === null) return false;

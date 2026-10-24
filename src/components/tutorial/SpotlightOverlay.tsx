@@ -19,9 +19,11 @@ export const SPOTLIGHT_PADDING = 2;
 interface SpotlightOverlayProps {
   /** 강조할 화면 영역(보이는 부분). null이면 구멍 없이 어둡게만 한다. */
   target: ViewportRect | null;
+  /** 강조 대상이 바뀔 때 바뀌는 값. 테두리가 새로 페이드인한다(구멍 좌표는 애니메이션하지 않는다, P-03). */
+  targetKey?: string;
 }
 
-export function SpotlightOverlay({ target }: SpotlightOverlayProps) {
+export function SpotlightOverlay({ target, targetKey }: SpotlightOverlayProps) {
   const maskId = `spotlight-mask-${useId().replace(/:/g, '')}`;
   const hole =
     target === null
@@ -38,7 +40,7 @@ export function SpotlightOverlay({ target }: SpotlightOverlayProps) {
       aria-hidden="true"
       focusable="false"
       data-testid="spotlight-overlay"
-      className="pointer-events-none fixed inset-0 z-40 h-full w-full"
+      className="cc-fade-in pointer-events-none fixed inset-0 z-40 h-full w-full"
       style={{ pointerEvents: 'none' }}
     >
       <defs>
@@ -57,7 +59,7 @@ export function SpotlightOverlay({ target }: SpotlightOverlayProps) {
         data-testid="spotlight-dim"
       />
       {hole !== null && (
-        <>
+        <g key={targetKey} className="cc-fade-in">
           <rect {...hole} rx="3" fill="none" stroke="white" strokeWidth="5" opacity="0.9" />
           <rect
             {...hole}
@@ -67,7 +69,7 @@ export function SpotlightOverlay({ target }: SpotlightOverlayProps) {
             strokeWidth="2"
             data-testid="spotlight-ring"
           />
-        </>
+        </g>
       )}
     </svg>
   );

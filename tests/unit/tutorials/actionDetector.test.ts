@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  blockedWriteEvent,
   detectTutorialAction,
+  edgeFillArea,
+  fillTarget,
   filledRange,
   guardMessage,
   normalizeKey,
@@ -246,5 +249,64 @@ describe('guardMessage: 허용 입력 밖 조작 차단', () => {
   it('허용 입력이 없는 단계와 셀 이동은 막지 않는다', () => {
     expect(guardMessage(selectStep, commit(5, 5, 'x'))).toBeNull();
     expect(guardMessage(sumStep, select(9, 9))).toBeNull();
+  });
+});
+
+describe('CARD-03D: 실행 취소·범위 쓰기', () => {
+  const range = (startRow: number, startCol: number, endRow: number, endCol: number) => ({
+    startRow,
+    startCol,
+    endRow,
+    endCol,
+  });
+  const write = (r: ReturnType<typeof range>): GridUserAction => ({
+    type: 'rangeWrite',
+    composing: false,
+    sheet: 'Sheet1',
+    range: r,
+  });
+
+  it('실행 취소는 Ctrl+Z 키 조작으로 환산된다', () => {
+    expect(detectTutorialAction({ type: 'undone', composing: false })).toEqual({
+      type: 'PRESS_KEY',
+      key: 'Ctrl+Z',
+    });
+  });
+
+  it('rangeWrite는 러너로 보내지 않고 가드에서만 쓴다', () => {
+    expect(detectTutorialAction(write(range(4, 2, 4, 2)))).toBeNull();
+  });
+
+  it('허용 셀(B2) 밖 범위 쓰기는 막고, 허용 셀 안과 제한 없는 단계는 막지 않는다', () => {
+    expect(guardMessage(sumStep, write(range(4, 2, 4, 2)))).not.toBeNull();
+    expect(guardMessage(sumStep, write(range(1, 1, 2, 1)))).not.toBeNull();
+    expect(guardMessage(sumStep, write(range(1, 1, 1, 1)))).toBeNull();
+    expect(guardMessage(selectStep, write(range(4, 2, 4, 2)))).toBeNull();
+  });
+
+  it('막은 범위 쓰기는 NOT_ALLOWED 틀린 시도로 기록되고 단계는 넘어가지 않는다', () => {
+    const action = write(range(4, 2, 4, 3));
+    if (action.type !== 'rangeWrite') throw new Error('rangeWrite여야 합니다');
+    const blocked = blockedWriteEvent(sumStep, action);
+    expect(blocked).toEqual({ type: 'WRITE_RANGE', sheetName: 'Sheet1', range: 'C5:D5' });
+    if (blocked === null) throw new Error('막혀야 합니다');
+    const active = tutorialReducer(definition, INITIAL_TUTORIAL_STATE, { type: 'START' });
+    const atSum = tutorialReducer(definition, active, {
+      type: 'ACTION',
+      action: { type: 'SELECT_CELL', sheetName: 'Sheet1', cell: 'B2' },
+    });
+    const after = tutorialReducer(definition, atSum, { type: 'ACTION', action: blocked });
+    expect(after).toMatchObject({ status: 'active', stepIndex: 1, attempts: 1 });
+    expect(after.status === 'active' ? after.lastFailure?.reason : null).toBe('NOT_ALLOWED');
+  });
+
+  it('채우기 대상 범위: 핸들은 새로 쓰이는 칸만, Ctrl+D·R은 원본 행·열을 뺀 칸', () => {
+    expect(fillTarget(range(2, 0, 2, 0), 'down', 2)).toEqual(range(3, 0, 4, 0));
+    expect(fillTarget(range(2, 1, 2, 1), 'right', 3)).toEqual(range(2, 2, 2, 4));
+    expect(fillTarget(range(5, 0, 5, 0), 'up', 2)).toEqual(range(3, 0, 4, 0));
+    expect(edgeFillArea(range(2, 0, 4, 0), 'down')).toEqual(range(3, 0, 4, 0));
+    expect(edgeFillArea(range(2, 0, 2, 0), 'down')).toEqual(range(2, 0, 2, 0));
+    expect(edgeFillArea(range(0, 0, 0, 0), 'down')).toBeNull();
+    expect(edgeFillArea(range(0, 0, 3, 3), 'right')).toEqual(range(0, 1, 3, 3));
   });
 });

@@ -1,6 +1,11 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { MAX_PASTE_TEXT_LENGTH, parseTsv, toTsv } from '@/engine/spreadsheet/operations/clipboard';
+import {
+  MAX_PASTE_TEXT_LENGTH,
+  parseTsv,
+  pasteWrites,
+  toTsv,
+} from '@/engine/spreadsheet/operations/clipboard';
 
 import type { CellRange, GridClipboard } from '../types';
 import type { Workbook } from './useWorkbook';
@@ -31,9 +36,15 @@ interface UseClipboardOptions {
   workbook: Workbook;
   /** 거부 안내를 보여 준다(null이면 지운다). */
   onNotice: (message: string | null) => void;
+  /** 쓰기 전에 대상 범위를 검사한다. 안내 문장을 돌려주면 반영하지 않는다(튜토리얼 허용 입력, CARD-03D). */
+  guardWrite?: (sheet: string, range: CellRange) => string | null;
 }
 
-export function useClipboard({ workbook, onNotice }: UseClipboardOptions): GridClipboard {
+export function useClipboard({
+  workbook,
+  onNotice,
+  guardWrite,
+}: UseClipboardOptions): GridClipboard {
   const [copied, setCopiedState] = useState<Copied | null>(null);
   const copiedRef = useRef<Copied | null>(null);
   const setCopied = useCallback((next: Copied | null) => {
@@ -69,9 +80,31 @@ export function useClipboard({ workbook, onNotice }: UseClipboardOptions): GridC
     [workbook, onNotice, setCopied],
   );
 
+  /** 붙여넣기가 쓸 범위가 허용 셀 밖이면 안내 문장. 범위를 못 정하는 경우(거부 사유)는 붙여넣기 본 경로가 안내한다. */
+  const blockedPaste = useCallback(
+    (source: Parameters<typeof pasteWrites>[0], target: CellRange): string | null => {
+      if (guardWrite === undefined) return null;
+      const planned = pasteWrites(source, target);
+      return 'error' in planned ? null : guardWrite(workbook.activeSheet, planned.rect);
+    },
+    [guardWrite, workbook.activeSheet],
+  );
+
   const pasteInternal = useCallback(
     (item: Copied, target: CellRange): CellRange | null => {
       if (item.cut) {
+        const moved = {
+          startRow: target.startRow,
+          startCol: target.startCol,
+          endRow: target.startRow + item.range.endRow - item.range.startRow,
+          endCol: target.startCol + item.range.endCol - item.range.startCol,
+        };
+        const blocked =
+          guardWrite?.(item.sheet, item.range) ?? guardWrite?.(workbook.activeSheet, moved) ?? null;
+        if (blocked !== null) {
+          onNotice(blocked);
+          return null;
+        }
         const refusal = workbook.moveCells({
           fromSheet: item.sheet,
           rect: item.range,
@@ -89,10 +122,16 @@ export function useClipboard({ workbook, onNotice }: UseClipboardOptions): GridC
           endCol: target.startCol + item.range.endCol - item.range.startCol,
         };
       }
-      const result = workbook.paste(
-        { values: item.values, origin: { row: item.range.startRow, col: item.range.startCol } },
-        target,
-      );
+      const source = {
+        values: item.values,
+        origin: { row: item.range.startRow, col: item.range.startCol },
+      };
+      const blocked = blockedPaste(source, target);
+      if (blocked !== null) {
+        onNotice(blocked);
+        return null;
+      }
+      const result = workbook.paste(source, target);
       if ('error' in result) {
         onNotice(result.error);
         return null;
@@ -100,7 +139,7 @@ export function useClipboard({ workbook, onNotice }: UseClipboardOptions): GridC
       onNotice(null);
       return result.rect;
     },
-    [workbook, onNotice, setCopied],
+    [workbook, onNotice, setCopied, guardWrite, blockedPaste],
   );
 
   const pasteText = useCallback(
@@ -109,8 +148,13 @@ export function useClipboard({ workbook, onNotice }: UseClipboardOptions): GridC
         onNotice('붙여넣을 내용이 너무 큽니다.');
         return null;
       }
-      const values = parseTsv(text);
-      const result = workbook.paste({ values, origin: null }, target);
+      const source = { values: parseTsv(text), origin: null };
+      const blocked = blockedPaste(source, target);
+      if (blocked !== null) {
+        onNotice(blocked);
+        return null;
+      }
+      const result = workbook.paste(source, target);
       if ('error' in result) {
         onNotice(result.error);
         return null;
@@ -118,7 +162,7 @@ export function useClipboard({ workbook, onNotice }: UseClipboardOptions): GridC
       onNotice(null);
       return result.rect;
     },
-    [workbook, onNotice],
+    [workbook, onNotice, blockedPaste],
   );
 
   const paste = useCallback(

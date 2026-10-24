@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
@@ -9,7 +10,14 @@ import {
   type KeyboardEvent,
 } from 'react';
 
-import { filledRange, normalizeKey, type GridUserAction } from '@/engine/tutorials/actionDetector';
+import {
+  edgeFillArea,
+  fillTarget,
+  filledRange,
+  normalizeKey,
+  UNDO_KEY,
+  type GridUserAction,
+} from '@/engine/tutorials/actionDetector';
 import type { CellResult } from '@/engine/spreadsheet/FormulaEngineAdapter';
 
 import { FormulaBar } from './FormulaBar';
@@ -205,7 +213,13 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
     }),
     [pointMode, flushPoint],
   );
-  const clipboard = useClipboard({ workbook, onNotice: setNotice });
+  /** 붙여넣기·채우기가 쓸 범위가 허용 셀 밖이면 안내 문장 (반영 전에 부른다, CARD-03D R-07.06) */
+  const guardRange = useCallback((sheet: string, range: CellRange): string | null => {
+    const guard = actionRef.current.inputGuard;
+    return guard?.({ type: 'rangeWrite', composing: false, sheet, range }) ?? null;
+  }, []);
+
+  const clipboard = useClipboard({ workbook, onNotice: setNotice, guardWrite: guardRange });
 
   const { editing } = editor;
   const formulaSheet = editing?.sheet ?? workbook.activeSheet;
@@ -264,8 +278,22 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
     [emit, workbook.activeSheet],
   );
 
+  const handleCellPress = useCallback(
+    (range: CellRange) => emit({ type: 'selectionChanged', sheet: workbook.activeSheet, range }),
+    [emit, workbook.activeSheet],
+  );
+
+  // 실행 취소가 실제로 실행되면(키든 도구 모음 버튼이든) 한 번 알린다.
+  const { onUndone } = workbook;
+  useEffect(() => onUndone(() => emit({ type: 'undone' })), [onUndone, emit]);
+
   const handleFill = useCallback(
     (source: CellRange, direction: Parameters<typeof filledRange>[1], count: number) => {
+      const blocked = guardRange(workbook.activeSheet, fillTarget(source, direction, count));
+      if (blocked !== null) {
+        setNotice(blocked);
+        return;
+      }
       const refused = workbook.fill(source, direction, count);
       setNotice(refused);
       if (refused === null) {
@@ -276,7 +304,7 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
         });
       }
     },
-    [workbook, emit],
+    [workbook, emit, guardRange],
   );
 
   /**
@@ -290,6 +318,8 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
       if (composing) return;
       const key = normalizeKey(event);
       if (key === null) return;
+      // 실행 취소는 실제로 실행될 때(workbook.onUndone) 한 번만 알린다. 허용 키 가드는 그대로 아래에서 본다.
+      const reportKey = key !== UNDO_KEY;
       const refused = actionRef.current.inputGuard?.({ type: 'keyPressed', composing: false, key });
       if (refused !== null && refused !== undefined) {
         event.preventDefault();
@@ -298,7 +328,7 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
         emit({ type: 'keyPressed', key });
         return;
       }
-      emit({ type: 'keyPressed', key });
+      if (reportKey) emit({ type: 'keyPressed', key });
     },
     [editor, emit],
   );
@@ -309,6 +339,15 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
       return { text: result.displayValue, kind: cellValueKind(result) };
     },
     [workbook],
+  );
+
+  const handleFillFromEdge = useCallback(
+    (selection: CellRange, direction: 'down' | 'right') => {
+      const area = edgeFillArea(selection, direction);
+      const blocked = area === null ? null : guardRange(workbook.activeSheet, area);
+      setNotice(blocked ?? workbook.fillFromEdge(selection, direction));
+    },
+    [workbook, guardRange],
   );
 
   const handleUndo = useCallback(() => {
@@ -424,6 +463,7 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
         onCellsChange={handleCellsChange}
         onActiveCellChange={handleActiveCellChange}
         onSelectionChange={handleSelectionChange}
+        onCellPress={handleCellPress}
         editor={editor}
         onUndo={handleUndo}
         onRedo={handleRedo}
@@ -431,9 +471,7 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
         structure={structure}
         clipboard={clipboard}
         onFill={handleFill}
-        onFillFromEdge={(selection, direction) =>
-          setNotice(workbook.fillFromEdge(selection, direction))
-        }
+        onFillFromEdge={handleFillFromEdge}
         pointMode={gridPointMode}
         referenceRanges={referenceRanges}
         editingElsewhere={editingElsewhere}
