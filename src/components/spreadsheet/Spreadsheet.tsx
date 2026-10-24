@@ -231,6 +231,7 @@ export const Spreadsheet = forwardRef<SpreadsheetHandle, SpreadsheetProps>(funct
       getCellViewportRect: (row, col) => gridRef.current?.getCellViewportRect(row, col) ?? null,
       getRangeViewportRect: (startRow, startCol, endRow, endCol) =>
         gridRef.current?.getRangeViewportRect(startRow, startCol, endRow, endCol) ?? null,
+      getCellAreaRect: () => gridRef.current?.getCellAreaRect() ?? null,
       selectCell: (row, col) => grid().selectCell(row, col),
       startEditing: (initialChar) => grid().startEditing(initialChar),
       focus: () => grid().focus(),

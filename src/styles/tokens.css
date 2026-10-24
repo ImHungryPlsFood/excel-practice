@@ -113,3 +113,11 @@
     --motion-duration-slow: 0.001ms;
   }
 }
+
+/* 앱 내 모션 감소 설정 (CARD-03C에서 속성 기준 마련, 설정 화면·저장은 CARD-03D) */
+:root[data-motion='reduce'] {
+  --motion-duration-instant: 0.001ms;
+  --motion-duration-fast: 0.001ms;
+  --motion-duration-normal: 0.001ms;
+  --motion-duration-slow: 0.001ms;
+}

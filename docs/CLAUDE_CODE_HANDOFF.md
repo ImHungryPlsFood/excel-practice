@@ -392,6 +392,7 @@ Claude Code는 각 작업 카드를 완료할 때마다 아래 마크다운 템�
   - `src/components/tutorial/hooks/useSpotlightPosition.ts` (`ResizeObserver` 및 스크롤 연동)
   - `tests/unit/components/CalloutTooltip.test.tsx`
   - (CARD-03B 후속, 2026-10-24) `src/features/learning/components/TutorialStepGuards.tsx`(말풍선 안 '다음' 버튼 연결), `tests/e2e/tutorial-actions.spec.ts`(포커스 확인 추가), `src/components/spreadsheet/Spreadsheet.tsx`(포커스 복귀용 핸들 노출이 필요하면)
+  - (구현 시 추가, 2026-10-24) `src/components/tutorial/calloutPlacement.ts`, `src/components/tutorial/TutorialSpotlight.tsx`, `src/components/tutorial/hooks/useMotionPreference.ts`, `src/components/spreadsheet/types.ts`·`SpreadsheetGrid.tsx`·`hooks/useVirtualGrid.ts`(셀 표시 영역 `getCellAreaRect`), `src/styles/tokens.css`(`data-motion="reduce"`), `src/pages/dev/TutorialHarnessPage.tsx`, `tests/unit/components/SpotlightOverlay.test.tsx`, `tests/unit/spreadsheet/SpreadsheetGrid.test.tsx`, `tests/e2e/tutorial-spotlight.spec.ts`
 - **구현 지침 및 금지 사항:**
   - (CARD-03B 후속, R-07.13) 말풍선의 '다음' 버튼을 눌러 단계가 넘어간 뒤 키보드 포커스를 그리드(`SpreadsheetHandle.focus()`)로 되돌린다. 03B의 개발 확인 화면에서는 '다음'을 누르면 포커스가 버튼에 남아 이어지는 `Ctrl+Z` 등 단축키가 그리드에 닿지 않는다. 단계가 안 넘어가는 경우(비활성)에는 포커스를 옮기지 않는다. 말풍선·'다음' 버튼은 `TutorialStepGuards`의 규칙(행동이 맞은 confirm 단계에서만 활성)을 그대로 따른다.
   - 오버레이가 사용자의 마우스/키보드 입력을 차단하지 않도록 `pointer-events` 제어.

@@ -117,6 +117,19 @@ export function useVirtualGrid(rowCount: number, colCount: number, layout?: Grid
     [getRangeViewportRect],
   );
 
+  /** 고정 머리글과 스크롤 막대를 뺀, 셀이 실제로 보이는 영역의 화면 좌표. 마운트 전이면 null. */
+  const getCellAreaRect = useCallback((): ViewportRect | null => {
+    const element = scrollRef.current;
+    if (element === null) return null;
+    const box = element.getBoundingClientRect();
+    return {
+      top: box.top + element.clientTop + GRID_METRICS.colHeaderHeight,
+      left: box.left + element.clientLeft + GRID_METRICS.rowHeaderWidth,
+      width: Math.max(0, element.clientWidth - GRID_METRICS.rowHeaderWidth),
+      height: Math.max(0, element.clientHeight - GRID_METRICS.colHeaderHeight),
+    };
+  }, []);
+
   /** 셀이 고정 머리글 뒤로 숨지 않고 완전히 보이도록 최소한만 스크롤한다. 동기적으로 반영된다. */
   const scrollToCell = useCallback(
     (row: number, col: number) => {
@@ -168,6 +181,7 @@ export function useVirtualGrid(rowCount: number, colCount: number, layout?: Grid
     colSize,
     getCellViewportRect,
     getRangeViewportRect,
+    getCellAreaRect,
     scrollToCell,
     getPageRowCount,
   };

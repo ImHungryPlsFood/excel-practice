@@ -150,7 +150,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
     const { selection, range, dispatch } = useCellSelection(bounds);
     const { active } = selection;
     const virtual = useVirtualGrid(rowCount, colCount, layout);
-    const { scrollToCell } = virtual;
+    const { scrollToCell, getCellAreaRect } = virtual;
     // 겹침 표시(GridOverlays, memo)가 스크롤 프레임마다 다시 그려지지 않도록 위치 함수 묶음을 고정한다.
     const overlayGeometry = useMemo(
       () => ({ rowTop: virtual.rowTop, colLeft: virtual.colLeft }),
@@ -351,6 +351,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
         getCellViewportRect: (row, col) => latestRef.current.getCellViewportRect(row, col),
         getRangeViewportRect: (startRow, startCol, endRow, endCol) =>
           latestRef.current.getRangeViewportRect(startRow, startCol, endRow, endCol),
+        getCellAreaRect: () => getCellAreaRect(),
         selectCell: (row, col) => {
           latestRef.current.commitEditing();
           dispatch({ type: 'select', position: { row, col } });
@@ -366,7 +367,7 @@ export const SpreadsheetGrid = forwardRef<SpreadsheetGridHandle, SpreadsheetGrid
         },
         focus: () => inputRef.current?.focus(),
       }),
-      [dispatch],
+      [dispatch, getCellAreaRect],
     );
 
     const move = (dRow: number, dCol: number, extend = false) =>

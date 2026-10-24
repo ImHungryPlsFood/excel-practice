@@ -55,6 +55,11 @@ export interface SpreadsheetGridHandle {
     endRow: number,
     endCol: number,
   ) => ViewportRect | null;
+  /**
+   * 고정 머리글을 뺀 셀 표시 영역의 화면 좌표 (CARD-03C). Spotlight가 강조 사각형을 이 영역으로 잘라
+   * 스크롤된 셀이 머리글 위에 그려지지 않게 한다. 마운트 전이면 null.
+   */
+  getCellAreaRect: () => ViewportRect | null;
   /** 활성 셀을 바꾸고 범위 선택을 해제한다. */
   selectCell: (row: number, col: number) => void;
   /** 활성 셀 편집을 시작한다. initialChar가 있으면 기존 내용을 그 글자로 바꿔 시작한다. */

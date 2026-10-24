@@ -43,7 +43,7 @@ async function reachFormulaStep(page: Page) {
 
 test('설명 화면과 다음 버튼만으로는 단계가 넘어가지 않는다', async ({ page }) => {
   await openTutorial(page);
-  await expect(progress(page)).toHaveText('단계 1/4');
+  await expect(progress(page)).toHaveText('단계 1/5');
 
   // 엉뚱한 셀을 고르면 안내만 나온다
   await cell(page, 4, 2).click();
@@ -53,7 +53,7 @@ test('설명 화면과 다음 버튼만으로는 단계가 넘어가지 않는�
   // 실제로 B2를 고르면 넘어간다
   await cell(page, 1, 1).click();
   await expect(stepTitle(page)).toHaveText('범위 고르기');
-  await expect(progress(page)).toHaveText('단계 2/4');
+  await expect(progress(page)).toHaveText('단계 2/5');
 });
 
 test('선택 → 범위 끌기 → 수식 확정 → 다음 확인 → 실행 취소 키로 끝까지 진행한다', async ({
@@ -75,10 +75,15 @@ test('선택 → 범위 끌기 → 수식 확정 → 다음 확인 → 실행 �
   await nextButton(page).click();
   await expect(stepTitle(page)).toHaveText('실행 취소');
 
-  // 다음 버튼에 있던 포커스를 그리드로 되돌린 뒤 실행 취소 키를 누른다
-  await cell(page, 3, 3).click();
+  // '다음'을 누른 직후 포커스는 그리드에 돌아와 있다(CARD-03C). 셀을 다시 클릭하지 않고 실행 취소 키를 누른다.
+  await expect(cellEditor(page)).toBeFocused();
   await page.keyboard.press('Control+z');
+  await expect(stepTitle(page)).toHaveText('먼 셀 선택');
+  // 마지막 단계는 화면 밖 L60을 강조하며 그쪽으로 스크롤한다(CARD-03C).
+  await cell(page, 59, 11).click();
   await expect(progress(page)).toHaveText('완료');
+  // 실행 취소가 실제로 B2 입력을 되돌렸는지 맨 위로 돌아가 확인한다.
+  await page.keyboard.press('Control+Home');
   await expect(cell(page, 1, 1)).toHaveText('');
   expect(errors).toEqual([]);
 });

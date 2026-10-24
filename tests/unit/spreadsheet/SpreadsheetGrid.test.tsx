@@ -283,4 +283,16 @@ describe('SpreadsheetGrid', () => {
       height: 72,
     });
   });
+
+  it('핸들 API: getCellAreaRect는 머리글을 뺀 셀 표시 영역을 돌려준다', () => {
+    const gridRef = createRef<SpreadsheetGridHandle>();
+    render(<Harness gridRef={gridRef} />);
+    const handle = gridRef.current;
+    if (handle === null) throw new Error('핸들이 연결되지 않았습니다');
+    const scroller = screen.getByRole('grid');
+    Object.defineProperty(scroller, 'clientWidth', { configurable: true, value: 500 });
+    Object.defineProperty(scroller, 'clientHeight', { configurable: true, value: 300 });
+    // jsdom의 위치는 (0,0)이므로 머리글 크기만큼 안쪽에서 시작하고, 크기는 머리글을 뺀 값이다.
+    expect(handle.getCellAreaRect()).toEqual({ top: 24, left: 48, width: 452, height: 276 });
+  });
 });

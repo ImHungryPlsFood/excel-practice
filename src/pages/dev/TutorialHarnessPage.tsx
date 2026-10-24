@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Spreadsheet } from '@/components/spreadsheet/Spreadsheet';
+import { Spreadsheet, type SpreadsheetHandle } from '@/components/spreadsheet/Spreadsheet';
 import { useWorkbook } from '@/components/spreadsheet/hooks/useWorkbook';
+import { TutorialSpotlight } from '@/components/tutorial/TutorialSpotlight';
 import { LearningLayout } from '@/features/learning/components/LearningLayout';
 import {
-  TutorialStepGuards,
+  TutorialStepList,
   useTutorialGuards,
 } from '@/features/learning/components/TutorialStepGuards';
 import { TutorialProvider } from '@/features/learning/context/TutorialContext';
@@ -16,7 +17,7 @@ import { TutorialDefinitionSchema } from '@/types/tutorial.schema';
  * 개발 전용 튜토리얼 조작 감지 확인 화면 (/dev/tutorial, CARD-03B).
  * 개발 서버와 성능 측정 빌드(--mode perf)에서만 라우트가 등록된다.
  * 실제 그리드 조작이 러너에 전달되어 단계가 넘어가는지 E2E로 확인하는 용도이며,
- * 화면 강조·말풍선은 CARD-03C가 만든다.
+ * CARD-03C: 강조 오버레이·말풍선(TutorialSpotlight)을 붙이고, 가상 스크롤 밖 셀(L60)을 강조하는 단계를 더했다.
  */
 
 const DEFINITION = TutorialDefinitionSchema.parse({
@@ -72,6 +73,15 @@ const DEFINITION = TutorialDefinitionSchema.parse({
       expectedAction: { type: 'PRESS_KEY', keys: ['Ctrl+Z'] },
       successMessage: '되돌렸습니다.',
     },
+    {
+      id: 'far-cell',
+      title: '먼 셀 선택',
+      description: '화면 밖에 있던 L60 셀을 클릭하세요.',
+      highlight: { type: 'CELL', cell: 'L60' },
+      expectedAction: { type: 'SELECT_CELL', cell: 'L60' },
+      failure: { messages: { WRONG_TARGET: 'L60 셀을 선택해야 합니다.' } },
+      successMessage: 'L60을 선택했습니다.',
+    },
   ],
 });
 
@@ -89,6 +99,7 @@ function TutorialWorkspace() {
   const workbook = useWorkbook(DATA);
   const { state, dispatch } = useTutorial();
   const { onUserAction, inputGuard } = useTutorialGuards();
+  const sheetRef = useRef<SpreadsheetHandle>(null);
 
   useEffect(() => {
     dispatch({ type: 'START' });
@@ -112,7 +123,7 @@ function TutorialWorkspace() {
           </Link>
         </>
       }
-      guide={<TutorialStepGuards />}
+      guide={<TutorialStepList />}
       footer={
         <>
           <span role="status" aria-label="튜토리얼 진행" className="truncate text-fg-secondary">
@@ -125,6 +136,7 @@ function TutorialWorkspace() {
               onUserAction({ type: 'uiClicked', composing: false, element: 'undo-button' });
             }}
             disabled={!workbook.canUndo}
+            data-testid="undo-button"
             className="ml-auto rounded-md border border-line px-3 py-1 text-sm hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-50"
           >
             실행 취소
@@ -133,6 +145,7 @@ function TutorialWorkspace() {
       }
     >
       <Spreadsheet
+        ref={sheetRef}
         workbook={workbook}
         label="작업 시트"
         rowCount={100}
@@ -141,6 +154,7 @@ function TutorialWorkspace() {
         inputGuard={inputGuard}
         className="min-h-0 flex-1"
       />
+      <TutorialSpotlight sheetRef={sheetRef} activeSheet={workbook.activeSheet} />
     </LearningLayout>
   );
 }
