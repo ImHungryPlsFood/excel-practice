@@ -56,6 +56,11 @@ describe('verify-content가 틀린 문제를 잡는다', async () => {
     ).toBe(true);
   });
 
+  it('HARDCODED_VALUE 오답이 있는데 값 입력을 막으면 안내가 화면에 나올 수 없다고 알린다', () => {
+    const found = failuresOf(failures, 'PRB-L00-BADACT-02');
+    expect(has(found, '허용 작업', 'HARDCODED_VALUE', '화면에서 나올 수 없습니다')).toBe(true);
+  });
+
   it('풀이에 필요한 작업(requiredActions)을 적지 않으면 알린다', () => {
     const found = failuresOf(failures, 'PRB-L00-BADACT-03');
     expect(has(found, '허용 작업', 'requiredActions')).toBe(true);

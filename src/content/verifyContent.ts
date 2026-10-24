@@ -154,6 +154,16 @@ function checkActions(problem: ProblemDefinition): ContentFailure[] {
     }
   }
 
+  // 학생이 값을 직접 입력해 보는 시도는 HARDCODED_VALUE 오답으로 채점해 안내한다(MASTER_PROMPT §9.1).
+  // 그 안내가 화면에 나오려면 값 입력을 허용해야 하고, 그 경우 ENTER_VALUE는 쓰이는 작업이다.
+  if (problem.misconceptions.some((m) => m.diagnosis === 'HARDCODED_VALUE')) {
+    if (!allowed.has('ENTER_VALUE')) {
+      fail(
+        `HARDCODED_VALUE 대표 오답의 안내는 학생이 값을 직접 입력해야 보이는데 allowedActions에 ${nameOf(['ENTER_VALUE'])}이(가) 없어 화면에서 나올 수 없습니다. 값 입력을 허용해 채점으로 안내하세요.`,
+      );
+    }
+    used.add('ENTER_VALUE');
+  }
   const unused = problem.allowedActions.filter((action) => !used.has(action));
   if (unused.length > 0) {
     fail(

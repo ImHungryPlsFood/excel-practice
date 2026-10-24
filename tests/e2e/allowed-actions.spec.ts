@@ -65,21 +65,27 @@ async function typeRefused(page: Page, row: number, col: number, text: string, m
 }
 
 test.describe('수식 입력만 허용한 문제 (Level 0 첫 문제)', () => {
-  test('값 입력·지우기·붙여넣기·잘라내기·채우기·행 삽입은 거부된다', async ({ page, context }) => {
+  test('붙여넣기·잘라내기·채우기·행 삽입은 거부되고, 값 입력은 채점으로 안내한다', async ({
+    page,
+    context,
+  }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await open(page, 'level-0');
 
-    // 값 입력
-    await typeRefused(page, 5, 1, '19', '값을 직접 입력하거나 지울 수 없습니다');
+    // 값 입력은 거부하지 않고 채점해 HARDCODED_VALUE 안내를 보여 준다
+    await typeAt(page, 5, 1, '19');
+    await expect(cell(page, 5, 1)).toHaveText('19');
+    await submitButton(page).click();
+    await expect(page.getByRole('region', { name: '채점 결과' })).toContainText(
+      '아직 완성되지 않았어요',
+    );
+    await expect(page.getByTestId('feedback-misconception')).toContainText('직접 입력하셨습니다');
+    await cell(page, 5, 1).click();
+    await page.keyboard.press('Delete');
     await expect(cell(page, 5, 1)).toHaveText('');
 
     // 수식 입력은 된다
     await typeAt(page, 5, 1, '=D3');
-    await expect(cell(page, 5, 1)).toHaveText('19');
-
-    // 지우기(값 입력의 한 종류)
-    await cell(page, 5, 1).click();
-    await page.keyboard.press('Delete');
     await expect(cell(page, 5, 1)).toHaveText('19');
 
     // 붙여넣기
@@ -126,8 +132,21 @@ test.describe('채우기·복사만 허용한 문제 (Level 0 세 번째 문제)
     await submitAndContinue(page);
     await expect(task(page)).toContainText('채우기로 금액 열 완성하기');
 
-    await typeRefused(page, 6, 3, '4', '값을 직접 입력하거나 지울 수 없습니다');
-    await typeRefused(page, 6, 3, '=B7*C7', '수식을 입력할 수 없습니다');
+    // 값 입력은 채점으로 안내한다
+    await typeAt(page, 6, 3, '19000');
+    await submitButton(page).click();
+    await expect(page.getByTestId('feedback-misconception')).toContainText('직접 입력하셨습니다');
+    await cell(page, 6, 3).click();
+    await page.keyboard.press('Delete');
+    await expect(cell(page, 6, 3)).toHaveText('');
+    // 수식 입력은 거부하되 무엇을 하면 되는지 알려 준다
+    await typeRefused(
+      page,
+      6,
+      3,
+      '=B7*C7',
+      '수식을 입력할 수 없습니다. 이 문제는 채우기 핸들을 끌어 보거나 복사해 붙여넣어 보세요.',
+    );
     await expect(cell(page, 6, 3)).toHaveText('');
 
     // 복사해 붙여넣기: D2를 복사해 D3:D7에 붙여넣는다

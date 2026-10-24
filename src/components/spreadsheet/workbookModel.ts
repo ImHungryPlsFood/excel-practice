@@ -282,6 +282,16 @@ const ACTION_REFUSALS: Record<AllowedAction, string> = {
   INSERT_DELETE_ROW_COLUMN: '이 문제에서는 행이나 열을 삽입하거나 삭제할 수 없습니다.',
 };
 
+/** 거부할 때 대신 무엇을 하면 되는지 알려 주는 문장. 허용한 작업을 학생 말로 풀어 쓴다. */
+function alternativeGuide(allowed: AllowedActions): string {
+  const ways: string[] = [];
+  if (allowed.includes('AUTOFILL')) ways.push('채우기 핸들을 끌어');
+  if (allowed.includes('COPY_PASTE')) ways.push('복사해 붙여넣어');
+  if (allowed.includes('ENTER_FORMULA')) ways.push('수식을 입력해');
+  if (ways.length === 0) return '';
+  return ` 이 문제는 ${ways.join(' 보거나 ')} 보세요.`;
+}
+
 const READ_ONLY_MESSAGE = '문제의 원본 데이터 칸이라 수정할 수 없습니다.';
 const READ_ONLY_SHEET_MESSAGE = '원본 데이터가 있는 시트라 이름을 바꾸거나 삭제할 수 없습니다.';
 
@@ -437,8 +447,9 @@ export class WorkbookModel {
 
   /** 문제가 허용하지 않은 작업이면 거부 안내 문장, 허용하면 null */
   private actionRefusal(action: AllowedAction): string | null {
-    if (this.allowedActions === undefined || this.allowedActions.includes(action)) return null;
-    return ACTION_REFUSALS[action];
+    const allowed = this.allowedActions;
+    if (allowed === undefined || allowed.includes(action)) return null;
+    return `${ACTION_REFUSALS[action]}${alternativeGuide(allowed)}`;
   }
 
   // ---- 변경 (모두 실행 취소 가능) ----

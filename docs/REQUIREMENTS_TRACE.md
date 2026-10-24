@@ -971,5 +971,6 @@
 - **일부러 틀린 문제 테스트:** `tests/fixtures/bad-content`(9개: 허용 작업 3종, 대표 오답 판정 코드, 기준 정답 미통과, expectedResult 불일치, `&` 소수, FILTER 빈 결과, UNIQUE 빈 셀)와 `bad-schema`는 `tests/unit/content/verifyContent.test.ts`가 쓰고 `src/content`에는 없다. 같은 테스트가 `--content-root` 옵션으로 명령줄이 종료 코드 1과 한국어 이유를 내는지도 확인한다.
 - **데이터셋:** `src/content/datasets/sampleData.ts`에 10종(판매·재고·출석은 연습실 샘플 재사용, 고객·지출·주문·부서 실적·날짜별 활동·오류 섞인 데이터·여러 시트). `verifyDatasets.ts`가 개인정보 형식·실존 기업명·수식 오류·지나치게 규칙적인 숫자·오류 데이터/여러 시트 모양을 점검한다. 기존 연습실 샘플은 그대로다.
 - **기존 테스트 조정(약화 아님):** 거부되는 경로를 쓰던 `learn-flow.spec.ts`(값 입력·수식 입력 오답 시도)와 `read-only-ranges.spec.ts`(자동 채우기 원본 값 '7'→'=D3')를 허용된 경로로 바꾸고 거부 확인을 더했다. 개발 확인 화면(`ProblemHarnessPage`)의 `allowedActions`에 `ENTER_VALUE`를 추가했다(그 화면의 기존 E2E가 값 입력 오답을 시도한다).
-- **알려진 한계:** 허용하지 않은 작업의 `HARDCODED_VALUE`류 오답 안내는 화면에서 나올 수 없다(예: 수식만 허용하는 문제에서 값 직접 입력은 채점 전에 거부된다). 채점 단위 테스트에서만 확인한다. 거부된 입력은 편집기가 열린 채 남으므로 Esc로 닫아야 한다. 값 지우기는 `ENTER_VALUE`로 본다.
+- **사용자 결정 반영(2026-10-24):** 10문항 모두 `ENTER_VALUE`를 허용해 숫자를 직접 입력하면 거부하지 않고 채점해 `HARDCODED_VALUE` 안내를 화면에 보인다(원문 9.1절). verify-content는 `HARDCODED_VALUE` 대표 오답이 있는데 `ENTER_VALUE`가 없으면 실패시킨다. 채우기·복사 문제(FILL-01·REL-01)의 `ENTER_FORMULA` 금지는 유지하고, 거부 안내가 허용된 작업에 맞춰 "이 문제는 채우기 핸들을 끌어 보거나 복사해 붙여넣어 보세요."처럼 방법을 알려 준다(E2E 확인). esbuild 설치 스크립트는 THREAT_MODEL S-10에 예외로 기록했다.
+- **알려진 한계:** 거부된 입력은 편집기가 열린 채 남으므로 Esc로 닫아야 한다. 값 지우기는 `ENTER_VALUE`로 본다.
 

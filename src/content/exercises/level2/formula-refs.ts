@@ -30,7 +30,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['ENTER_FORMULA'],
+    allowedActions: ['ENTER_VALUE', 'ENTER_FORMULA'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'B5',
@@ -107,7 +107,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['AUTOFILL', 'COPY_PASTE'],
+    allowedActions: ['ENTER_VALUE', 'AUTOFILL', 'COPY_PASTE'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'D7',
@@ -195,7 +195,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['ENTER_FORMULA', 'AUTOFILL', 'COPY_PASTE'],
+    allowedActions: ['ENTER_VALUE', 'ENTER_FORMULA', 'AUTOFILL', 'COPY_PASTE'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'C2',

@@ -57,6 +57,17 @@ describe('allowedActions 강제', () => {
     expect(model.getInput('Sheet1', 0, 2)).toBe('');
   });
 
+  it('거부 안내는 허용한 작업으로 무엇을 하면 되는지 알려 준다', async () => {
+    const model = await create(['ENTER_VALUE', 'AUTOFILL', 'COPY_PASTE']);
+    expect(model.setCells('Sheet1', [{ row: 0, col: 2, value: '=A1' }])).toMatch(
+      /수식을 입력할 수 없습니다\. 이 문제는 채우기 핸들을 끌어 보거나 복사해 붙여넣어 보세요\./,
+    );
+    const formulaOnly = await create(['ENTER_FORMULA']);
+    expect(formulaOnly.setCells('Sheet1', [{ row: 0, col: 2, value: '7' }])).toMatch(
+      /이 문제는 수식을 입력해 보세요/,
+    );
+  });
+
   it('붙여넣기·잘라내기: COPY_PASTE가 없으면 거부한다', async () => {
     const model = await create(['ENTER_FORMULA']);
     expect(model.paste('Sheet1', PASTE, cell)).toEqual({ error: expect.stringMatching(/복사/) });

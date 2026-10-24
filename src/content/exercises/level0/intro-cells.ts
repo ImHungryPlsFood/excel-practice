@@ -34,7 +34,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['ENTER_FORMULA'],
+    allowedActions: ['ENTER_VALUE', 'ENTER_FORMULA'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'B6',
@@ -110,7 +110,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['ENTER_FORMULA'],
+    allowedActions: ['ENTER_VALUE', 'ENTER_FORMULA'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'B8',
@@ -191,7 +191,7 @@ export const problems: ProblemDefinitionInput[] = [
         },
       },
     },
-    allowedActions: ['AUTOFILL', 'COPY_PASTE'],
+    allowedActions: ['ENTER_VALUE', 'AUTOFILL', 'COPY_PASTE'],
     grading: {
       targetSheet: 'Sheet1',
       targetCell: 'D7',

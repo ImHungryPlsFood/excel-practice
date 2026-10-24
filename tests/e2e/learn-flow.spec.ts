@@ -43,16 +43,11 @@ test('개념을 읽고 풀고 틀리면 고치고 다음 문제로 넘어가 코
   await expect(task).toContainText('표에서 칸 하나 가져오기');
   await expect(page.getByRole('button', { name: '다음 문제' })).toHaveCount(0);
 
-  // 1번: 이 문제는 수식 입력만 허용한다(allowedActions). 값을 직접 입력하면 거부된다.
+  // 1번: 숫자를 직접 입력 → 오답 설명 → 수식으로 고쳐 통과
   await typeAt(page, 5, 1, '19');
-  await expect(page.getByText('값을 직접 입력하거나 지울 수 없습니다').first()).toBeVisible();
-  await page.keyboard.press('Escape'); // 거부된 입력의 편집기를 닫는다
-  await expect(cell(page, 5, 1)).toHaveText('');
-  // 다른 분야의 칸을 가져오는 수식 → 오답 설명 → 고쳐 통과
-  await typeAt(page, 5, 1, '=D2');
   await submitButton(page).click();
   await expect(feedback(page)).toContainText('아직 완성되지 않았어요');
-  await expect(page.getByTestId('feedback-misconception')).toContainText('다른 분야의 칸');
+  await expect(page.getByTestId('feedback-misconception')).toContainText('직접 입력하셨습니다');
   await expect(page.getByRole('button', { name: '다음 문제' })).toHaveCount(0);
   await typeAt(page, 5, 1, '=D3');
   await expect(cell(page, 5, 1)).toHaveText('19');
