@@ -12,6 +12,7 @@ export default defineConfig(
     ignores: [
       'dist/',
       'dist-perf/',
+      'dist-e2e/',
       'coverage/',
       'playwright-report/',
       'test-results/',
