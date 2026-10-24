@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { gradeSubmission, type SheetContents } from '@/engine/grading/PerturbationScorer';
+import { submissionWithInput } from '@/content/verifyContent';
+import { gradeSubmission } from '@/engine/grading/PerturbationScorer';
 import { getContentLoader } from '@/engine/grading/problemLoader';
-import { positionOfAddress } from '@/engine/spreadsheet/operations/referenceShift';
-import type { CellScalar } from '@/engine/spreadsheet/FormulaEngineAdapter';
 import type { ProblemDefinition } from '@/types/problem.schema';
 
 /*
@@ -15,25 +14,8 @@ import type { ProblemDefinition } from '@/types/problem.schema';
 const loader = getContentLoader();
 const problems = loader.listProblems();
 
-function submissionWith(problem: ProblemDefinition, input: string): SheetContents {
-  const sheets: Record<string, CellScalar[][]> = {};
-  for (const [name, sheet] of Object.entries(problem.initialWorkbook.sheets)) {
-    sheets[name] = sheet.initialData.map((row) => [...row]);
-  }
-  const position = positionOfAddress(problem.grading.targetCell);
-  if (position === null) throw new Error(`대상 셀 주소 오류: ${problem.grading.targetCell}`);
-  const grid = sheets[problem.grading.targetSheet] ?? [];
-  while (grid.length <= position.row) grid.push([]);
-  const line = grid[position.row] ?? [];
-  while (line.length <= position.col) line.push(null);
-  line[position.col] = /^-?\d+(\.\d+)?$/.test(input) ? Number(input) : input; // 화면과 같이 숫자 원문은 숫자로 채점기에 넘긴다
-  grid[position.row] = line;
-  sheets[problem.grading.targetSheet] = grid;
-  return sheets;
-}
-
 const grade = (problem: ProblemDefinition, input: string) =>
-  gradeSubmission(problem, { sheets: submissionWith(problem, input) });
+  gradeSubmission(problem, { sheets: submissionWithInput(problem, input) });
 
 describe('기초 문제 콘텐츠 구성', () => {
   it('Level 0~3에 10문항(3/0/3/4)이 있고 서식 코스(Level 1)에는 아직 문제가 없다', () => {

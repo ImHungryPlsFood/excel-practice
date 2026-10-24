@@ -1,5 +1,6 @@
 # CI 품질 게이트 (TEST_STRATEGY Q-08, THREAT_MODEL S-10/S-11).
 # test:rules(CARD-06C)와 test:e2e(CARD-03D 이후)는 해당 카드에서 단계를 추가한다.
+# verify-content(CARD-04E)는 콘텐츠의 정답·오답·허용 작업이 하나라도 틀리면 빌드를 막는다.
 # 서드파티 액션은 공급망 보호를 위해 커밋 SHA로 고정한다.
 name: CI
 
@@ -24,6 +25,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
+      - run: npm run verify-content
       - run: npm test
       - run: npm run audit:licenses
       - run: npm run audit:deps

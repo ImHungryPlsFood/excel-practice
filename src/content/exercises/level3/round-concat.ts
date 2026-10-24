@@ -78,6 +78,7 @@ export const problems: ProblemDefinitionInput[] = [
     recommendedSolution: {
       steps: ['D2 칸을 선택한다', '=ROUND(B2/C2,2) 를 입력한다'],
       formula: '=ROUND(B2/C2,2)',
+      requiredActions: ['ENTER_FORMULA'],
     },
     completionCriteria: 'D2가 B2÷C2를 소수 둘째 자리로 ROUND한다.',
   },
@@ -145,6 +146,7 @@ export const problems: ProblemDefinitionInput[] = [
     recommendedSolution: {
       steps: ['C2 칸을 선택한다', '=B2&"원" 을 입력한다'],
       formula: '=B2&"원"',
+      requiredActions: ['ENTER_FORMULA'],
     },
     completionCriteria: 'C2가 B2의 값 뒤에 "원"을 이어 붙인 글자다.',
   },

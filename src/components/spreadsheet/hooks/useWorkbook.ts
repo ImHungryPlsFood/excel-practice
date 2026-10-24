@@ -10,6 +10,7 @@ import {
   DEFAULT_SHEET,
   snapshotFromRows,
   WorkbookModel,
+  type AllowedActions,
   type ReadOnlyRanges,
   type WorkbookSnapshot,
 } from '../workbookModel';
@@ -147,8 +148,13 @@ function layoutOf(model: WorkbookModel | null, sheet: string): GridLayout {
 /**
  * @param source 행 우선 원문 배열(단일 시트) 또는 여러 시트 스냅샷. 같은 참조가 유지되어야 한다(바뀌면 통합 문서를 새로 만든다).
  * @param readOnlyRanges 수정할 수 없는 영역(문제의 readOnlyRanges). source처럼 같은 참조를 유지해야 한다.
+ * @param allowedActions 문제가 허용한 작업(CARD-04E). 없으면 제한하지 않는다. 같은 참조를 유지해야 한다.
  */
-export function useWorkbook(source: WorkbookSource, readOnlyRanges?: ReadOnlyRanges): Workbook {
+export function useWorkbook(
+  source: WorkbookSource,
+  readOnlyRanges?: ReadOnlyRanges,
+  allowedActions?: AllowedActions,
+): Workbook {
   const [book, setBook] = useState<LoadedBook | null>(null);
   const [failure, setFailure] = useState<LoadFailure | null>(null);
   const undoneListeners = useRef(new Set<() => void>());
@@ -156,7 +162,7 @@ export function useWorkbook(source: WorkbookSource, readOnlyRanges?: ReadOnlyRan
   useEffect(() => {
     let active = true;
     let created: WorkbookModel | null = null;
-    WorkbookModel.create(toSnapshot(source), undefined, readOnlyRanges)
+    WorkbookModel.create(toSnapshot(source), undefined, readOnlyRanges, allowedActions)
       .then((model) => {
         if (active) {
           created = model;
@@ -175,7 +181,7 @@ export function useWorkbook(source: WorkbookSource, readOnlyRanges?: ReadOnlyRan
       active = false;
       created?.destroy();
     };
-  }, [source, readOnlyRanges]);
+  }, [source, readOnlyRanges, allowedActions]);
 
   const current = book !== null && book.source === source ? book : null;
   const loadError = failure !== null && failure.source === source ? failure.message : null;

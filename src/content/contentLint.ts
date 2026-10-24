@@ -5,7 +5,7 @@ import { KNOWN_UNSUPPORTED_FUNCTIONS } from '@/engine/spreadsheet/supportedFunct
  * 수식 문자열만 보고 판정할 수 있는 규칙을 순수 함수로 구현한다. 튜토리얼 스키마가 정답 수식에 적용하고,
  * 문제 스키마·verify-content(CARD-04E)도 같은 함수를 쓴다.
  *
- * 검사하지 못하는 것(셀 데이터를 계산해야 알 수 있음, 엔진 실행 검증 몫):
+ * 검사하지 못하는 것(셀 데이터를 계산해야 알 수 있음. src/content/verifyContent.ts가 엔진으로 계산해 검사한다, CARD-04E):
  *   - AVERAGE 등 결과가 소수가 되는 함수를 & 로 잇는 경우, 데이터 때문에 소수가 되는 나눗셈 결과
  *   - FILTER 일치 값 없음(D-12), UNIQUE 대상의 빈 셀(D-13)
  */
@@ -233,6 +233,30 @@ export function convertsNumbersToText(formula: string): boolean {
     if (unstable) return true;
   }
   return false;
+}
+
+/**
+ * 글자로 바뀌는 값 가운데 결과가 안정적이지 않은 피연산자(참조·계산식·ROUND 없이 감싼 함수)의 원문.
+ * convertsNumbersToText와 같은 규칙이다. verify-content가 이 피연산자를 엔진으로 계산해
+ * 데이터 때문에 소수가 되는지 본다(CARD-04E).
+ */
+export function unstableTextOperands(formula: string): string[] {
+  const masked = maskStrings(formula).replace(/^\s*=/, '');
+  const source = formula.replace(/^\s*=/, '');
+  const found = new Set<string>();
+  visitAmpersandOperands(masked, (from, to) => {
+    if (!isStableTextOperand(masked.slice(from, to))) found.add(source.slice(from, to).trim());
+  });
+  for (const call of findFunctionCalls(masked)) {
+    const takesText = NUMBER_TO_TEXT_FUNCTIONS[call.name];
+    if (takesText === undefined) continue;
+    call.args.forEach(([from, to], index) => {
+      if (takesText(index) && !isStableTextOperand(masked.slice(from, to))) {
+        found.add(source.slice(from, to).trim());
+      }
+    });
+  }
+  return [...found];
 }
 
 /** 수식 하나가 콘텐츠 작성 지침을 어기는 곳을 모두 찾는다. 문제가 없으면 빈 배열. */

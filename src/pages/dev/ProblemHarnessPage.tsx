@@ -36,7 +36,7 @@ const PROBLEM: ProblemDefinition = ProblemDefinitionSchema.parse({
       },
     },
   },
-  allowedActions: ['ENTER_FORMULA', 'COPY_PASTE'],
+  allowedActions: ['ENTER_VALUE', 'ENTER_FORMULA', 'COPY_PASTE'],
   grading: {
     targetSheet: 'Sheet1',
     targetCell: 'B7',

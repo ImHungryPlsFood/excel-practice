@@ -71,6 +71,7 @@ export const ALLOWED_ACTIONS = [
   'INSERT_DELETE_ROW_COLUMN',
 ] as const;
 export const AllowedActionSchema = z.enum(ALLOWED_ACTIONS);
+export type AllowedAction = z.infer<typeof AllowedActionSchema>;
 
 /** 교란 변형 (Q-02): 변형 A 더하기, 변형 B 빈 행 삽입, 변형 C 배율 */
 export const PERTURBATION_KINDS = ['ADD_SCALAR', 'INSERT_BLANK_ROW', 'MULTIPLY_SCALAR'] as const;
@@ -162,9 +163,17 @@ export const ProblemDefinitionSchema = z
     recommendedSolution: z.object({
       steps: z.array(z.string().min(1)).min(1),
       formula: FormulaSchema.optional(),
+      /** 이 풀이에 필요한 작업. allowedActions에 모두 들어 있어야 한다(verify-content가 확인, CARD-04E) */
+      requiredActions: z.array(AllowedActionSchema).min(1).optional(),
     }),
     alternativeSolutions: z
-      .array(z.object({ description: z.string().min(1), formula: FormulaSchema.optional() }))
+      .array(
+        z.object({
+          description: z.string().min(1),
+          formula: FormulaSchema.optional(),
+          requiredActions: z.array(AllowedActionSchema).min(1).optional(),
+        }),
+      )
       .default([]),
     scoring: z
       .object({

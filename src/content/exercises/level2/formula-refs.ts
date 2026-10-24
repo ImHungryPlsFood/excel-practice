@@ -73,6 +73,7 @@ export const problems: ProblemDefinitionInput[] = [
     recommendedSolution: {
       steps: ['B5 칸을 선택한다', '=B2*B3-B4 를 입력한다'],
       formula: '=B2*B3-B4',
+      requiredActions: ['ENTER_FORMULA'],
     },
     completionCriteria: 'B5가 B2*B3-B4 와 같은 결과를 칸 참조로 계산한다.',
   },
@@ -154,7 +155,15 @@ export const problems: ProblemDefinitionInput[] = [
         'D7이 =SUM(D2:D6) 인지 확인한다',
       ],
       formula: '=SUM(D2:D6)',
+      requiredActions: ['AUTOFILL'],
     },
+    alternativeSolutions: [
+      {
+        description: 'B7을 복사해 C7:D7에 붙여넣는다',
+        formula: '=SUM(D2:D6)',
+        requiredActions: ['COPY_PASTE'],
+      },
+    ],
     completionCriteria: 'D7이 3월 열(D2:D6)의 합계를 SUM으로 구한다.',
   },
   {
@@ -234,7 +243,15 @@ export const problems: ProblemDefinitionInput[] = [
         'C2의 채우기 핸들을 C5까지 끌어 확인한다',
       ],
       formula: '=B2/$B$6',
+      requiredActions: ['ENTER_FORMULA', 'AUTOFILL'],
     },
+    alternativeSolutions: [
+      {
+        description: 'C2에 수식을 입력한 뒤 C2를 복사해 C3:C5에 붙여넣는다',
+        formula: '=B2/$B$6',
+        requiredActions: ['ENTER_FORMULA', 'COPY_PASTE'],
+      },
+    ],
     completionCriteria: 'C2가 B2를 전체 예산 칸(B6)으로 나누고, 채워도 B6이 고정된다.',
   },
 ];
